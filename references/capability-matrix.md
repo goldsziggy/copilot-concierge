@@ -1,6 +1,30 @@
 # Capability matrix: Copilot CLI and the GitHub Copilot app
 
-## Concierge 0.4.0 status
+## Concierge 0.5.0 scope
+
+The current entry is `copilot-concierge:concierge`; `frontdesk` is a historical name, not an invocation alias. The source adds bounded Scout project notes, an orchestrated Ship it role and verification of custom profile model pins before dispatch. These are instruction contracts; current source, installation and live-trial evidence is recorded separately in [runtime verification](runtime-verification.md).
+
+The 2026-10-11 candidate app smoke observed the sole `concierge` picker entry, a Luna root (selected in the app), Sol orchestrator and Luna Scout, normal note creation, and a follow-up that refreshed a contradicted note fact. Source checks passed 57 tests on Node 20 and 22. This does not establish all host workflows or live provider creation; see the scoped [candidate evidence](runtime-verification.md#reviewed-candidate-checks-2026-10-11).
+
+Scout note maintenance is a narrow file-write exception during normal research, disabled by an explicit user no-write instruction. Unsafe path types, unresolved containment or denied access stop note access or maintenance. Other work keeps its assigned scope.
+
+Actual GitHub/GitLab draft creation and Windows/Linux model workflows remain unverified. Neither static checks nor a marketplace installation prove those workflows.
+
+### Ship it instruction contract (not live acceptance)
+
+| Capability | GitHub | GitLab |
+| --- | --- | --- |
+| Optional offer after verified implementation | Source contract; Concierge asks, orchestrator delegates | Same |
+| Read-only target, published-change and duplicate preflight | Existing authorized capability required; fork/multiple/self-hosted remotes must resolve unambiguously | Same |
+| Separate publication consent | Exact provider/host/project, head/base, title/body and draft flag confirmed; independent of plan approval/auto/tool permission | Same |
+| Draft creation | Supported native `create_pull_request` where required by host; its session/repository/head restrictions apply | Existing authorized integration/CLI must support creation as a draft on the confirmed instance |
+| Unsupported or ambiguous state | Stops safely; no implicit commit/push, duplicate or non-draft conversion | Same |
+| Live app preflight smoke | Named Luna Ship it worker stopped on a fixture with no remote or commits; fixture contents and notes unchanged | Not performed |
+| Live draft creation | **Not performed** | **Not performed** |
+
+Static regressions cover role/model/tool inheritance, consent/draft gates and safe-stop instructions. They do not demonstrate provider authorization, actual API behavior or user-question rendering in either client. No provider connector, server or credentials are bundled.
+
+## Historical Concierge 0.4.0 status
 
 The 0.4.0 source candidate passed 39 tests, package validation, catalog synchronization and offline host catalog discovery for `copilot-concierge`. Live app/model workflows were not replayed under the new identifiers. See [runtime verification](runtime-verification.md) for scope; the historical table below is not new live acceptance evidence.
 

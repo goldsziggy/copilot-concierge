@@ -86,7 +86,7 @@ function nativeOptions(argv) {
     }
   }
   for (const flag of valued) assert.ok(options.has(flag), `Required native flag missing: ${flag}`);
-  assert.equal(options.get('--agent'), 'copilot-concierge:frontdesk');
+  assert.equal(options.get('--agent'), 'copilot-concierge:concierge');
   return options;
 }
 
@@ -100,7 +100,7 @@ test('launcher uses the requested project and configured native role/model witho
   const paths = await fixture(t);
   await writeFile(paths.userConfig, JSON.stringify({
     planApproval: 'ask',
-    models: { frontdesk: 'fixture-luna-root', orchestrator: 'fixture-old-sol', specialist: 'fixture-old-leaf' },
+    models: { concierge: 'fixture-luna-root', orchestrator: 'fixture-old-sol', specialist: 'fixture-old-leaf' },
   }));
   await writeFile(paths.projectConfig, JSON.stringify({ models: { orchestrator: 'fixture-sol-middle' } }));
   await writeFile(paths.sessionConfig, JSON.stringify({ models: { specialist: 'fixture-luna-leaf' } }));
@@ -121,13 +121,25 @@ test('launcher uses the requested project and configured native role/model witho
   assert.equal(JSON.parse(await readFile(path.join(pluginDirectory, 'plugin.json'), 'utf8')).name, 'copilot-concierge');
   const effective = JSON.parse(await readFile(path.join(pluginDirectory, 'effective-config.json'), 'utf8'));
   assert.deepEqual(effective.value.models, {
-    frontdesk: 'fixture-luna-root', orchestrator: 'fixture-sol-middle', specialist: 'fixture-luna-leaf', escalation: 'gpt-6.1-sol',
+    concierge: 'fixture-luna-root', orchestrator: 'fixture-sol-middle', specialist: 'fixture-luna-leaf', escalation: 'gpt-6.1-sol',
   });
   assert.equal(effective.value.planApproval, 'auto');
+  const entry = await readFile(path.join(pluginDirectory, 'com.github.copilot/agents/concierge.agent.md'), 'utf8');
+  assert.match(entry, /^model: "fixture-luna-root"$/m);
+  assert.equal((await readdir(path.join(pluginDirectory, 'com.github.copilot/agents'))).includes('frontdesk.agent.md'), false);
   assert.match(result.stdout, /Plan approval: auto/);
 });
 
-test('launcher preserves invocation cwd without --project and explicitly selects the default frontdesk model', posixOnly, async t => {
+test('launcher accepts the legacy frontdesk model key but invokes the renamed entry', posixOnly, async t => {
+  const paths = await fixture(t);
+  await writeFile(paths.userConfig, JSON.stringify({ models: { frontdesk: 'legacy-root-model' } }));
+  const result = launch(paths);
+  assertExit(result, 0);
+  const [call] = await invocations(paths);
+  assert.equal(nativeOptions(call.argv).get('--model'), 'legacy-root-model');
+});
+
+test('launcher preserves invocation cwd without --project and explicitly selects the default concierge model', posixOnly, async t => {
   const paths = await fixture(t);
   const result = launch(paths);
   assertExit(result, 0);
@@ -156,7 +168,7 @@ test('extra agent directories load natively: plugins by --plugin-dir, others by 
   assert.equal(pluginDirs.length, 2, 'Concierge copy plus the extra plugin directory');
   assert.equal(pluginDirs[1], pluginDir);
   assert.deepEqual(argv.flatMap((value, i) => value === '--add-dir' ? [argv[i + 1]] : []), [plainDir]);
-  assert.equal(argv[argv.indexOf('--agent') + 1], 'copilot-concierge:frontdesk');
+  assert.equal(argv[argv.indexOf('--agent') + 1], 'copilot-concierge:concierge');
   assert.match(result.stdout, /Extra agent directories/);
 });
 
@@ -171,7 +183,7 @@ test('invalid configuration and unsupported launch options never start Copilot',
   const cases = [
     { name: 'malformed JSON', config: '{ broken' },
     { name: 'invalid approval value', config: JSON.stringify({ planApproval: true }) },
-    { name: 'Auto model', config: JSON.stringify({ models: { frontdesk: 'Auto' } }) },
+    { name: 'Auto model', config: JSON.stringify({ models: { concierge: 'Auto' } }) },
     { name: 'unknown setting', config: JSON.stringify({ allowAllTools: true }) },
     { name: 'missing explicit session file', extra: paths => ['--session-config', path.join(paths.root, 'missing.json')] },
     { name: 'permission bypass flag', extra: () => ['--allow-all-tools'] },

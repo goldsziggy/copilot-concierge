@@ -22,7 +22,10 @@ test('release copies include the logo and Apache license and exclude local state
   await copyPackage(source, output);
   const logo = 'assets/concierge-copilot.png';
   assert.deepEqual(await readFile(path.join(output, logo)), await readFile(path.join(root, logo)));
-  assert.match(await readFile(path.join(output, 'README.md'), 'utf8'), /\]\(assets\/concierge-copilot\.png\)/);
+  const readme = await readFile(path.join(output, 'README.md'), 'utf8');
+  assert.match(readme, /(?:\]\(assets\/concierge-copilot\.png\)|src="assets\/concierge-copilot\.png")/);
+  assert.match(readme, /\]\(assets\/orchestration\.svg\)/);
+  assert.deepEqual(await readFile(path.join(output, 'assets/orchestration.svg')), await readFile(path.join(root, 'assets/orchestration.svg')));
   for (const file of ['LICENSE', 'NOTICE']) {
     assert.deepEqual(await readFile(path.join(output, file)), await readFile(path.join(root, file)));
   }

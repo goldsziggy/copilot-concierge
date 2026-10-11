@@ -1,64 +1,72 @@
 # Concierge
 
-![Concierge robot receptionist](assets/concierge-copilot.png)
+<img src="assets/concierge-copilot.png" alt="Concierge robot receptionist in navy, white and teal" width="128" align="right">
 
-**Concierge** — a native plugin for GitHub Copilot, installed as `copilot-concierge`.
+Tell Concierge what you want to get done. It brings in the right specialists, helps shape a plan, coordinates the work and comes back with results you can check.
 
-Concierge is a GitHub Copilot plugin for people who want to describe a goal and have it handled well. You talk to a front desk; it hands the work to an orchestrator, which plans with specialists, asks you only what matters, shows a short plan for approval and keeps a task list as the work moves.
+Concierge is a native plugin for **GitHub Copilot CLI and the GitHub Copilot app**. It uses Copilot's agents, skills and permissions. You need a signed-in Copilot account with access to the configured models; the defaults are GPT-6 Luna and GPT-6.1 Sol.
 
-It runs entirely on Copilot's own agents, skills, models, questions, task lists and permissions, in Copilot CLI and the GitHub Copilot app. There is no server, database, scheduler or extra approval layer.
+## Get started
 
-## Start Concierge
-
-After [installing it](references/install.md):
-
-- **CLI:** `copilot --agent copilot-concierge:frontdesk` in your project folder (or `/agent` → **frontdesk**).
-- **App:** pick **frontdesk** in the agent picker, choose **GPT-6 Luna** in the model picker, then type your request.
-
-Then just say what you want, for example "Make the basket screen better for our customers", "Make total([]) return 0 and run the focused tests", or paste a ticket key. More in [sample prompts](examples/requests.md).
-
-## How it works
-
-| Role | Model | What it does |
-| --- | --- | --- |
-| Front desk | Luna 6 (`gpt-6-luna`) | Understands the request, prepares a brief, runs one orchestrator per objective (several at once if needed), routes follow-ups to the right one, hands long objectives to a fresh orchestrator, asks your questions and plan approval natively, keeps the task list you see |
-| Orchestrator | Sol 6.1 (`gpt-6.1-sol`) | Decides what work is needed, dispatches specialists (in parallel when independent), judges their evidence and plans; never searches or edits itself |
-| Specialists | Luna 6 | Scout (tickets, repository, connected tools), product manager, enterprise UX, React, Node.js, GraphQL, reviewer |
-| Escalation | Sol 6.1 | Takes over a specialist's task when a Luna worker could not finish it or the risk warrants it |
-
-Models are pinned with Copilot's required-model policy: Concierge never switches to Auto or another model, and an unavailable model is reported, not replaced. Specialists report only to the orchestrator; all execution goes through Copilot's own tool permissions. Tickets are read through whatever integrations your Copilot already has (for example a Jira MCP server); Concierge bundles none.
-
-The skills are usable on their own too: `plan`, `grill-plan`, `scout`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `review` and `orchestrate`.
-
-Your organization can add its own agents and skills and route Concierge's roles to them with a `copilot-concierge-routing` table; see [adding your own agents and skills](references/customizing.md).
-
-## Approval
-
-By default Concierge shows a short plan and waits for "Approve". Set `{ "planApproval": "auto" }` in `.copilot-concierge/config.json` (project) or `~/.config/copilot-concierge/config.json` (you), or just say "go ahead without asking", to skip that pause. Copilot's own permission prompts are unaffected; see [approval preference](references/approval-preference.md).
-
-## What works where
-
-The predecessor Zilot 0.3.0 was verified live in Copilot CLI 1.0.93/1.0.95 and the GitHub Copilot app 1.1.28 on 2026-10-10. Those sessions exercised questions, plan approval, delegation, parallel specialists, follow-ups, separate work, extra agents, missing-ticket reports, cancellation, escalation, unavailable models and resume. They used the old `zilot` identifiers and do not establish acceptance of the Concierge 0.4.0 rebrand.
-
-**Concierge 0.4.0 source checks pass:** 39 tests, package validation, catalog synchronization and offline host catalog discovery, including the new metadata and namespace. Live app/model workflows have not been replayed under the new IDs. Historical limits include the CLI not rendering the root task list, the app requiring GPT-6 Luna to be selected for the front desk, and no connected ticket system being available to test. See the [capability matrix](references/capability-matrix.md) and [verification details](references/runtime-verification.md).
-
-## Repository
+From your project folder:
 
 ```sh
-npm test            # configuration, launcher and profile checks (no model calls)
-npm run validate    # package structure and links
-npm run catalog:check
-npm run package     # dist/copilot-concierge-<version>.zip and .sha256
+copilot plugin marketplace add goldsziggy/copilot-concierge
+copilot plugin install copilot-concierge@copilot-concierge
+copilot --agent copilot-concierge:concierge
 ```
 
-- [Install, start, configure and remove](references/install.md)
-- [Adding your own agents and skills](references/customizing.md)
-- [Handoff contract](references/handoff.md)
-- [Distribution](references/distribution.md) and [releasing](references/releasing.md)
-- [Migration from Zilot's plugin or former application](references/migration.md)
+Then give it a goal:
 
-`tests/fixtures/workspace` is a deliberately broken sample project used for live trials; copy it before use. `tests/fixtures/jira/TEAM-42.json` is fictional sample data, not a connector.
+> Make the basket screen easier to use. Follow our existing design system, show me the plan, then implement it and run the relevant tests.
+
+**In the app:** open **Customize → Plugins**, add the `goldsziggy/copilot-concierge` marketplace and install **copilot-concierge**. Open your project, select **concierge** in the agent picker and **GPT-6 Luna** in the model picker, then send your request. Restart the app if a CLI installation does not appear.
+
+Upgrading from 0.4? The entry agent is now **concierge**, replacing **frontdesk**. Update shortcuts and start a fresh session. [Install, update and migrate →](references/install.md)
+
+## A small team behind one conversation
+
+![Orchestration: you talk to Concierge, which routes your goal to an orchestrator. The orchestrator chooses Scout for context and local project notes, planning and UX specialists, and implementation and review specialists. Evidence and questions return through the orchestrator to Concierge. After verification, optional Ship it requires acceptance of read-only preflight and separate confirmation before creating a draft pull or merge request.](assets/orchestration.svg)
+
+You stay in one conversation. Concierge relays questions, shows the plan and keeps you updated. Its orchestrator decides which specialists the task needs, coordinates independent work and checks their evidence. A small request does not need the whole team.
+
+- **Scout** finds repository, document and ticket context through tools you already have. It can maintain a small project note so future requests do less rediscovery.
+- **Planning and design** specialists clarify requirements, challenge the plan and work with your existing design system.
+- **Implementation and review** specialists cover React, Node.js and GraphQL, run focused checks and review changes. An escalation role is available when more help is needed.
+
+Ticket access depends on your existing integrations. Concierge does not bundle a ticket connector or provider credentials.
+
+## You're in control
+
+Concierge asks you to approve a short plan by default. Say “go ahead without asking” to skip that pause, or set `{"planApproval":"auto"}` in `.copilot-concierge/config.json`. Copilot's tool permissions still apply. [Approval settings →](references/approval-preference.md)
+
+**Ship it is optional.** After verified implementation, Concierge can offer to prepare a draft GitHub pull request or GitLab merge request. Accepting starts read-only preflight. Creating the draft requires a separate confirmation of the exact destination, commits, title and body. Ship it uses an existing authorized integration or CLI; it stops if the destination, access or draft capability is unclear. It does not commit, push or merge. Ship it runs through Concierge's orchestrator, not as a standalone skill. [Shipping details →](references/handoff.md#optional-ship-it-decisions)
+
+**Project notes stay small.** Scout uses only `.copilot-concierge/project-notes.md` in the assigned repository: at most 12 sourced facts and 2 KiB. Current files take precedence over these advisory notes. An explicit no-write request disables maintenance; unsafe paths or denied access stop note maintenance. These are local project files, not a synced memory service. [Scout's note rules →](skills/scout/SKILL.md#project-notes)
+
+## Make it yours
+
+Add your organization's agents, skills and routing rules without changing Concierge. Roles use one explicitly configured model with Copilot's required-model policy; an unavailable model is reported. The app's root session model still needs attention in its model picker. [Custom agents and skills →](references/customizing.md) · [Model configuration →](references/install.md#session-local-launcher)
+
+## Verification and limits
+
+Source checks, installation checks and live model sessions are different kinds of evidence. [Runtime verification](references/runtime-verification.md) records their scope, including historical sessions under the old Zilot name. The [capability matrix](references/capability-matrix.md) covers host differences. App smoke tests exercised Scout note creation and refresh, plus a Ship it preflight that stopped safely on a repository without a remote or commits. Live draft creation on GitHub and GitLab, and Windows/Linux model workflows, remain unverified.
+
+The plugin is available through its own marketplace above. An Awesome Copilot listing requires separate maintainer approval and publication.
+
+## Working on Concierge
+
+```sh
+npm test
+npm run validate
+npm run catalog:check
+npm run package
+```
+
+These source checks make no model calls. Packaging creates a versioned ZIP and checksum under `dist/`. Live Copilot trials use your account's credits.
+
+[Install and remove](references/install.md) · [Sample requests](examples/requests.md) · [Handoff contract](references/handoff.md) · [Distribution](references/distribution.md) · [Release process](references/releasing.md) · [Migration from Zilot](references/migration.md)
 
 ## License
 
-Copyright 2026 goldsziggy. This plugin, documentation and included logo are licensed under [Apache-2.0](LICENSE). See [NOTICE](NOTICE).
+Copyright 2026 goldsziggy. The plugin, documentation and included artwork are licensed under [Apache-2.0](LICENSE). See [NOTICE](NOTICE).

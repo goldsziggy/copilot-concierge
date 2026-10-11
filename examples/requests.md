@@ -1,6 +1,6 @@
 # Sample prompts
 
-Type these to Concierge's front desk in plain language. You never need to name a specialist. Each example says what you should see. The *verified* labels refer to historical 0.3.0 sessions, not a new 0.4.0 runtime check (see [runtime verification](../references/runtime-verification.md)).
+Start `copilot --agent copilot-concierge:concierge`, or choose **concierge** in the app, and describe your goal in plain language. You never need to name a specialist. The *verified* labels below refer only to historical Zilot 0.3.0 sessions; they are not current-version acceptance (see [runtime verification](../references/runtime-verification.md)).
 
 ## A goal that needs a decision
 
@@ -42,7 +42,17 @@ Starts a separate piece of work and answers without changing files. *Verified.*
 
 > Run an accessibility audit of src/ui.mjs. No changes.
 
-If your extra directory contains a better-suited agent (here a team `accessibility-auditor` with its own checklist skill), Concierge uses it. *Verified.*
+Add an explicit `copilot-concierge-routing` row for your team agent (for example `accessibility-auditor`) and its checklist skill. Concierge uses a route only after verifying the exact discovered profile and its single required model pin. Historical custom routing was *verified* under Zilot 0.3.0; the current eligibility checks are recorded separately.
+
+## Learning the project
+
+> Help me understand how this project is organized and which checks matter before I make a change.
+
+Scout gathers source evidence and may create or refresh `.copilot-concierge/project-notes.md` for future requests. Notes stay within 12 facts and 2 KiB, use safe paths and remain advisory. Say “Do not write any files, including project notes” for wholly read-only discovery. This describes the current instruction contract, not a historical acceptance result.
+
+## Preparing a draft PR or MR
+
+After verified implementation, accept Concierge's offer to run read-only preflight if you want a draft request. It checks the destination, published commits, duplicate requests and existing authorized tools. You then see the exact proposal and decide whether to create it. You can decline either step. It does not commit, push or merge, and plan approval does not approve publication. Live provider draft creation remains unverified.
 
 ## Approval preferences
 

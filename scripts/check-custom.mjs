@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
 
-export const CONCIERGE_ROLES = ['scout', 'product-manager', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer', 'escalation'];
-const CONCIERGE_SKILLS = ['orchestrate', 'plan', 'grill-plan', 'scout', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'review'];
+export const CONCIERGE_ROLES = ['scout', 'product-manager', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer', 'ship-it', 'escalation'];
+const CONCIERGE_SKILLS = ['orchestrate', 'plan', 'grill-plan', 'scout', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'review', 'ship-it'];
 const BUILTIN_PREFIX = 'copilot-concierge:';
 
 // Where Copilot reads agents and skills for each kind of root: a project

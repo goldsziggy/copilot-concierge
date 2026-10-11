@@ -22,7 +22,7 @@ if (args.includes('--help')) {
     const child = spawn('copilot', [
       '--no-auto-update', '--plugin-dir', configured.pluginDirectory,
       ...extraDirectoryArguments(configured.value.extraDirectories),
-      '--agent', 'copilot-concierge:frontdesk', '--model', configured.value.models.frontdesk,
+      '--agent', 'copilot-concierge:concierge', '--model', configured.value.models.concierge,
     ], { cwd, stdio: 'inherit' });
     child.on('error', error => { console.error(`Copilot could not start: ${error.message}`); process.exitCode = 1; });
     child.on('exit', (code, signal) => { process.exitCode = code ?? (signal ? 1 : 0); });

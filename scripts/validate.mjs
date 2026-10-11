@@ -34,6 +34,7 @@ try {
   }
   let skills = 0;
   let agents = 0;
+  let entryAgents = 0;
   for (const file of files) {
     if (!file.endsWith('.md')) continue;
     const text = (await readFile(file, 'utf8')).replace(/\r\n/g, '\n');
@@ -55,6 +56,13 @@ try {
       try {
         const name = field(text, 'name');
         field(text, 'description');
+        if (shipped && name === 'concierge') {
+          entryAgents++;
+          if (path.basename(file) !== 'concierge.agent.md') fail(`${relative}: Concierge entry filename must be concierge.agent.md`);
+          if (field(text, 'user-invocable') !== 'true') fail(`${relative}: Concierge entry must be user-invocable`);
+        } else if (shipped && field(text, 'user-invocable') !== 'false') {
+          fail(`${relative}: only Concierge may be user-invocable`);
+        }
         // Copilot silently drops an agent whose frontmatter is not valid YAML;
         // an unquoted ': ' or ' #' inside a plain value is the common cause.
         for (const line of text.match(/^---\n([\s\S]*?)\n---/)[1].split('\n')) {
@@ -70,9 +78,16 @@ try {
         const tools = hasTools ? field(text, 'tools') : null;
         const controls = /\b(task|list_agents|read_agent|write_agent|update_todo|exit_plan_mode|ask_user)\b/;
         if (name === 'orchestrator' && hasTools) fail(`${relative}: orchestrator must not restrict tools; specialists inherit through it`);
-        if (name === 'frontdesk') {
-          if (!hasTools || /\b(view|rg|grep|glob|bash|powershell|apply_patch|edit|create|web_fetch)\b/.test(tools)) fail(`${relative}: front desk must list only control tools`);
-          for (const control of ['task', 'read_agent', 'write_agent', 'ask_user', 'update_todo']) if (!new RegExp(`\\b${control}\\b`).test(tools)) fail(`${relative}: front desk needs ${control}`);
+        if (name === 'ship-it' && hasTools) fail(`${relative}: ship-it must not restrict tools; authorized provider integrations are inherited`);
+        if (name === 'ship-it') {
+          if (model !== 'gpt-6-luna') fail(`${relative}: ship-it must pin gpt-6-luna`);
+          if (field(text, 'user-invocable') !== 'false') fail(`${relative}: ship-it must be internal`);
+          if (/^disable-model-invocation: true$/m.test(text.split('\n---')[0])) fail(`${relative}: ship-it must remain dispatchable`);
+          if (field(text, 'skills') !== '[ship-it]') fail(`${relative}: ship-it skill required`);
+        }
+        if (name === 'concierge') {
+          if (!hasTools || /\b(view|rg|grep|glob|bash|powershell|apply_patch|edit|create|web_fetch)\b/.test(tools)) fail(`${relative}: Concierge entry must list only control tools`);
+          for (const control of ['task', 'read_agent', 'write_agent', 'ask_user', 'update_todo']) if (!new RegExp(`\\b${control}\\b`).test(tools)) fail(`${relative}: Concierge entry needs ${control}`);
         } else if (hasTools && controls.test(tools)) fail(`${relative}: specialist has agent-control tools`);
         if (tools?.includes('*')) fail(`${relative}: tool wildcard not allowed; omit tools instead`);
       } catch (error) { fail(`${relative}: ${error.message}`); }
@@ -84,7 +99,8 @@ try {
       catch { fail(`${relative}: missing local link ${target}`); }
     }
   }
-  if (skills !== 9 || agents !== 10) fail(`Expected 9 skills and 10 agents; found ${skills} and ${agents}`);
+  if (skills !== 10 || agents !== 11) fail(`Expected 10 skills and 11 agents; found ${skills} and ${agents}`);
+  if (entryAgents !== 1) fail(`Expected one Concierge entry agent; found ${entryAgents}`);
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`Package checks passed: ${skills} skills, ${agents} agents, ${files.length} files. These are static checks, not runtime acceptance.`);
 } catch (error) { console.error(error.message); process.exitCode = 1; }

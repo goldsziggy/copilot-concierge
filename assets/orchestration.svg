@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1100" viewBox="0 0 1120 1100" role="img" aria-labelledby="title description">
+  <title id="title">How Concierge coordinates your work</title>
+  <desc id="description">Talk to your Concierge. It talks to the orchestrator for you. No need to be a prompt-engineering expert—let your Concierge take care of that. Concierge handles questions, plan approval and progress. Its orchestrator chooses Scout for source context and bounded local project notes, planning and design specialists, and implementation and review specialists as needed. Specialists return evidence to the orchestrator. After verified implementation, optional Ship it first asks to run read-only preflight, then asks for separate confirmation of exact details before a draft GitHub pull request or GitLab merge request can be created through existing authorized tools. Model choices are configured separately.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#007e87" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+  </defs>
+  <rect width="1120" height="1100" rx="24" fill="#f3f9fa" />
+  <rect x="40" y="40" width="8" height="46" rx="4" fill="#00bfc3" />
+  <text x="65" y="71" font-size="34" font-weight="750" font-family="Arial, Helvetica, sans-serif" fill="#062342">One request. A coordinated team.</text>
+  <text x="65" y="107" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Native Copilot agents and skills, with you in the conversation.</text>
+  <rect x="40" y="145" width="250" height="128" rx="18" fill="white" stroke="#b9cdd4" />
+  <text x="65" y="184" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="15" font-weight="700" letter-spacing="2">YOU</text>
+  <text x="65" y="218" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="27" font-weight="700">Share a goal</text>
+  <text x="65" y="248" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Answer what matters</text>
+  <path d="M306 209 H342" marker-start="url(#arrow)" marker-end="url(#arrow)" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="358" y="145" width="316" height="128" rx="18" fill="#062342" />
+  <text x="383" y="184" font-family="Arial, Helvetica, sans-serif" fill="#55e1db" font-size="15" font-weight="700" letter-spacing="2">YOUR CONVERSATION</text>
+  <text x="383" y="218" font-family="Arial, Helvetica, sans-serif" fill="#fff" font-size="27" font-weight="700">Concierge</text>
+  <text x="383" y="243" font-size="21" font-family="Arial, Helvetica, sans-serif" fill="#d9eff1">Questions &amp; plan approval</text>
+  <text x="383" y="266" font-size="19" font-family="Arial, Helvetica, sans-serif" fill="#d9eff1">Progress &amp; results</text>
+  <path d="M690 209 H726" marker-start="url(#arrow)" marker-end="url(#arrow)" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="742" y="145" width="338" height="128" rx="18" fill="white" stroke="#007e87" stroke-width="2" />
+  <text x="767" y="184" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="15" font-weight="700" letter-spacing="2">COORDINATION</text>
+  <text x="767" y="218" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="27" font-weight="700">Orchestrator</text>
+  <text x="767" y="243" font-size="21" font-family="Arial, Helvetica, sans-serif" fill="#466175">Plans &amp; delegates</text>
+  <text x="767" y="266" font-size="19" font-family="Arial, Helvetica, sans-serif" fill="#466175">Checks evidence</text>
+  <text x="40" y="317" font-weight="650" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="21">Chooses the specialists your task needs</text>
+  <path d="M911 273 V335 H200 V357 M560 335 V357 M911 335 V357" marker-end="url(#arrow)" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M200 347 V357" marker-end="url(#arrow)" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M560 347 V357" marker-end="url(#arrow)" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="40" y="369" width="320" height="246" rx="18" fill="white" stroke="#c7d9de" />
+  <circle cx="79" cy="404" r="11" fill="none" stroke="#007e87" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M87 412 L96 421" fill="none" stroke="#007e87" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="112" y="415" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="27" font-weight="700">Scout</text>
+  <text x="64" y="454" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Repository, docs and tickets</text>
+  <text x="64" y="484" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Ground the work in sources</text>
+  <rect x="60" y="510" width="280" height="86" rx="12" fill="#e5f7f6" />
+  <text x="76" y="538" font-size="20" font-weight="650" font-family="Arial, Helvetica, sans-serif" fill="#062342">Local project notes</text>
+  <text x="76" y="565" font-size="19" font-family="Arial, Helvetica, sans-serif" fill="#466175">Up to 12 facts / 2 KiB</text>
+  <text x="76" y="588" font-size="17" font-family="Arial, Helvetica, sans-serif" fill="#466175">Current source evidence wins</text>
+  <rect x="400" y="369" width="320" height="246" rx="18" fill="white" stroke="#c7d9de" />
+  <rect x="427" y="392" width="25" height="31" rx="4" fill="none" stroke="#007e87" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M433 401 H446 M433 409 H446 M433 417 H441" fill="none" stroke="#007e87" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="473" y="415" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="27" font-weight="700">Plan + design</text>
+  <text x="424" y="454" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Product manager</text>
+  <text x="424" y="484" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Enterprise UX</text>
+  <path d="M424 506 H696" stroke="#dce8eb" />
+  <text x="424" y="539" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="21">Clarify the goal</text>
+  <text x="424" y="569" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="21">Use your design system</text>
+  <text x="424" y="599" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="21">Challenge risky plans</text>
+  <rect x="760" y="369" width="320" height="246" rx="18" fill="white" stroke="#c7d9de" />
+  <path d="M800 396 L788 407 L800 418 M817 396 L829 407 L817 418 M811 392 L805 422" fill="none" stroke="#007e87" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="846" y="415" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="27" font-weight="700">Build + review</text>
+  <text x="784" y="454" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">React · Node.js · GraphQL</text>
+  <text x="784" y="484" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Reviewer</text>
+  <path d="M784 506 H1056" stroke="#dce8eb" />
+  <text x="784" y="539" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="21">Implement the change</text>
+  <text x="784" y="569" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="21">Run focused checks</text>
+  <text x="784" y="599" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="21">Review the evidence</text>
+  <text x="560" y="651" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Specialists report back to the orchestrator. Escalation is available when needed.</text>
+  <rect x="40" y="686" width="1040" height="162" rx="18" fill="#e5f7f6" stroke="#b9d9d9" />
+  <rect x="64" y="709" width="108" height="27" rx="13.5" fill="#55e1db" />
+  <text x="118" y="728" font-size="14" font-weight="750" text-anchor="middle" letter-spacing="1.4" font-family="Arial, Helvetica, sans-serif" fill="#062342">OPTIONAL</text>
+  <text x="190" y="732" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="27" font-weight="700">Ship it — after verified implementation</text>
+  <text x="64" y="778" font-size="22" font-weight="650" font-family="Arial, Helvetica, sans-serif" fill="#062342">Accept preflight</text>
+  <path d="M250 772 H280" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M273 767 L281 772 L273 777" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="298" y="778" font-size="22" font-family="Arial, Helvetica, sans-serif" fill="#466175">Read-only checks</text>
+  <path d="M495 772 H525" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M518 767 L526 772 L518 777" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="544" y="778" font-size="22" font-weight="650" font-family="Arial, Helvetica, sans-serif" fill="#062342">Confirm exact details</text>
+  <path d="M786 772 H816" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M809 767 L817 772 L809 777" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="835" y="778" font-size="22" font-family="Arial, Helvetica, sans-serif" fill="#466175">Draft PR / MR</text>
+  <text x="64" y="820" font-size="20" font-family="Arial, Helvetica, sans-serif" fill="#466175">Existing authorized tools only. No commits, pushes or merges.</text>
+  <text x="560" y="881" text-anchor="middle" font-size="18" font-family="Arial, Helvetica, sans-serif" fill="#466175">Roles describe the workflow. Copilot permissions and configured models still apply.</text>
+  <rect x="40" y="910" width="1040" height="158" rx="18" fill="#062342" />
+  <text x="64" y="950" font-size="28" font-weight="700" font-family="Arial, Helvetica, sans-serif" fill="#fff">Talk to your Concierge.</text>
+  <text x="64" y="982" font-size="23" font-family="Arial, Helvetica, sans-serif" fill="#d9eff1">It talks to the orchestrator for you.</text>
+  <text x="64" y="1014" font-size="23" font-family="Arial, Helvetica, sans-serif" fill="#d9eff1">No need to be a prompt-engineering expert—</text>
+  <text x="64" y="1046" font-size="23" font-family="Arial, Helvetica, sans-serif" fill="#d9eff1">let your Concierge take care of that.</text>
+</svg>

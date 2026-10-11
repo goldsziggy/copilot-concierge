@@ -5,7 +5,7 @@ import os from 'node:os';
 
 export const DEFAULTS = Object.freeze({
   planApproval: 'ask',
-  models: Object.freeze({ frontdesk: 'gpt-6-luna', orchestrator: 'gpt-6.1-sol', specialist: 'gpt-6-luna', escalation: 'gpt-6.1-sol' }),
+  models: Object.freeze({ concierge: 'gpt-6-luna', orchestrator: 'gpt-6.1-sol', specialist: 'gpt-6-luna', escalation: 'gpt-6.1-sol' }),
   extraDirectories: Object.freeze([]),
 });
 
@@ -22,8 +22,11 @@ export function validateConfig(config, source = 'configuration') {
   }
   if ('models' in config) {
     if (!object(config.models)) throw new Error(`${source}: models must be an object`);
+    if (Object.hasOwn(config.models, 'frontdesk') && Object.hasOwn(config.models, 'concierge')) {
+      throw new Error(`${source}: use models.concierge or its deprecated models.frontdesk alias, not both`);
+    }
     for (const [role, model] of Object.entries(config.models)) {
-      if (!Object.hasOwn(DEFAULTS.models, role)) throw new Error(`${source}: unknown model role ${role}`);
+      if (!Object.hasOwn(DEFAULTS.models, role) && role !== 'frontdesk') throw new Error(`${source}: unknown model role ${role}`);
       if (typeof model !== 'string' || !modelPattern.test(model) || model.toLowerCase() === 'auto') {
         throw new Error(`${source}: ${role} must name one explicit model ID, never Auto`);
       }
@@ -49,8 +52,11 @@ export function resolveConfig(layers = []) {
       source.planApproval = layer.source;
     }
     for (const [role, model] of Object.entries(layer.value.models ?? {})) {
-      value.models[role] = model;
-      source.models[role] = layer.source;
+      // Normalize the old entry-role key per layer so nearest-scope precedence
+      // remains the same for existing configuration files.
+      const canonicalRole = role === 'frontdesk' ? 'concierge' : role;
+      value.models[canonicalRole] = model;
+      source.models[canonicalRole] = layer.source;
     }
     for (const dir of layer.value.extraDirectories ?? []) {
       const resolved = layer.base ? path.resolve(layer.base, dir.replace(/^~(?=$|\/)/, os.homedir())) : dir;
