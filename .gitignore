@@ -4,3 +4,4 @@ node_modules/
 verification/**/native-state/
 verification/**/raw/
 .DS_Store
+/.copilot-concierge/project-notes.md

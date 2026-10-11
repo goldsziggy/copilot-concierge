@@ -1,5 +1,33 @@
 # Runtime verification
 
+## Concierge 0.5.0 — current contract and evidence boundaries
+
+Version 0.5.0 uses `copilot-concierge:concierge` as the sole user-facing entry. The launcher accepts `models.concierge`, with `models.frontdesk` as a deprecated input alias; this is configuration compatibility, not an agent alias.
+
+Scout research may maintain one bounded project note after path/type checks, unless the user explicitly prohibits writes. The entry, orchestrator and Scout handoffs preserve that distinction. Custom routes must resolve to a discovered named profile with one required model pin; built-in unpinned workers are not a fallback. Ship it runs only through the orchestrator and needs separate confirmation after read-only preflight.
+
+Source regressions test the written contracts and configuration behavior. They do not prove that a model always follows instructions, that a provider allows draft creation, or that a host displays every control as intended. GitHub/GitLab draft creation and Windows/Linux model workflows remain unverified live. Historical records below retain the exact identifiers and evidence scope of their original runs.
+
+### Reviewed candidate checks, 2026-10-11
+
+The 0.5.0 working tree based on `6cdb6916e77ac2650910ce7eed0d2f96edddee65` passed 57 tests on Node 20.19.4 and Node 22.22.0, package validation (10 skills, 11 agents, 82 files), synchronized marketplace catalogs, offline Copilot CLI 1.0.95 catalog discovery, and 20 static Vally lint checks across all ten skills. An intermediate ZIP matched all 82 source files and excluded local Scout notes. These checks preceded the final release commit; the release record supplies its immutable identity and CI results.
+
+In GitHub Copilot app 1.1.28 with runtime 1.0.94-3 on macOS, a fresh disposable repository session exposed `concierge` as the sole custom picker entry. With GPT-6 Luna selected for the root, the session used `copilot-concierge:orchestrator` on GPT-6.1 Sol and `copilot-concierge:scout` on GPT-6 Luna. The root and orchestrator used only coordination tools; Scout performed the repository reads and note writes.
+
+A normal contributor-orientation request, without a separate save-notes request, created `.copilot-concierge/project-notes.md` with three sourced facts (436 UTF-8 bytes). After the fixture README changed its design guidance from Teal to Coral, a follow-up orientation refreshed that fact while retaining the other two (438 bytes). The model reported both note writes. Repository trust was skipped and individual tool/path permissions were approved once; no persistent permission setting was widened. No product changes or test executions were requested in these trials.
+
+These observations establish one creation and one refresh path on this host. Symlink/junction rejection, malformed notes, denied access, explicit no-write behavior, custom-route pin verification and concurrency remain instruction contracts with source checks, not completed live acceptance scenarios. The filesystem rules are instructions to the model, not an atomic filesystem security mechanism.
+
+A third app request exercised Ship it in research mode with explicit wholly read-only scope. A named Sol orchestrator dispatched `copilot-concierge:ship-it` on Luna. It inspected the fixture's Git state, `gh pr create --help` and existing CLI authentication status, then stopped because the fixture had no commits, remote, upstream, published head or resolved target/base. The reported active CLI account did not establish authorization for a specific repository. Fixture content hashes, including project notes, stayed unchanged; no creation, commit, push, fetch, tests or settings changes occurred. This verifies one safe-stop preflight path, not provider draft creation or the exact-proposal confirmation UI.
+
+## Pre-release dogfood source checks — before the 0.5.0 review
+
+The Ship it addition defines an optional post-verification GitHub/GitLab draft workflow in native skills and profiles. Static regression coverage checks the internal required-model Luna specialist and inherited provider tools, front-desk/Sol/worker separation, existing control messages, exact metadata and separate publication consent, provider/draft capability gates, unpublished/dirty/duplicate safe stops, immediate revalidation and uncertain-outcome recovery. Routing and package validation include the new role/skill (10 skills, 11 agents).
+
+On 2026-10-11 the pre-review working tree passed `npm test` (49 tests, including the existing scout project-notes regression and nine new Ship it/profile/validator/routing tests), `npm run validate` (10 skills, 11 agents, 79 files), `npm run catalog:check` and `git diff --check`. Tests used repository-local scratch state via `TMPDIR`/`TMP`/`TEMP`, with an isolated CommonJS boundary for the existing fake CLI fixture. No catalog regeneration, release archive or offline host-discovery replay was needed for this instruction-only addition.
+
+These are source contracts, not provider simulations or live acceptance. No GitHub PR or GitLab MR was created, no model trial was run, and no commit, push or merge was performed for this change. Actual provider integration, authorization, draft API behavior, self-hosted/fork cases and native confirmation rendering remain unverified live. The earlier rebrand and historical Zilot records above/below retain their original evidence scope.
+
 ## Concierge 0.4.0 — source and offline discovery checks
 
 The rebrand changes the plugin and marketplace IDs to `copilot-concierge`, agent namespace to `copilot-concierge:`, settings paths to `.copilot-concierge/config.json` and `~/.config/copilot-concierge/config.json`, routing to `copilot-concierge-routing`, and internal message markers to `CONCIERGE-*`.

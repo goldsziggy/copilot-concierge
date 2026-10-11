@@ -27,8 +27,8 @@ Packaging writes `dist/copilot-concierge-<version>.zip` and its `.zip.sha256` fi
 The release job checks out the specified tag, verifies matching package/plugin versions, requires the tag to resolve to `HEAD` and the source tree to be clean, then tests, validates and builds it. `--artifacts` verifies the resulting ZIP against its checksum. The read-only local equivalents are:
 
 ```sh
-node scripts/release-check.mjs --tag v0.4.0
-node scripts/release-check.mjs --tag v0.4.0 --artifacts
+node scripts/release-check.mjs --tag v0.5.0
+node scripts/release-check.mjs --tag v0.5.0 --artifacts
 ```
 
 Use the actual version when it changes. The checker requires a Git checkout and never writes tags, edits files or contacts a remote.
@@ -47,7 +47,7 @@ Each step changes a remote or makes content visible. Obtain authorization for th
 2. Tag the merged commit on `main` and push the tag: `git tag -a v<version> -m "Concierge <version>"`, then `git push origin v<version>`.
 3. In GitHub Actions, run **Release Concierge** with that tag. Leave `draft` on to review the ZIP, checksum and notes first, or turn it off to publish directly.
 4. Users install with `copilot plugin marketplace add goldsziggy/copilot-concierge` and `copilot plugin install copilot-concierge@copilot-concierge`, or pin `goldsziggy/copilot-concierge#v<version>`.
-5. Optional and separate: to list Concierge in `awesome-copilot`, submit the external-plugin issue for the reviewed public tag and full commit SHA after any required contribution-policy authorization. A maintainer must approve it, the generated listing PR must merge, and the marketplace must publish. The current rebrand holds listing submission; no contribution-policy acknowledgment has been made.
+5. Optional and separate: to list Concierge in `awesome-copilot`, submit the external-plugin issue for the reviewed public tag and full commit SHA after any required contribution-policy authorization. A maintainer must approve it, the generated listing PR must merge, and the marketplace must publish. A public issue or open listing PR does not mean Concierge is included in the default catalog.
 
 ## Pinned build actions
 

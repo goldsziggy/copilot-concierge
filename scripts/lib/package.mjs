@@ -49,7 +49,7 @@ export function configureProfile(content, filename, config) {
     }
     content = content.slice(0, at).trimEnd() + '\n';
   }
-  const role = { 'frontdesk.agent.md': 'frontdesk', 'orchestrator.agent.md': 'orchestrator', 'escalation.agent.md': 'escalation' }[filename] ?? 'specialist';
+  const role = { 'concierge.agent.md': 'concierge', 'orchestrator.agent.md': 'orchestrator', 'escalation.agent.md': 'escalation' }[filename] ?? 'specialist';
   const header = content.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
   if (!header) throw new Error(`${filename}: missing profile frontmatter`);
   if ((header[1].match(/^model:.*$/gm) ?? []).length !== 1) throw new Error(`${filename}: expected one authored model`);

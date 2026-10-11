@@ -18,3 +18,7 @@ The nearest setting wins:
 The scout reads the project file during context gathering, and the user file only if the project file sets nothing. When `scripts/launch.mjs` starts the session, it resolves the files and any `--plan-approval` flag in advance and writes the result into the profiles.
 
 A materially larger scope gets a revised plan and the preference again. Question-only and planning-only requests stop before implementation. Invalid values in a file are configuration errors reported by the launcher, never an implicit `auto`.
+
+Scout may maintain its bounded project note during normal research before implementation approval. An explicit user prohibition on notes or all file writes disables that exception; `auto` never overrides it. See [Scout project notes](../skills/scout/SKILL.md#project-notes).
+
+Ship it has a separate decision. Accepting its offer permits read-only preflight only; creating a draft PR/MR needs explicit confirmation of the exact publication proposal. Plan approval, `auto`, an earlier go-ahead and Copilot tool permission do not supply that confirmation. See [Ship it decisions](handoff.md#optional-ship-it-decisions).

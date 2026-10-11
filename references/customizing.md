@@ -19,7 +19,7 @@ Starter copies of all three are in [`examples/custom/.github`](../examples/custo
 | A team | A plugin: `plugin.json` plus `com.github.copilot/agents/` and `skills/`, installed from your marketplace | Same plugin | CLI and app, wherever it is installed |
 | One CLI session | Any folder with `.github/agents/` and `.github/skills/`, loaded with `copilot --add-dir <folder>` | Same folder | CLI |
 
-Historical Zilot 0.3.0 CLI trials verified repository agents and skills, the old `zilot-routing` table and folders loaded with `--add-dir`. Concierge 0.4.0 live routing verification has not been repeated. GitHub documents that repository and CLI skills appear in the app; this project’s custom-agent routing has not been exercised in the app.
+Historical Zilot 0.3.0 CLI trials verified repository agents and skills, the old `zilot-routing` table and folders loaded with `--add-dir`. Those sessions do not establish current-version routing acceptance. GitHub documents that repository and CLI skills appear in the app; this project’s custom-agent routing has not been exercised in the app.
 
 Copilot has no setting that loads an extra folder permanently. If you use Concierge's launcher, list folders in `extraDirectories` in `.copilot-concierge/config.json` or `~/.config/copilot-concierge/config.json` and it passes them on (`--plugin-dir` for a plugin, `--add-dir` otherwise).
 
@@ -78,13 +78,19 @@ Create a skill named `copilot-concierge-routing` containing a table:
 
 At the start of every objective, Concierge's orchestrator loads `copilot-concierge-routing` (and any `copilot-concierge-routing-<something>`, such as one shipped in a team plugin) and follows it:
 
-- A Concierge role (`scout`, `product-manager`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `reviewer`, `escalation`) in the **Role** column sends that work to your agent. Use a `copilot-concierge:` agent ID to keep Concierge's agent and only add skills.
+- A Concierge role (`scout`, `product-manager`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `reviewer`, `ship-it`, `escalation`) in the **Role** column sends that work to your agent. Use a `copilot-concierge:` agent ID to keep Concierge's agent and only add skills.
 - Any other role adds a specialist for the work in **Use when**.
 - **Skills** go into that worker's handoff, whichever agent does the work.
 - When tables conflict, `copilot-concierge-routing` beats `copilot-concierge-routing-<something>`. Copilot decides between two files with the same skill name.
-- If a routed agent is missing, the orchestrator uses Concierge's default and says so.
+- The exact routed profile must be discovered and verified to pin one explicit model with `model-policy: required`. A description or matching basename is not enough; the effective profile and precedence must be clear.
+- If a route is missing, unverified or unpinned, the orchestrator uses a suitable shipped Concierge role and reports the gap. A new custom role without a suitable default stops. It never falls back to an unpinned built-in worker such as `general-purpose`.
+- A verified custom model pin is honored and reported when it differs from the shipped default. An unavailable pinned model remains a blocker.
 
 Routing only changes who does the work. Approval, delegation, the task list and reporting work the same way, and Copilot's permissions still apply to your agents.
+
+Routed Scout agents and escalations doing Scout work also receive the `scout` skill. They retain its bounded project-notes exception, path checks and explicit no-write handling; other roles cannot inherit that exception.
+
+Routed `ship-it` agents also receive the built-in `ship-it` skill: read-only preflight, separate explicit publication consent for exact metadata, supported draft creation and immediate revalidation remain mandatory. Omit the worker's tool list when it needs inherited provider integrations; that grants no extra publication consent.
 
 ## 5. Check before you use it
 
@@ -95,6 +101,6 @@ node /path/to/copilot-concierge/scripts/check-custom.mjs ~/.copilot /path/to/tea
 
 With no arguments it checks the current folder and `~/.copilot`. It reports common frontmatter mistakes, skills whose name does not match their folder, missing descriptions or models, and routing rows whose agents or skills it cannot find (agents from plugins you have not listed show as warnings). Then start Concierge and ask for work that matches a row; the orchestrator's agent card shows which agent it dispatched.
 
-The custom preflight checker does not parse full YAML. A successful check is not proof of host discovery: confirm the exact custom agent ID in Copilot and exercise its route before relying on it. Concierge 0.4.0 checks plugin agent namespaces against the declared manifest ID, rather than accepting a matching basename from the wrong plugin.
+The custom preflight checker does not parse full YAML. A successful check is not proof of host discovery: confirm the exact custom agent ID in Copilot and exercise its route before relying on it. Concierge checks plugin agent namespaces against the declared manifest ID, rather than accepting a matching basename from the wrong plugin.
 
 Existing Zilot routing tables are not loaded under their old names. Rename both the folder and frontmatter `name` to `copilot-concierge-routing` (or its suffixed name), and update `zilot:` agent IDs explicitly; see [migration](migration.md).

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.0 — 2026-10-11
+
+- Rename the visible entry agent to **concierge** and the CLI invocation to `copilot-concierge:concierge`. There is no `frontdesk` agent alias; update launch commands and start a fresh session.
+- Use `models.concierge` in launcher configuration while retaining `models.frontdesk` as a deprecated input alias. Reject both keys in the same file to avoid ambiguous settings.
+- Add bounded Scout project notes: up to 12 sourced facts and 2 KiB in the assigned repository, checked against current evidence. Keep notes advisory, honor explicit no-write instructions, and stop note maintenance on unsafe paths or denied access.
+- Add an optional, orchestrated Ship it specialist for GitHub draft PRs and GitLab draft MRs. Read-only preflight and separate confirmation of the exact publication proposal are required. No implicit commits, pushes, merges or non-draft creation. Provider access comes from existing authorized tools.
+- Tighten specialist routing to discovered, explicitly pinned profiles; do not fall back to an unpinned built-in worker. Preserve the Scout note exception across delegation.
+- Keep generated local project notes out of public source and release packages; check for accidentally tracked local state before release.
+- Rewrite the README around installation and a first request, with an editable orchestration diagram and clearer configuration, migration and verification limits.
+- Record release validation and live-trial scope in `references/runtime-verification.md`. Static instruction checks do not establish live provider draft creation or Windows/Linux model behavior.
+
 ## 0.4.0 — 2026-10-11
 
 - Rename the maintained product to Concierge and the public repository, package, plugin and marketplace IDs to `copilot-concierge`.

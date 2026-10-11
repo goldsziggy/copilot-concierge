@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertNoTrackedLocalState } from './lib/release-state.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -28,6 +29,7 @@ try {
   if (typeof pkg.version !== 'string' || !semver.test(pkg.version) || tag !== `v${pkg.version}`) {
     throw new Error('Tag must be v followed by the exact valid SemVer in package.json and plugin.json');
   }
+  assertNoTrackedLocalState(root);
   const commit = git('rev-parse', '--verify', `refs/tags/${tag}^{commit}`);
   if (commit !== git('rev-parse', '--verify', 'HEAD')) throw new Error('Release tag does not point to the checked-out commit');
   if (git('status', '--porcelain', '--untracked-files=normal')) throw new Error('Release source must be clean, including nonignored untracked files');

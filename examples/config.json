@@ -1,7 +1,7 @@
 {
   "planApproval": "ask",
   "models": {
-    "frontdesk": "gpt-6-luna",
+    "concierge": "gpt-6-luna",
     "orchestrator": "gpt-6.1-sol",
     "specialist": "gpt-6-luna"
   }

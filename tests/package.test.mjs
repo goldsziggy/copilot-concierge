@@ -9,21 +9,21 @@ import { resolveConfig } from '../scripts/lib/config.mjs';
 const profile = '---\nname: example\nmodel: authored-model\nmodel-policy: required\ntools: [task]\n---\nDo only assigned work.\n';
 
 test('configuration pins each native tier and preserves role tool boundary', () => {
-  const config = resolveConfig([{ source: 'session', value: { models: { orchestrator: 'explicit-sol' }, planApproval: 'auto' } }]);
-  for (const [file, model] of [['frontdesk.agent.md', 'gpt-6-luna'], ['orchestrator.agent.md', 'explicit-sol'], ['graphql.agent.md', 'gpt-6-luna'], ['escalation.agent.md', 'gpt-6.1-sol']]) {
+  const config = resolveConfig([{ source: 'session', value: { models: { concierge: 'explicit-root', orchestrator: 'explicit-sol', specialist: 'explicit-leaf' }, planApproval: 'auto' } }]);
+  for (const [file, model] of [['concierge.agent.md', 'explicit-root'], ['orchestrator.agent.md', 'explicit-sol'], ['graphql.agent.md', 'explicit-leaf'], ['escalation.agent.md', 'gpt-6.1-sol']]) {
     const output = configureProfile(profile, file, config);
     assert.ok(output.includes(`model: ${JSON.stringify(model)}\n`));
     assert.ok(output.includes('model-policy: required\ntools: [task]'));
     assert.ok(output.includes('"planApprovalSource": "session"'));
     assert.ok(output.includes("Automatic plan approval never changes Copilot's tool permissions"));
   }
-  assert.throws(() => configureProfile(profile.replace('required', 'preferred'), 'frontdesk.agent.md', config), /required model policy/);
-  assert.throws(() => configureProfile(profile.replace('model: authored-model', 'model: a\nmodel: b'), 'frontdesk.agent.md', config), /one authored model/);
-  const once = configureProfile(profile, 'frontdesk.agent.md', config);
-  assert.equal(configureProfile(once, 'frontdesk.agent.md', config), once);
+  assert.throws(() => configureProfile(profile.replace('required', 'preferred'), 'concierge.agent.md', config), /required model policy/);
+  assert.throws(() => configureProfile(profile.replace('model: authored-model', 'model: a\nmodel: b'), 'concierge.agent.md', config), /one authored model/);
+  const once = configureProfile(profile, 'concierge.agent.md', config);
+  assert.equal(configureProfile(once, 'concierge.agent.md', config), once);
   for (const model of ['null', 'false', '123']) {
-    const typedConfig = resolveConfig([{ source: 'session', value: { models: { frontdesk: model } } }]);
-    assert.ok(configureProfile(profile, 'frontdesk.agent.md', typedConfig).includes(`model: "${model}"\n`));
+    const typedConfig = resolveConfig([{ source: 'session', value: { models: { concierge: model } } }]);
+    assert.ok(configureProfile(profile, 'concierge.agent.md', typedConfig).includes(`model: "${model}"\n`));
   }
 });
 
