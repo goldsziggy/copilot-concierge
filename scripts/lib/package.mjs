@@ -40,8 +40,8 @@ export async function copyPackage(source, destination) {
 }
 
 export function configureProfile(content, filename, config) {
-  const begin = '<!-- zilot:effective-config:start -->';
-  const end = '<!-- zilot:effective-config:end -->';
+  const begin = '<!-- copilot-concierge:effective-config:start -->';
+  const end = '<!-- copilot-concierge:effective-config:end -->';
   if (content.includes(begin)) {
     const at = content.indexOf(begin);
     if (content.indexOf(begin, at + begin.length) !== -1 || content.slice(at + begin.length).trimEnd().endsWith(end) === false) {

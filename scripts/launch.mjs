@@ -8,7 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 
 if (args.includes('--help')) {
-  console.log('Start an interactive Copilot CLI session with Zilot loaded from a fresh configured copy.\nConfiguration flags are the same as scripts/configure.mjs.\nNo global installation or permission bypass flags are used.');
+  console.log('Start an interactive Copilot CLI session with Concierge loaded from a fresh configured copy.\nConfiguration flags are the same as scripts/configure.mjs.\nNo global installation or permission bypass flags are used.');
 } else {
   try {
     if (args.includes('--print-only')) throw new Error('Use scripts/configure.mjs --print-only to inspect without launching');
@@ -22,7 +22,7 @@ if (args.includes('--help')) {
     const child = spawn('copilot', [
       '--no-auto-update', '--plugin-dir', configured.pluginDirectory,
       ...extraDirectoryArguments(configured.value.extraDirectories),
-      '--agent', 'zilot:frontdesk', '--model', configured.value.models.frontdesk,
+      '--agent', 'copilot-concierge:frontdesk', '--model', configured.value.models.frontdesk,
     ], { cwd, stdio: 'inherit' });
     child.on('error', error => { console.error(`Copilot could not start: ${error.message}`); process.exitCode = 1; });
     child.on('exit', (code, signal) => { process.exitCode = code ?? (signal ? 1 : 0); });

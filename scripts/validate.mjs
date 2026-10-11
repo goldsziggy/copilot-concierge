@@ -24,7 +24,7 @@ try {
   const manifest = JSON.parse(await readFile(path.join(root, 'plugin.json'), 'utf8'));
   const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   if (manifest.$schema !== 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json') fail('Unexpected plugin schema');
-  if (manifest.name !== 'zilot' || pkg.name !== manifest.name || pkg.version !== manifest.version) fail('Package identity/version mismatch');
+  if (manifest.name !== 'copilot-concierge' || pkg.name !== manifest.name || pkg.version !== manifest.version) fail('Package identity/version mismatch');
   const manifestFields = ['$schema', 'name', 'version', 'description', 'author', 'homepage', 'repository', 'license', 'keywords', 'extensions'];
   for (const key of Object.keys(manifest)) if (!manifestFields.includes(key)) fail(`Unsupported manifest key: ${key}`);
   const files = [];

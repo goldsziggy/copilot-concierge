@@ -11,7 +11,7 @@ const options = {};
 try {
   const args = process.argv.slice(2);
   if (args.includes('--help')) {
-    console.log('Configure a fresh session-local plugin copy. No installation or model calls.\n\nnode scripts/configure.mjs [--project DIR] [--user-config FILE] [--project-config FILE]\n  [--session-config FILE] [--plan-approval ask|auto] [--output-parent DIR] [--print-only]\n\nFiles default to ~/.config/zilot/config.json and PROJECT/.zilot/config.json.\nMissing defaults inherit. Explicit missing files and invalid settings fail.\nGenerated files default to .generated/session-* under this package.');
+    console.log('Configure a fresh session-local plugin copy. No installation or model calls.\n\nnode scripts/configure.mjs [--project DIR] [--user-config FILE] [--project-config FILE]\n  [--session-config FILE] [--plan-approval ask|auto] [--output-parent DIR] [--print-only]\n\nFiles default to ~/.config/copilot-concierge/config.json and PROJECT/.copilot-concierge/config.json.\nMissing defaults inherit. Explicit missing files and invalid settings fail.\nGenerated files default to .generated/session-* under this package.');
   } else {
     for (let i = 0; i < args.length; i++) {
       if (args[i] === '--print-only') { options.printOnly = true; continue; }

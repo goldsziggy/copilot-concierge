@@ -9,7 +9,7 @@ import { copyPackage } from '../scripts/lib/package.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 
 test('release copies include the logo and Apache license and exclude local state and legacy outputs', async t => {
-  const temporary = await mkdtemp(path.join(os.tmpdir(), 'zilot-release-assets-'));
+  const temporary = await mkdtemp(path.join(os.tmpdir(), 'copilot-concierge-release-assets-'));
   t.after(() => rm(temporary, { recursive: true, force: true }));
   const source = path.join(temporary, 'source');
   const output = path.join(temporary, 'output');

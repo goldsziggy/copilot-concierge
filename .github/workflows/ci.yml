@@ -35,10 +35,10 @@ jobs:
         if: matrix.node == '22'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: zilot-ci
+          name: copilot-concierge-ci
           path: |
-            dist/zilot-*.zip
-            dist/zilot-*.zip.sha256
+            dist/copilot-concierge-*.zip
+            dist/copilot-concierge-*.zip.sha256
           if-no-files-found: error
           retention-days: 14
 

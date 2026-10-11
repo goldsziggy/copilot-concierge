@@ -21,7 +21,7 @@ async function convertMarkdown(directory, eol) {
 }
 
 async function fixture(t, eol) {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'zilot-validation-'));
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'copilot-concierge-validation-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   await copyPackage(root, directory);
   await convertMarkdown(directory, eol);

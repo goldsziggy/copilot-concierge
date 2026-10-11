@@ -1,10 +1,10 @@
 {
-  "name": "zilot",
-  "version": "0.3.1",
+  "name": "copilot-concierge",
+  "version": "0.4.0",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
-  "description": "Concierge Copilot: native Zilot roles and skills with session-local configuration.",
+  "description": "Concierge: plan, challenge and execute work with native specialists, explicit model choices and an enterprise design-system-first workflow.",
   "engines": {
     "node": ">=20"
   },

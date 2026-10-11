@@ -1,18 +1,18 @@
 # Sample prompts
 
-Type these to Zilot's front desk in plain language. You never need to name a specialist. Each example says what you should see; the ones marked *verified* were run in real sessions (see [runtime verification](../references/runtime-verification.md)).
+Type these to Concierge's front desk in plain language. You never need to name a specialist. Each example says what you should see. The *verified* labels refer to historical 0.3.0 sessions, not a new 0.4.0 runtime check (see [runtime verification](../references/runtime-verification.md)).
 
 ## A goal that needs a decision
 
 > Make the basket screen better for our customers.
 
-Zilot looks at the project first, then asks one focused question with suggested answers, such as which problem to fix. *Verified.*
+Concierge looks at the project first, then asks one focused question with suggested answers, such as which problem to fix. *Verified.*
 
 ## A clear change
 
 > Make total([]) return 0 and keep the current behaviour for positive and negative numbers. Run the focused tests.
 
-You see a short plan and an "Approve this plan?" question. After you approve, a specialist makes the change and runs the tests, and Zilot reports what changed and how it was checked. *Verified.*
+You see a short plan and an "Approve this plan?" question. After you approve, a specialist makes the change and runs the tests, and Concierge reports what changed and how it was checked. *Verified.*
 
 ## Several things at once
 
@@ -24,7 +24,7 @@ Independent pieces go to separate specialists, sometimes in parallel, followed b
 
 > PROJ-4821
 
-Zilot looks for a connected tool that can read your ticket system (for example a Jira MCP server you already use in Copilot). If one exists, it fetches the ticket and works out the request, repository, acceptance criteria, dependencies and open questions. If none is connected, it says so and asks you to paste the ticket. *The "not connected" path is verified.*
+Concierge looks for a connected tool that can read your ticket system (for example a Jira MCP server you already use in Copilot). If one exists, it fetches the ticket and works out the request, repository, acceptance criteria, dependencies and open questions. If none is connected, it says so and asks you to paste the ticket. *The "not connected" path is verified.*
 
 ## A follow-up
 
@@ -42,7 +42,7 @@ Starts a separate piece of work and answers without changing files. *Verified.*
 
 > Run an accessibility audit of src/ui.mjs. No changes.
 
-If your extra directory contains a better-suited agent (here a team `accessibility-auditor` with its own checklist skill), Zilot uses it. *Verified.*
+If your extra directory contains a better-suited agent (here a team `accessibility-auditor` with its own checklist skill), Concierge uses it. *Verified.*
 
 ## Approval preferences
 
@@ -50,7 +50,7 @@ If your extra directory contains a better-suited agent (here a team `accessibili
 
 > Ask me before you change anything.
 
-These apply to the current request or session and take precedence over `.zilot/config.json` and `~/.config/zilot/config.json`.
+These apply to the current request or session and take precedence over `.copilot-concierge/config.json` and `~/.config/copilot-concierge/config.json`.
 
 ## Stopping and resuming
 
@@ -58,4 +58,4 @@ These apply to the current request or session and take precedence over `.zilot/c
 
 > Please continue where you left off.
 
-Zilot asks its workers to stop and reports what finished; the host's own stop control (Esc, `/tasks`, or the app's stop and Cancel buttons) halts running agents immediately. When you continue, it first checks what already exists so nothing runs twice. *Verified.*
+Concierge asks its workers to stop and reports what finished; the host's own stop control (Esc, `/tasks`, or the app's stop and Cancel buttons) halts running agents immediately. When you continue, it first checks what already exists so nothing runs twice. *Verified.*

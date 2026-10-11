@@ -10,7 +10,7 @@ const launcher = fileURLToPath(new URL('../scripts/launch.mjs', import.meta.url)
 const posixOnly = { skip: process.platform === 'win32' ? 'Fixture uses a POSIX executable; no real Copilot is invoked' : false };
 
 async function fixture(t) {
-  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'zilot-launcher-')));
+  const root = await realpath(await mkdtemp(path.join(os.tmpdir(), 'copilot-concierge-launcher-')));
   t.after(() => rm(root, { recursive: true, force: true }));
   const paths = {
     root,
@@ -86,7 +86,7 @@ function nativeOptions(argv) {
     }
   }
   for (const flag of valued) assert.ok(options.has(flag), `Required native flag missing: ${flag}`);
-  assert.equal(options.get('--agent'), 'zilot:frontdesk');
+  assert.equal(options.get('--agent'), 'copilot-concierge:frontdesk');
   return options;
 }
 
@@ -118,7 +118,7 @@ test('launcher uses the requested project and configured native role/model witho
   assert.equal(options.get('--model'), 'fixture-luna-root');
   const pluginDirectory = options.get('--plugin-dir');
   assert.equal(path.dirname(pluginDirectory), paths.output, 'Generated plugin must stay in the requested fixture directory');
-  assert.equal(JSON.parse(await readFile(path.join(pluginDirectory, 'plugin.json'), 'utf8')).name, 'zilot');
+  assert.equal(JSON.parse(await readFile(path.join(pluginDirectory, 'plugin.json'), 'utf8')).name, 'copilot-concierge');
   const effective = JSON.parse(await readFile(path.join(pluginDirectory, 'effective-config.json'), 'utf8'));
   assert.deepEqual(effective.value.models, {
     frontdesk: 'fixture-luna-root', orchestrator: 'fixture-sol-middle', specialist: 'fixture-luna-leaf', escalation: 'gpt-6.1-sol',
@@ -153,10 +153,10 @@ test('extra agent directories load natively: plugins by --plugin-dir, others by 
   const [call] = await invocations(paths);
   const argv = call.argv;
   const pluginDirs = argv.flatMap((value, i) => value === '--plugin-dir' ? [argv[i + 1]] : []);
-  assert.equal(pluginDirs.length, 2, 'Zilot copy plus the extra plugin directory');
+  assert.equal(pluginDirs.length, 2, 'Concierge copy plus the extra plugin directory');
   assert.equal(pluginDirs[1], pluginDir);
   assert.deepEqual(argv.flatMap((value, i) => value === '--add-dir' ? [argv[i + 1]] : []), [plainDir]);
-  assert.equal(argv[argv.indexOf('--agent') + 1], 'zilot:frontdesk');
+  assert.equal(argv[argv.indexOf('--agent') + 1], 'copilot-concierge:frontdesk');
   assert.match(result.stdout, /Extra agent directories/);
 });
 

@@ -1,4 +1,4 @@
-# Synthetic Zilot fixture
+# Synthetic Concierge fixture
 
 This is disposable test material, not a real enterprise repository. Jira data under `../jira/` is mocked. No production ticket or account is represented.
 

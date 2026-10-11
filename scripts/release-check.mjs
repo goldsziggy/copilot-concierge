@@ -22,8 +22,8 @@ try {
 
   const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin.json'), 'utf8'));
-  if (pkg.name !== 'zilot' || plugin.name !== 'zilot' || pkg.version !== plugin.version) {
-    throw new Error('package.json and plugin.json must have matching zilot identity and version');
+  if (pkg.name !== 'copilot-concierge' || plugin.name !== 'copilot-concierge' || pkg.version !== plugin.version) {
+    throw new Error('package.json and plugin.json must have matching copilot-concierge identity and version');
   }
   if (typeof pkg.version !== 'string' || !semver.test(pkg.version) || tag !== `v${pkg.version}`) {
     throw new Error('Tag must be v followed by the exact valid SemVer in package.json and plugin.json');
@@ -32,7 +32,7 @@ try {
   if (commit !== git('rev-parse', '--verify', 'HEAD')) throw new Error('Release tag does not point to the checked-out commit');
   if (git('status', '--porcelain', '--untracked-files=normal')) throw new Error('Release source must be clean, including nonignored untracked files');
 
-  const archive = `dist/zilot-${pkg.version}.zip`;
+  const archive = `dist/copilot-concierge-${pkg.version}.zip`;
   let sha256;
   if (artifacts) {
     sha256 = createHash('sha256').update(await readFile(path.join(root, archive))).digest('hex');

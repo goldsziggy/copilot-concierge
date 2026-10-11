@@ -61,7 +61,7 @@ test('specialists cannot dispatch agents or own the task list through their tool
   }
 });
 
-// Regression: unquoted 'Internal to Zilot: ...' descriptions made the YAML
+// Regression: unquoted 'Internal to Concierge: ...' descriptions made the YAML
 // invalid, and Copilot dropped every internal agent ("Unknown agent_type").
 test('frontmatter values containing ": " are quoted so Copilot can parse them', async () => {
   for (const [name, profile] of Object.entries(await profiles())) {
@@ -101,8 +101,8 @@ test('plan approval is never inferred from an ordinary request', async () => {
   assert.match(orchestrator.body, /only words that clearly waive or require approval count/);
 });
 
-test('orchestrator follows a customer zilot-routing skill without changing its rules', async () => {
+test('orchestrator follows a customer copilot-concierge-routing skill without changing its rules', async () => {
   const { orchestrator } = await profiles();
-  assert.match(orchestrator.body, /lists `zilot-routing` or skills named `zilot-routing-<something>`, load them before choosing specialists/);
+  assert.match(orchestrator.body, /lists `copilot-concierge-routing` or skills named `copilot-concierge-routing-<something>`, load them before choosing specialists/);
   assert.match(orchestrator.body, /Routing changes who does the work, never the rules/);
 });

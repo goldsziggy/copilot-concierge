@@ -28,7 +28,7 @@ test('configuration pins each native tier and preserves role tool boundary', () 
 });
 
 test('package copying rejects symlinks instead of embedding unrelated content', async () => {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'zilot-package-'));
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'copilot-concierge-package-'));
   try {
     await mkdir(path.join(dir, 'source'));
     await writeFile(path.join(dir, 'source/safe.txt'), 'fixture');

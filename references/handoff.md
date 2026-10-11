@@ -1,6 +1,6 @@
 # Handoff contract
 
-Zilot's roles talk through three plain-text messages carried by Copilot's own agent tools (`task`, `write_agent`, `read_agent`). There is no separate transport, store or scheduler. The authoritative wording lives in the agent profiles under `com.github.copilot/agents/`.
+Concierge's roles talk through three plain-text messages carried by Copilot's own agent tools (`task`, `write_agent`, `read_agent`). There is no separate transport, store or scheduler. The authoritative wording lives in the agent profiles under `com.github.copilot/agents/`.
 
 ## Roles
 
@@ -11,7 +11,7 @@ Zilot's roles talk through three plain-text messages carried by Copilot's own ag
 ## Brief (front desk → orchestrator)
 
 ```
-ZILOT-BRIEF
+CONCIERGE-BRIEF
 objective: <short name>
 user request (verbatim): <exact words, pasted ticket text or links>
 understanding: <one or two sentences>
@@ -32,7 +32,7 @@ A fresh orchestrator continues an objective in two cases, with the last report's
 ## Handoff (orchestrator → specialist)
 
 ```
-ZILOT-HANDOFF
+CONCIERGE-HANDOFF
 objective: <objective name>; task: <this worker's piece>
 original request (verbatim): <...>
 relevant context and sources: <facts with paths and links; no transcript>
@@ -47,7 +47,7 @@ return: findings, changes (files), verification (commands and results), blockers
 ## Report (orchestrator → front desk)
 
 ```
-ZILOT-REPORT
+CONCIERGE-REPORT
 status: needs_input | needs_approval | checkpoint | done | blocked | cancelled
 objective: <objective name>: <one line>
 plan approval: <ask|auto>: <source>

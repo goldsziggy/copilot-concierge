@@ -1,10 +1,20 @@
 # Runtime verification
 
+## Concierge 0.4.0 — source and offline discovery checks
+
+The rebrand changes the plugin and marketplace IDs to `copilot-concierge`, agent namespace to `copilot-concierge:`, settings paths to `.copilot-concierge/config.json` and `~/.config/copilot-concierge/config.json`, routing to `copilot-concierge-routing`, and internal message markers to `CONCIERGE-*`.
+
+On 2026-10-11 the 0.4.0 source candidate passed `npm test` (39 tests), `npm run validate`, `npm run catalog:check` and `node distribution/check-native-catalog.mjs`. Tests include the new metadata, qualified agent namespace and rejection of legacy or wrong plugin namespaces in custom routing. The last command exercises registration and discovery in temporary offline host state; it does not call a model or alter the user's persistent installation.
+
+These checks were performed on the release working tree based on public commit `ecd5d4bf4eeb01f4c3b7cc536ac3bcf58f9319ec`, before the rebrand commit was assigned. The final release/CI record identifies the resulting commit and remote-install evidence. Live app/model workflows were not replayed for 0.4.0, and Windows/Linux model behavior remains unverified. Static checks, packaging, offline discovery and live model trials are distinct evidence; no new live workflow success is claimed here.
+
+## Historical evidence: Zilot 0.3.0
+
 Live acceptance for Zilot 0.3.0, run on 2026-10-10 against real Copilot sessions on macOS with the account's own models. Unit tests and fixtures are listed separately at the end; they are not live evidence.
 
 Hosts: Copilot CLI 1.0.93 (scenarios 1–7 and the bare ticket) and 1.0.95 (it auto-updated mid-run; cancellation, resume, unavailable model and the final regression), and the GitHub Copilot app 1.1.28 with its bundled runtime 1.0.94-3. Models observed in every session: front desk `gpt-6-luna`, orchestrator `gpt-6.1-sol`, specialists `gpt-6-luna`, escalation `gpt-6.1-sol`, all with `modelSelectionSource: configured_required` unless noted.
 
-These are historical maintainer observations. Raw session journals and local correlation identifiers are not distributed with this plugin. Static checks do not independently reproduce these live results.
+These are historical maintainer observations. All identifiers, paths, version numbers and quoted output below describe Zilot 0.3.0 as observed; they are not current Concierge installation instructions. Raw session journals and local correlation identifiers are not distributed with this plugin. Static checks do not independently reproduce these live results.
 
 ## Host behavior that shaped the design
 

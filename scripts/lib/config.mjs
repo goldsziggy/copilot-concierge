@@ -80,8 +80,8 @@ async function readLayer(file, scope, required) {
 export async function loadConfig(options = {}) {
   const project = path.resolve(options.project ?? process.cwd());
   const candidates = [
-    [options.userConfig ?? path.join(os.homedir(), '.config/zilot/config.json'), 'user', Boolean(options.userConfig)],
-    [options.projectConfig ?? path.join(project, '.zilot/config.json'), 'project', Boolean(options.projectConfig)],
+    [options.userConfig ?? path.join(os.homedir(), '.config/copilot-concierge/config.json'), 'user', Boolean(options.userConfig)],
+    [options.projectConfig ?? path.join(project, '.copilot-concierge/config.json'), 'project', Boolean(options.projectConfig)],
   ];
   if (options.sessionConfig) candidates.push([options.sessionConfig, 'session', true]);
   const layers = [];

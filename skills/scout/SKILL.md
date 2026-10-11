@@ -15,7 +15,7 @@ For a repository question, locate applicable instructions, relevant entry points
 
 For UI context, identify actual design-system packages/imports, tokens, shared components, similar screens and accessible enterprise documentation. Distinguish authoritative project sources from examples. If deeper UX analysis is needed, request the expertise in your return; do not invent a replacement system.
 
-When the handoff asks for Zilot configuration, read `.zilot/config.json` in the project; read `~/.config/zilot/config.json` only if the project file does not set `planApproval`. Report each value verbatim with its file, or say the file is absent. Do not create or change either file.
+When the handoff asks for Concierge configuration, read `.copilot-concierge/config.json` in the project; read `~/.config/copilot-concierge/config.json` only if the project file does not set `planApproval`. Report each value verbatim with its file, or say the file is absent. Do not create or change either file.
 
 When supplied a local fixture or an explicit offline simulation, use that fixture as the source and label the result accordingly. A fixture ticket is not evidence of connected Jira access. Do not contact an external integration to validate an invented example key.
 

@@ -1,5 +1,11 @@
 # Capability matrix: Copilot CLI and the GitHub Copilot app
 
+## Concierge 0.4.0 status
+
+The 0.4.0 source candidate passed 39 tests, package validation, catalog synchronization and offline host catalog discovery for `copilot-concierge`. Live app/model workflows were not replayed under the new identifiers. See [runtime verification](runtime-verification.md) for scope; the historical table below is not new live acceptance evidence.
+
+## Historical Zilot 0.3.0 observations
+
 What Zilot 0.3.0 does in each client, as observed on 2026-10-10 (CLI 1.0.93 and 1.0.95; app 1.1.28 with runtime 1.0.94-3). "Verified" means seen in a real session; details and limits are in [runtime verification](runtime-verification.md). GitHub Desktop is a different product and is not supported.
 
 | Capability | Copilot CLI | GitHub Copilot app |

@@ -1,6 +1,6 @@
 # Plan approval preference
 
-Plan approval is the pause between Zilot's short plan and the work. It is a workflow preference only: Copilot's own tool, path and URL permissions always stay in force, and `auto` never turns them off.
+Plan approval is the pause between Concierge's short plan and the work. It is a workflow preference only: Copilot's own tool, path and URL permissions always stay in force, and `auto` never turns them off.
 
 | Value | Behavior |
 | --- | --- |
@@ -11,8 +11,8 @@ The nearest setting wins:
 
 1. The user's words for this request ("go ahead without asking", "ask me first").
 2. The user's words earlier in this session, or a launcher `--session-config` file.
-3. The project file `.zilot/config.json`.
-4. The user file `~/.config/zilot/config.json`.
+3. The project file `.copilot-concierge/config.json`.
+4. The user file `~/.config/copilot-concierge/config.json`.
 5. The default, `ask`.
 
 The scout reads the project file during context gathering, and the user file only if the project file sets nothing. When `scripts/launch.mjs` starts the session, it resolves the files and any `--plan-approval` flag in advance and writes the result into the profiles.

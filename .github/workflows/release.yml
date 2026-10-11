@@ -1,10 +1,10 @@
-name: Release Zilot
+name: Release Concierge
 
 'on':
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Existing release tag matching package/plugin version (for example v0.3.0)'
+        description: 'Existing release tag matching package/plugin version (for example v0.4.0)'
         required: true
         type: string
       draft:
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: zilot-release-${{ inputs.tag }}
+  group: copilot-concierge-release-${{ inputs.tag }}
   cancel-in-progress: false
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+[-+0-9A-Za-z.]*$ ]]; then
-            echo 'Expected a version tag such as v0.3.0' >&2
+            echo 'Expected a version tag such as v0.4.0' >&2
             exit 1
           fi
       - name: Check out the existing tag
@@ -63,8 +63,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
-          archive="dist/zilot-${RELEASE_TAG#v}.zip"
-          options=(--verify-tag --title "Zilot $RELEASE_TAG" --notes-file CHANGELOG.md)
+          archive="dist/copilot-concierge-${RELEASE_TAG#v}.zip"
+          options=(--verify-tag --title "Concierge $RELEASE_TAG" --notes-file CHANGELOG.md)
           if [[ "$RELEASE_DRAFT" == 'true' ]]; then
             options+=(--draft)
           fi

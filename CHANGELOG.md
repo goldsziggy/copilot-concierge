@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 — 2026-10-11
+
+- Rename the maintained product to Concierge and the public repository, package, plugin and marketplace IDs to `copilot-concierge`.
+- **Breaking identifiers:** start `copilot-concierge:frontdesk`, install `copilot-concierge@copilot-concierge`, use `.copilot-concierge/config.json` or `~/.config/copilot-concierge/config.json`, and rename custom routing skills to `copilot-concierge-routing` (including prefixed variants).
+- Rename the internal message markers to `CONCIERGE-BRIEF`, `CONCIERGE-HANDOFF` and `CONCIERGE-REPORT`; keep the existing models and role boundaries.
+- Require explicit migration from the Zilot plugin. Users remove the old installation, install Concierge and manually copy chosen settings and update custom routing. There is no silent fallback to old configuration or routing.
+- Preserve the v0.3.1 tag/release and its original Zilot IDs. The public repository remains the maintained native product; the former private development repository and history remain separate.
+- Pass 39 source tests, validation, catalog synchronization and offline host catalog discovery for the new metadata and namespace. Custom routing checks now reject a plugin agent under the wrong manifest namespace; full YAML parsing remains outside the preflight checker.
+- Live app/model workflows have not been replayed for 0.4.0. Historical Zilot 0.3.0 runtime observations remain under their original names and do not establish live acceptance of the new identifiers.
+
 ## 0.3.1 — 2026-10-11
 
 - Accept LF and Windows CRLF Markdown frontmatter during validation and packaging; retain required-model and tool-boundary checks. Markdown files also use explicit LF Git attributes.

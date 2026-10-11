@@ -8,7 +8,7 @@ import { validateCatalog } from './catalog.mjs';
 // Optional metadata-only check against an already installed Copilot CLI.
 // No model session, plugin installation, extension activation, or network access.
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const fixture = await mkdtemp(join(tmpdir(), 'zilot-catalog-'));
+const fixture = await mkdtemp(join(tmpdir(), 'copilot-concierge-catalog-'));
 const env = {
   ...process.env,
   COPILOT_HOME: join(fixture, 'state'),
@@ -39,16 +39,16 @@ try {
   await copyFile(join(root, '.github/plugin/marketplace.json'), join(repo, '.github/plugin/marketplace.json'));
   const cliVersion = run(['--version']);
   run(['plugin', 'marketplace', 'add', repo]);
-  const plugins = JSON.parse(run(['plugin', 'marketplace', 'browse', 'zilot', '--json']));
+  const plugins = JSON.parse(run(['plugin', 'marketplace', 'browse', 'copilot-concierge', '--json']));
   const entries = Array.isArray(plugins) ? plugins : plugins.plugins;
-  const zilot = entries?.find(item => item.name === 'zilot');
-  if (!zilot || zilot.marketplace !== 'zilot' || zilot.description !== manifest.description) {
-    throw new Error(`CLI catalog browse did not return the expected Zilot entry: ${JSON.stringify(plugins)}`);
+  const entry = entries?.find(item => item.name === 'copilot-concierge');
+  if (!entry || entry.marketplace !== 'copilot-concierge' || entry.description !== manifest.description) {
+    throw new Error(`CLI catalog browse did not return the expected Concierge entry: ${JSON.stringify(plugins)}`);
   }
   console.log(JSON.stringify({
     checkedAt: new Date().toISOString(),
     cliVersion,
-    plugin: { name: zilot.name, manifestVersion: manifest.version },
+    plugin: { name: entry.name, manifestVersion: manifest.version },
     result: 'pass',
     checks: ['catalog matches manifest including version', 'canonical catalog accepted by CLI', 'catalog browse returns expected plugin name, marketplace and description'],
     isolation: 'Temporary COPILOT_HOME and COPILOT_CACHE_HOME; offline; removed after check.',

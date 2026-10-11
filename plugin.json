@@ -1,11 +1,18 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "zilot",
-  "version": "0.3.1",
-  "description": "Concierge Copilot: plan, challenge and execute work with Zilot's native specialists, explicit model choices and an enterprise design-system-first workflow.",
-  "author": { "name": "goldsziggy" },
+  "name": "copilot-concierge",
+  "version": "0.4.0",
+  "description": "Concierge: plan, challenge and execute work with native specialists, explicit model choices and an enterprise design-system-first workflow.",
+  "author": {
+    "name": "goldsziggy"
+  },
   "license": "Apache-2.0",
-  "homepage": "https://github.com/goldsziggy/zilot-plugin",
-  "repository": "https://github.com/goldsziggy/zilot-plugin",
-  "keywords": ["concierge", "planning", "orchestration", "code-review"]
+  "homepage": "https://github.com/goldsziggy/copilot-concierge",
+  "repository": "https://github.com/goldsziggy/copilot-concierge",
+  "keywords": [
+    "concierge",
+    "planning",
+    "orchestration",
+    "code-review"
+  ]
 }
