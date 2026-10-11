@@ -1,0 +1,9 @@
+{
+  "name": "zilot-synthetic-fixture",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@example/enterprise-ui": "fixture",
+    "@fluentui/react-components": "fixture-unused"
+  }
+}

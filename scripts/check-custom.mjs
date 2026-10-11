@@ -1,0 +1,138 @@
+#!/usr/bin/env node
+// Checks customer agents, skills and zilot-routing tables before Copilot loads
+// them. Copilot drops an agent whose frontmatter is not valid YAML without an
+// error, so problems are easier to find here than in a session.
+import { readFile, readdir, stat } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import os from 'node:os';
+import path from 'node:path';
+
+export const ZILOT_ROLES = ['scout', 'product-manager', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer', 'escalation'];
+const ZILOT_SKILLS = ['orchestrate', 'plan', 'grill-plan', 'scout', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'review'];
+
+// Where Copilot reads agents and skills for each kind of root: a project
+// (.github/), the Copilot home (~/.copilot), or a plugin (plugin.json).
+async function locations(root) {
+  const plugin = await exists(path.join(root, 'plugin.json'));
+  const home = path.resolve(root) === path.join(os.homedir(), '.copilot');
+  return {
+    agents: ['.github/agents', ...(home || plugin ? ['agents'] : []), ...(plugin ? ['com.github.copilot/agents'] : [])],
+    skills: ['.github/skills', ...(home || plugin ? ['skills'] : [])],
+  };
+}
+
+async function exists(file) { try { await stat(file); return true; } catch { return false; } }
+
+async function walk(dir) {
+  const out = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...await walk(full));
+    else out.push(full);
+  }
+  return out;
+}
+
+export function frontmatter(text) {
+  const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+  if (!match) return null;
+  const fields = {};
+  const problems = [];
+  for (const line of match[1].split(/\r?\n/)) {
+    const field = line.match(/^([A-Za-z][\w-]*):\s?(.*)$/);
+    if (!field) continue;
+    const [, key, value] = field;
+    fields[key] = value.replace(/^(["'])(.*)\1$/, '$2');
+    if (value && !/^["'[]/.test(value) && /: | #/.test(value)) problems.push(`quote the value of "${key}"; Copilot drops files whose frontmatter is not valid YAML`);
+  }
+  return { fields, problems };
+}
+
+// Repository and personal agent IDs come from the file path: the name without
+// .agent.md or .md, with subdirectories joined by "--".
+export function agentId(agentsDir, file) {
+  return path.relative(agentsDir, file).replace(/\.agent\.md$|\.md$/, '').split(path.sep).join('--');
+}
+
+export function routingRows(text) {
+  const rows = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (!/^\s*\|/.test(line) || /^\s*\|\s*-/.test(line)) continue;
+    const cells = line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim().replace(/^`|`$/g, ''));
+    if (cells[0].toLowerCase() === 'role') continue;
+    const [role, agent, skills = '', when = ''] = cells;
+    rows.push({ role, agent, skills: skills.split(',').map(s => s.trim().replace(/^`|`$/g, '')).filter(Boolean), when });
+  }
+  return rows;
+}
+
+export async function checkRoots(roots) {
+  const errors = [];
+  const warnings = [];
+  const agents = new Map();
+  const skills = new Map();
+  const routing = [];
+  for (const root of roots) {
+    const where = await locations(root);
+    for (const dir of where.agents) {
+      const agentsDir = path.join(root, dir);
+      if (!await exists(agentsDir)) continue;
+      for (const file of (await walk(agentsDir)).filter(f => f.endsWith('.md'))) {
+        const parsed = frontmatter(await readFile(file, 'utf8'));
+        const where = path.relative(process.cwd(), file) || file;
+        if (!parsed) { errors.push(`${where}: missing frontmatter`); continue; }
+        for (const problem of parsed.problems) errors.push(`${where}: ${problem}`);
+        if (!parsed.fields.description) errors.push(`${where}: add a description; the orchestrator chooses agents by it`);
+        if (!parsed.fields.model) warnings.push(`${where}: no model; pin one, with model-policy: required, so the agent never runs on an unexpected model`);
+        else if (parsed.fields.model.startsWith('[')) warnings.push(`${where}: a model list falls back silently when the first model is unavailable`);
+        if (/\b(task|write_agent|ask_user|update_todo)\b/.test(parsed.fields.tools ?? '')) warnings.push(`${where}: workers should report to the orchestrator, not dispatch agents, ask the user or own the task list`);
+        const id = dir === 'com.github.copilot/agents' ? `<plugin>:${path.basename(file).replace(/\.agent\.md$|\.md$/, '')}` : agentId(agentsDir, file);
+        agents.set(id, where);
+      }
+    }
+    for (const dir of where.skills) {
+      const skillsDir = path.join(root, dir);
+      if (!await exists(skillsDir)) continue;
+      for (const entry of await readdir(skillsDir, { withFileTypes: true })) {
+        if (!entry.isDirectory()) continue;
+        const file = path.join(skillsDir, entry.name, 'SKILL.md');
+        if (!await exists(file)) continue;
+        const text = await readFile(file, 'utf8');
+        const parsed = frontmatter(text);
+        const where = path.relative(process.cwd(), file) || file;
+        if (!parsed) { errors.push(`${where}: missing frontmatter`); continue; }
+        for (const problem of parsed.problems) errors.push(`${where}: ${problem}`);
+        if (parsed.fields.name !== entry.name) errors.push(`${where}: name must match its folder (${entry.name})`);
+        if (!parsed.fields.description) errors.push(`${where}: add a description`);
+        skills.set(entry.name, where);
+        if (/^zilot-routing(-|$)/.test(entry.name)) routing.push({ where, rows: routingRows(text) });
+      }
+    }
+  }
+  const knownAgent = id => agents.has(id) || id.startsWith('zilot:') && ZILOT_ROLES.includes(id.slice(6))
+    || [...agents.keys()].some(key => key.startsWith('<plugin>:') && id.endsWith(`:${key.slice(9)}`));
+  for (const { where, rows } of routing) {
+    if (!rows.length) warnings.push(`${where}: no routing rows found; use a table with Role | Agent | Skills | Use when`);
+    for (const row of rows) {
+      if (!row.role || !row.agent) { errors.push(`${where}: each row needs a role and an agent`); continue; }
+      if (!knownAgent(row.agent)) warnings.push(`${where}: agent "${row.agent}" was not found in these folders; it must come from a plugin or another location Copilot loads`);
+      if (!ZILOT_ROLES.includes(row.role) && !row.when) warnings.push(`${where}: new role "${row.role}" needs a "Use when" description`);
+      for (const skill of row.skills) {
+        if (!skills.has(skill) && !ZILOT_SKILLS.includes(skill)) warnings.push(`${where}: skill "${skill}" was not found in these folders`);
+      }
+    }
+  }
+  return { errors, warnings, agents: [...agents.keys()], skills: [...skills.keys()], routing: routing.map(r => r.where) };
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  const roots = process.argv.slice(2).length ? process.argv.slice(2).map(r => path.resolve(r)) : [process.cwd(), path.join(os.homedir(), '.copilot')];
+  const result = await checkRoots(roots);
+  console.log(`Agents: ${result.agents.join(', ') || 'none'}`);
+  console.log(`Skills: ${result.skills.join(', ') || 'none'}`);
+  console.log(`Routing tables: ${result.routing.join(', ') || 'none'}`);
+  for (const warning of result.warnings) console.log(`warning: ${warning}`);
+  for (const error of result.errors) console.error(`error: ${error}`);
+  if (result.errors.length) process.exitCode = 1;
+  else console.log(result.warnings.length ? 'No errors; review the warnings.' : 'No problems found.');
+}

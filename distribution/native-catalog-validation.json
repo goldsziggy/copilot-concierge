@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-10-10T20:17:54.497Z",
+  "cliVersion": "GitHub Copilot CLI 1.0.95.\nRun 'copilot update' to check for updates.",
+  "plugin": {
+    "name": "zilot",
+    "manifestVersion": "0.3.0"
+  },
+  "result": "pass",
+  "checks": [
+    "catalog matches manifest including version",
+    "canonical catalog accepted by CLI",
+    "catalog browse returns expected plugin name, marketplace and description"
+  ],
+  "isolation": "Temporary COPILOT_HOME and COPILOT_CACHE_HOME; offline; removed after check.",
+  "notTested": [
+    "plugin installation or activation",
+    "model inference",
+    "agent hierarchy",
+    "app or VS Code behavior",
+    "remote Git fetch or publication"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "fixture": true,
+  "source": "Mocked offline Jira response; no Jira request performed",
+  "key": "TEAM-42",
+  "summary": "Empty basket shows an error instead of zero",
+  "description": "When the basket has no items, the total function should return 0. Preserve totals for existing positive and negative values.",
+  "acceptanceCriteria": ["total([]) returns 0", "Existing numeric totals remain correct", "Focused tests pass"],
+  "repository": "tests/fixtures/workspace",
+  "unknowns": ["No production release or deployment destination is supplied"]
+}

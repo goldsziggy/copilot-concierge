@@ -1,0 +1,1 @@
+This directory is a synthetic fixture. Stay inside this directory for changes. Do not install dependencies or contact external services, and do not launch AI models or agents from shell commands. Reuse the existing local UI wrapper; preserve its keyboard and accessible-name conventions. All examples of company names and issue data are fictional.

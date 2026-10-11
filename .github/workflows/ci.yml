@@ -1,0 +1,64 @@
+name: CI
+
+'on':
+  pull_request:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+      - name: Check Python standard library
+        run: python3 -c 'import hashlib, pathlib, zipfile'
+      - run: npm test
+      - run: npm run validate
+      - run: node distribution/catalog.mjs --check
+      - run: npm run package
+      - name: Preserve reviewable build
+        if: matrix.node == '22'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: zilot-ci
+          path: |
+            dist/zilot-*.zip
+            dist/zilot-*.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  windows-source-checks:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+      - run: npm test
+      - run: npm run validate
+      - run: npm run catalog:check
+      # These are source checks only. POSIX launcher fixtures skip Windows;
+      # Copilot activation/model sessions remain separate manual acceptance.

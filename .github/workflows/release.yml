@@ -1,0 +1,75 @@
+name: Release Zilot
+
+'on':
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag matching package/plugin version (for example v0.3.0)'
+        required: true
+        type: string
+      draft:
+        description: 'Create a draft for review; disable only when ready to publish'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zilot-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag }}
+      RELEASE_DRAFT: ${{ inputs.draft }}
+    steps:
+      - name: Check tag input
+        shell: bash
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+[-+0-9A-Za-z.]*$ ]]; then
+            echo 'Expected a version tag such as v0.3.0' >&2
+            exit 1
+          fi
+      - name: Check out the existing tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Verify tag, identity and clean source
+        run: node scripts/release-check.mjs --tag "$RELEASE_TAG"
+      - name: Check Python standard library
+        run: python3 -c 'import hashlib, pathlib, zipfile'
+      - run: npm test
+      - run: npm run validate
+      - run: node distribution/catalog.mjs --check
+      - run: npm run package
+      - name: Verify packaged checksum
+        run: node scripts/release-check.mjs --tag "$RELEASE_TAG" --artifacts
+      - name: Create the requested GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          archive="dist/zilot-${RELEASE_TAG#v}.zip"
+          options=(--verify-tag --title "Zilot $RELEASE_TAG" --notes-file CHANGELOG.md)
+          if [[ "$RELEASE_DRAFT" == 'true' ]]; then
+            options+=(--draft)
+          fi
+          version_without_build="${RELEASE_TAG%%+*}"
+          if [[ "$version_without_build" == *-* ]]; then
+            options+=(--prerelease)
+          fi
+          gh release create "$RELEASE_TAG" "$archive" "$archive.sha256" "${options[@]}"

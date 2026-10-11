@@ -1,0 +1,63 @@
+# Runtime verification
+
+Live acceptance for Zilot 0.3.0, run on 2026-10-10 against real Copilot sessions on macOS with the account's own models. Unit tests and fixtures are listed separately at the end; they are not live evidence.
+
+Hosts: Copilot CLI 1.0.93 (scenarios 1–7 and the bare ticket) and 1.0.95 (it auto-updated mid-run; cancellation, resume, unavailable model and the final regression), and the GitHub Copilot app 1.1.28 with its bundled runtime 1.0.94-3. Models observed in every session: front desk `gpt-6-luna`, orchestrator `gpt-6.1-sol`, specialists `gpt-6-luna`, escalation `gpt-6.1-sol`, all with `modelSelectionSource: configured_required` unless noted.
+
+These are historical maintainer observations. Raw session journals and local correlation identifiers are not distributed with this plugin. Static checks do not independently reproduce these live results.
+
+## Host behavior that shaped the design
+
+| Finding | How it was shown | Consequence for Zilot |
+| --- | --- | --- |
+| A nested agent (depth 2 or deeper) gets only the tools that its parent agent also has. The root's own list does not limit its direct children. | Probe: a reader declaring `[view]` read a file under a root with `[task, read_agent]`, but under a middle agent with `[task, read_agent]` it reported "view tool is missing". Adding `view` to the middle agent fixed it. | This was the real cause of the 0.2.0 scout failure. Sol omits its tool list so specialists inherit their tools through it, and delegates by charter. The front desk stays control-only. |
+| `model-policy: required` with one model refuses a per-call `model` override and says so. | "Required model enforcement replaced requested model `gpt-6.1-sol` with `gpt-6-luna`." | Escalation is a separate `zilot:escalation` role pinned to Sol 6.1. |
+| A model list (`[a, b]`) allows explicit override but silently falls back when the first model is missing. | `[gpt-6-luna-does-not-exist, gpt-6-luna]` ran on `gpt-6-luna` with no notice. | Every Zilot role pins exactly one model. |
+| An unavailable pinned model fails hard and lists the available models. | `Model 'gpt-6-luna-does-not-exist' is not available. Available models: …` | No substitution path exists to guard against. |
+| Only background agents accept `write_agent`; a continued background agent keeps its context. | A background worker told a codeword returned it after `write_agent`. | The front desk runs Sol in background and routes follow-ups to it. |
+| `tools` aliases `read`/`edit`/`execute` map to `view`/`apply_patch`/`bash`, but `search` and `web` mapped to nothing; `*/*` matches no MCP tools; `server/*` works; omitting `tools` grants all. | Tool-listing probes. | Profiles name exact tools for both model families (`rg` and `grep`, `apply_patch` and `edit`). Roles that need unknown connected integrations omit their tool list. |
+| `user-invocable: false` agents are still dispatchable by `task`. | Probe returned `HIDDEN-OK`. | Only the front desk appears in agent pickers. |
+| `disable-model-invocation: true` removes an agent from `task` dispatch entirely. | "Unknown agent_type: probe2:noinvoke". | Internal roles stay model-invocable, so Copilot's default agent in other sessions can see them; their descriptions say they are internal to Zilot. |
+
+## Acceptance scenarios
+
+| # | Scenario | Result |
+| --- | --- | --- |
+| 1 | Vague request ("Make the basket screen better for our customers.") | **Pass.** Sol sent it to the product manager, which grounded one focused question in the repository. The front desk asked it with the native question UI, offering a recommended answer and free text. |
+| 2 | Detailed request through plan approval to delegated implementation | **Pass.** Scout read the files, the plan appeared as a native "Approve this plan?" question, Node specialist edited and ran the tests (2/2). Root used only control tools; Sol used only `task` and `update_todo`. |
+| 3 | Bare ticket `PROJ-4821` with no ticket connector on this machine | **Pass (missing connection reported).** Scout: "no Jira-reading integration is available in the connected tools … an access gap, not evidence that the ticket is empty." Sol marked the step blocked and asked for the ticket text. No connected Jira source exists here, so the connected path is untested. |
+| 4 | Follow-up to the same objective | **Pass in CLI and app.** The front desk sent it to the existing orchestrator with `write_agent`; no new orchestrator; the change and test were added. |
+| 5 | Unrelated request | **Pass.** A second orchestrator was started; the first was left alone. |
+| 6 | Parallel specialists with a visible task list | **Pass.** `node-backend` and `react-frontend` started in the same second, then `reviewer`; 4/4 tests passed. Root to-do list mirrored Sol's list six times. |
+| 7 | Agent and skill from a configured extra directory | **Pass.** With the directory added through native `--add-dir`, Sol dispatched `accessibility-auditor` (not a Zilot role), which loaded the extra `wcag-checklist` skill. |
+| 8a | Cancellation | **Pass.** Cooperative cancel at a question ("no workers remain running"). During execution, Esc at the worker's prompts and then the "esc stop agents" control ended the running workers; Sol reported `blocked` with "no confirmation of changes or test results" instead of claiming success. The app shows a native Cancel control per background agent. |
+| 8b | Worker failure | **Pass.** After workers failed (denied permissions or stopped), Sol retried once and then explicitly escalated to `zilot:escalation` on `gpt-6.1-sol`, which finished the change. |
+| 8c | Unavailable model | **Pass.** With the orchestrator configured as `gpt-6.1-sol-unavailable`, the host refused it and the front desk reported the exact model with no substitution (0.19 credits). |
+| 8d | Resume without duplicate execution | **Pass.** After a stop, "continue" made the worker reconcile `git status`/diff first; `average` stayed defined once and only the tests were added. After killing the CLI and `copilot --resume`, `write_agent` to the old orchestrator failed ("Agent not found"); the front desk started a new one whose first task was checking the resumed state; one assertion was added, nothing repeated. |
+| 9a | Manual approval (default `ask`) | **Pass in CLI and app.** Approve / Change something / Cancel; only the explicit choice was sent back as `PLAN DECISION`. |
+| 9b | Configured auto-approval | **Pass.** Project `.zilot/config.json` set `auto`; Sol reported `plan approval: auto: project .zilot/config.json`, showed the plan as a checkpoint and continued without a question. Copilot's own tool and path prompts still appeared. |
+| 11 | Final build smoke test (read-only question) | **Pass after a fix.** The first run of the release candidate surfaced two defects: unquoted `: ` in new agent descriptions made Copilot drop every internal agent ("Unknown agent_type: zilot:orchestrator"), and, once fixed, Sol answered a small question with `view` and `bash` itself. Descriptions are now quoted (with a validator check and regression test), and Sol's charter explicitly overrides Copilot's "handle small lookups directly" guidance. Two fresh runs afterwards: Sol used only `task` and `update_todo`; the scout did the reads. |
+| 12 | Several orchestrators at once | **Pass.** A second, unrelated request arrived while the first orchestrator was still planning; both ran concurrently. The root list kept both objectives, prefixed by name, and neither report erased the other's items. Questions named their objective, and a later follow-up for the first objective went to its orchestrator. |
+| 13 | Rollover to a fresh orchestrator | **Pass, with a test-only lower threshold** (3 or 2 turns instead of 10). After the old orchestrator reported `done` and passed the threshold, the next follow-up started `<name>-2` with `ROLLOVER from <name>` and the old `handover` verbatim (original request preserved after a fix); the successor redid nothing (one change per file, tests 4/4 and 3/3). In two intermediate runs Luna started a fresh orchestrator with summarized context instead of the template; resolving a conflicting instruction fixed that in the next run. |
+| 14 | Plan approval not inferred | **Pass after a fix.** One run's brief claimed approval from an ordinary change request and Sol skipped the question. The front desk now records only the user's explicit words; the next run's brief said `none`, the question appeared, and choosing Cancel ended with "no files were changed". |
+| 15 | Customer agent, skill and routing table | **Pass.** A project with `.github/agents/acme-node.agent.md`, an `acme-test-style` skill and a `zilot-routing` table (`node-backend → acme-node`, skill `acme-test-style`): Sol loaded `zilot-routing` first, dispatched `acme-node` instead of `zilot:node-backend` for planning and implementation, `acme-node` loaded `acme-test-style`, and the new test was named `acme: empty array total is zero`. Zilot's reviewer checked it; 3/3 tests passed. `check-custom.mjs` reported no problems beforehand. |
+| 10 | Install, discovery and invocation | **Pass with limits, below.** CLI: local marketplace add + `copilot plugin install zilot@zilot`, a direct install, and `--plugin-dir` all discovered the plugin; `copilot --agent zilot:frontdesk` started it. App: after a direct install and an app restart, Customize listed `zilot`, the agent picker listed `frontdesk`, and the full workflow ran. |
+
+## Visibility
+
+- **CLI (interactive):** the root's `update_todo` calls succeed but the interactive timeline does not render a root checklist; Sol's nested updates render inline under its agent card, and `/tasks` shows the agent tree. The front-desk mirror is therefore what the app shows, not what the CLI shows.
+- **App:** root progress renders as "Updated todo list 2/4 done" rows and an "Updated plan" group in the main transcript; the Background chip lists the orchestrator (Working/Idle) with a Cancel button; its tab shows Sol's model, brief, children ("Zilot:scout … 13 activities") and reports. Lines without the leading `- ` are not counted ("No checklist items"); 0.3.0 requires `- [ ]` lines.
+
+## Limits observed
+
+- **App root model.** The app applies its session startup model after the agent is chosen, so the first app run's front desk ran on `claude-sonnet-5.5`. Choosing GPT-6 Luna in the model picker before the first message gave `gpt-6-luna` for every root turn; a mid-run model change is queued until the run ends. Sol and specialists always used their pinned models.
+- **App and macOS privacy.** The app could not read folders under `~/Documents` or external volumes ("Operation not permitted"), so a marketplace pointing at the repository there showed "Catalog not loaded". Installing a copy elsewhere (or from GitHub) worked. No privacy settings were changed.
+- **App and repository instructions.** In the app, Sol saw the fixture's `AGENTS.md` and asked before dispatching specialists; the CLI honored `include-custom-instructions: false`. Asking was the right response to the instruction text, which has since been clarified in the fixture.
+- **Delegation is instruction-level.** Sol must carry its specialists' tools, so nothing in Copilot stops it from using them. In 14 orchestrator runs it delegated every time except once (fixed above); a scout also called `update_todo` on its own child-local list once, which does not affect the user's list.
+- **Worker reuse.** Sol 6.1 dispatched specialists in `sync` mode in every run, even when told to use background mode, so follow-ups reuse the orchestrator (verified) and get fresh workers with the relevant findings; worker-level `write_agent` reuse was not observed.
+- **Plugin files outside the project** trigger path prompts. 0.3.0 skills are self-contained; the scout reads `~/.config/zilot/config.json` only when the project sets no preference, which still prompts once unless allowed.
+- **Not tested live:** a connected Jira or other ticket MCP source, VS Code, Windows or Linux, and installation from the GitHub marketplace (the repository is private and nothing was pushed).
+
+## Static checks
+
+`npm test` (23 tests: configuration precedence, launcher arguments, extra directories, profile invariants including the inheritance regression), `npm run validate` and `npm run catalog:check`. These check files, not runtime behavior.

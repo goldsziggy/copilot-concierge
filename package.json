@@ -1,0 +1,21 @@
+{
+  "name": "zilot",
+  "version": "0.3.1",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "Concierge Copilot: native Zilot roles and skills with session-local configuration.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node scripts/test.mjs",
+    "validate": "node scripts/validate.mjs",
+    "configure": "node scripts/configure.mjs",
+    "start": "node scripts/launch.mjs",
+    "package": "node scripts/package.mjs",
+    "catalog:check": "node distribution/catalog.mjs --check",
+    "release:check": "node scripts/release-check.mjs",
+    "check:custom": "node scripts/check-custom.mjs"
+  }
+}

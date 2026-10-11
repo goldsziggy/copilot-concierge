@@ -1,0 +1,19 @@
+{
+  "name": "zilot",
+  "owner": {
+    "name": "goldsziggy"
+  },
+  "metadata": {
+    "description": "Concierge Copilot: the native Zilot plugin for GitHub Copilot."
+  },
+  "plugins": [
+    {
+      "name": "zilot",
+      "source": "./",
+      "version": "0.3.1",
+      "description": "Concierge Copilot: plan, challenge and execute work with Zilot's native specialists, explicit model choices and an enterprise design-system-first workflow.",
+      "repository": "https://github.com/goldsziggy/zilot-plugin",
+      "strict": true
+    }
+  ]
+}
