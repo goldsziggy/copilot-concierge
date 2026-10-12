@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -80,7 +79,7 @@ async function fixture(t) {
   await fs.mkdir(home);
   await fs.mkdir(repo);
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
-  env.GIT_CONFIG_NOSYSTEM = '1'; env.GIT_CONFIG_GLOBAL = os.devNull;
+  env.GIT_CONFIG_NOSYSTEM = '1'; env.GIT_CONFIG_GLOBAL = '/dev/null';
   const git = (...args) => execFileSync('git', ['-c', 'core.fsmonitor=false', '-C', repo, ...args], { env, stdio: 'pipe' });
   git('init', '--quiet');
   await fs.writeFile(path.join(repo, 'package.json'), '{"engines":{"node":">=20"}}\n');
