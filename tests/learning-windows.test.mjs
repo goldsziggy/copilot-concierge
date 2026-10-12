@@ -87,15 +87,19 @@ async function fixture(t) {
   return { directory, home, repo, api, git, sid: account.sid, memory: path.join(home, '.config', 'copilot-concierge', 'memory.json'), knowledge: path.join(repo, 'docs', 'concierge', 'knowledge.md') };
 }
 const mutate = (api, store, action, project, revision, extra = {}) => api.run(store, action, { ...(project ? { project } : {}), payload: { expected_revision: revision, ...extra } });
-function powershell(script, args = []) {
-  // Test-only fixed expressions with literal arguments; no real user data.
-  const command = '[Console]::InputEncoding=[Text.UTF8Encoding]::new($false,$true); $fixtureArgs=@(ConvertFrom-Json -InputObject ([Console]::In.ReadToEnd())); ' + script + ' @fixtureArgs';
-  return execFileSync(powershellExecutable(process.env.SystemRoot), ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', command], { input: JSON.stringify(args), encoding: 'utf8', stdio: 'pipe', timeout: 30000 });
+function powershell(body, target) {
+  // Test-only fixed scripts. The fixture path arrives through the environment:
+  // Windows PowerShell consumes redirected stdin itself under -Command.
+  const command = "$ErrorActionPreference='Stop'; $p=$env:CONCIERGE_FIXTURE_PATH; " + body;
+  return execFileSync(powershellExecutable(process.env.SystemRoot), ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', command], { env: { ...process.env, CONCIERGE_FIXTURE_PATH: target }, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 60000 });
 }
+// Adds an Everyone allow rule, as a user or another tool might.
+const grantEveryone = (target, rights) => powershell(`$a=Get-Acl -LiteralPath $p; $s=New-Object System.Security.Principal.SecurityIdentifier('S-1-1-0'); $a.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($s, '${rights}', 'Allow'))); Set-Acl -LiteralPath $p -AclObject $a`, target);
+const sddl = target => powershell("(Get-Acl -LiteralPath $p).GetSecurityDescriptorSddlForm('Access,Owner,Group')", target).trim();
 // Independent read-only view of an object's owner and DACL by SID, via the OS.
 function security(target) {
-  const script = '& { param($p) $a=Get-Acl -LiteralPath $p; $t=[System.Security.Principal.SecurityIdentifier]; [pscustomobject]@{ owner=$a.GetOwner($t).Value; protected=$a.AreAccessRulesProtected; rules=@($a.GetAccessRules($true, $true, $t) | ForEach-Object { [pscustomobject]@{ sid=$_.IdentityReference.Value; allow=($_.AccessControlType -eq [System.Security.AccessControl.AccessControlType]::Allow); inherited=$_.IsInherited } }) } | ConvertTo-Json -Compress -Depth 4 }';
-  return JSON.parse(powershell(script, [target]));
+  const body = '$a=Get-Acl -LiteralPath $p; $t=[System.Security.Principal.SecurityIdentifier]; [pscustomobject]@{ owner=$a.GetOwner($t).Value; protected=$a.AreAccessRulesProtected; rules=@($a.GetAccessRules($true, $true, $t) | ForEach-Object { [pscustomobject]@{ sid=$_.IdentityReference.Value; allow=($_.AccessControlType -eq [System.Security.AccessControl.AccessControlType]::Allow); inherited=$_.IsInherited } }) } | ConvertTo-Json -Compress -Depth 4';
+  return JSON.parse(powershell(body, target));
 }
 function assertCurrentUserOnly(target, sid) {
   const info = security(target);
@@ -137,7 +141,7 @@ test('native Windows knowledge preserves its existing DACL, user text and CAS up
   const { api, repo, knowledge } = await fixture(t);
   await mutate(api, 'knowledge', 'upsert', repo, null, { record: fact('Node.js supports café 🤖 text.') });
   await fs.writeFile(knowledge, '# User text\r\n' + await fs.readFile(knowledge, 'utf8'));
-  powershell('& { param($p) $a=Get-Acl -LiteralPath $p; $s=[System.Security.Principal.SecurityIdentifier]::new("S-1-1-0"); $r=[System.Security.AccessControl.FileSystemAccessRule]::new($s,"ReadData","Allow"); $a.AddAccessRule($r); Set-Acl -LiteralPath $p -AclObject $a }', [knowledge]);
+  grantEveryone(knowledge, 'ReadData');
   const original = await invokeWindows({ op: 'read', root: repo, file: knowledge, limit: 262144, privateFile: false });
   const current = await api.run('knowledge', 'read', { project: repo });
   const settled = await Promise.allSettled([
@@ -154,11 +158,11 @@ test('native Windows knowledge preserves its existing DACL, user text and CAS up
 test('native Windows rejects unsafe private ACLs without reading or repairing them', native, async t => {
   const { api, repo, memory } = await fixture(t);
   await mutate(api, 'memory', 'set', repo, null, { record: preference('Synthetic confidential preference.') });
-  const script = '& { param($p) $a=Get-Acl -LiteralPath $p; $s=[System.Security.Principal.SecurityIdentifier]::new("S-1-1-0"); $r=[System.Security.AccessControl.FileSystemAccessRule]::new($s,"ReadData","Allow"); $a.AddAccessRule($r); Set-Acl -LiteralPath $p -AclObject $a; $a.GetSecurityDescriptorSddlForm("Access,Owner,Group") }';
-  const unsafe = powershell(script, [memory]).trim();
+  grantEveryone(memory, 'ReadData');
+  const unsafe = sddl(memory);
+  assert.match(unsafe, /;;;WD\)/, 'fixture must add an Everyone rule');
   await assert.rejects(api.run('memory', 'read'), /private|ACL|access|secure/i);
-  const after = powershell('& { param($p) (Get-Acl -LiteralPath $p).GetSecurityDescriptorSddlForm("Access,Owner,Group") }', [memory]).trim();
-  assert.equal(after, unsafe, 'unsafe ACL must not be repaired automatically');
+  assert.equal(sddl(memory), unsafe, 'unsafe ACL must not be repaired automatically');
 });
 
 test('native Windows rejects junctions and hardlinked destinations without altering targets', native, async t => {
@@ -204,7 +208,7 @@ test('native Windows refuses Git-contained memory and writable private ancestors
   await assert.rejects(api.run('memory', 'read', { project: repo }), /Git working tree/);
   await fs.rmdir(path.join(home, '.git'));
   const config = path.dirname(path.dirname(memory));
-  powershell('& { param($p) $a=Get-Acl -LiteralPath $p; $s=[System.Security.Principal.SecurityIdentifier]::new("S-1-1-0"); $r=[System.Security.AccessControl.FileSystemAccessRule]::new($s,"DeleteSubdirectoriesAndFiles","Allow"); $a.AddAccessRule($r); Set-Acl -LiteralPath $p -AclObject $a }', [config]);
+  grantEveryone(config, 'DeleteSubdirectoriesAndFiles');
   await assert.rejects(api.run('memory', 'read'), /ACL|ancestor|private|safe|access/i);
 });
 
@@ -255,4 +259,33 @@ test('native Windows learning stays unavailable when system PowerShell cannot st
   await assert.rejects(api.run('memory', 'read'), /unavailable or could not start/);
   restore();
   await assert.rejects(fs.access(path.dirname(path.dirname(memory))), { code: 'ENOENT' });
+});
+
+// Characterizes the host behavior the adapter relies on: a staging file created
+// with a copied descriptor matches it, and ReplaceFile keeps the replaced DACL.
+test('native Windows ReplaceFile keeps the replaced file security descriptor', native, async t => {
+  const { repo } = await fixture(t);
+  const body = `$results = foreach ($private in @($false, $true)) {
+    $a = Join-Path $p ('a-' + $private + '.txt'); $b = Join-Path $p ('b-' + $private + '.txt')
+    if ($private) {
+      $u = [System.Security.Principal.WindowsIdentity]::GetCurrent().User
+      $fs = New-Object System.Security.AccessControl.FileSecurity; $fs.SetOwner($u); $fs.SetAccessRuleProtection($true, $false)
+      $fs.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($u, 'FullControl', 'Allow')))
+      (New-Object System.IO.FileStream($a, 'CreateNew', 'ReadData,WriteData,ReadPermissions,ReadAttributes', 'None', 4096, 'WriteThrough', $fs)).Dispose()
+    } else { [System.IO.File]::WriteAllText($a, 'one') }
+    $before = (Get-Acl -LiteralPath $a).GetSecurityDescriptorSddlForm('Owner,Group,Access')
+    $copy = New-Object System.Security.AccessControl.FileSecurity; $copy.SetSecurityDescriptorSddlForm($before, 'Owner,Group,Access')
+    (New-Object System.IO.FileStream($b, 'CreateNew', 'ReadData,WriteData,ReadPermissions,ReadAttributes', 'None', 4096, 'WriteThrough', $copy)).Dispose()
+    $staged = (Get-Acl -LiteralPath $b).GetSecurityDescriptorSddlForm('Owner,Group,Access')
+    [System.IO.File]::Replace($b, $a, [NullString]::Value, $false)
+    $after = (Get-Acl -LiteralPath $a).GetSecurityDescriptorSddlForm('Owner,Group,Access')
+    [pscustomobject]@{ private = $private; before = $before; staged = $staged; after = $after }
+  }
+  ConvertTo-Json -InputObject @($results) -Compress`;
+  const results = JSON.parse(powershell(body, repo));
+  t.diagnostic(JSON.stringify(results));
+  for (const result of results) {
+    assert.equal(result.staged, result.before, `staged descriptor (private=${result.private})`);
+    assert.equal(result.after, result.before, `replaced descriptor (private=${result.private})`);
+  }
 });

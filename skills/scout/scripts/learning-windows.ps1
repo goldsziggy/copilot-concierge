@@ -77,6 +77,11 @@ namespace ConciergeLearning {
         private static extern bool GetUserProfileDirectoryW(IntPtr token, StringBuilder profile, ref uint size);
 
         private static void Stop(string message) { throw new StoreError(message); }
+        // Bounded, content-free cause for an uncertain outcome.
+        private static StoreError UncertainBecause(string cause, Exception error) {
+            string detail = error == null ? "" : error is StoreError ? " (" + error.Message + ")" : " (Windows error " + (Marshal.GetHRForException(error) & 0xFFFF) + ")";
+            return new StoreError(Uncertain + " Cause: " + cause + detail + ".");
+        }
         private static bool Equal(string a, string b) { return String.Equals(a, b, StringComparison.Ordinal); }
         private static bool IsTrusted(SecurityIdentifier sid) { return sid != null && Array.IndexOf(Trusted, sid.Value) >= 0; }
         private static bool IsAncestorTrusted(SecurityIdentifier sid, bool aboveHome) { return IsTrusted(sid) || (aboveHome && sid != null && Equal(sid.Value, TrustedInstaller)); }
@@ -354,7 +359,7 @@ namespace ConciergeLearning {
                 using (FileStream stream = created) {
                     Metadata staged;
                     try { staged = Inspect(stream.SafeFileHandle, temp); }
-                    catch { uncertain = true; throw new StoreError(Uncertain); }
+                    catch (Exception error) { uncertain = true; throw UncertainBecause("staged file metadata could not be read", error); }
                     tempIdentity = staged.Identity; // Also permits verified cleanup after a partial staging write.
                     if (privateFile) CheckAcl(staged, true, false);
                     if (current.acl != null && !Equal(staged.Acl, current.acl)) Stop(UnsafeAcl);
@@ -370,18 +375,22 @@ namespace ConciergeLearning {
                     if (original.identity == null) File.Move(temp, file);
                     else File.Replace(temp, file, null, false);
                     published = true;
-                } catch {
+                } catch (Exception error) {
                     // Classify from observed state, not the error code. Only an
                     // unchanged destination plus intact staged bytes is a plain
                     // conflict (for example, a concurrent reader's sharing lock).
-                    if (!Unpublished(root, file, limit, privateFile, original, temp, tempIdentity)) { uncertain = true; throw new StoreError(Uncertain); }
+                    if (!Unpublished(root, file, limit, privateFile, original, temp, tempIdentity)) { uncertain = true; throw UncertainBecause("replacement failed", error); }
                     Stop(Conflict);
                 }
+                string problem = null;
+                Exception verifyError = null;
                 try {
                     Snapshot completed = Read(root, file, limit, privateFile);
-                    if (!Equal(completed.revision, Hash(bytes)) || (original.acl != null && !Equal(completed.acl, original.acl))) Stop(Uncertain);
-                    SameParents(parents.ToArray());
-                } catch { uncertain = true; throw new StoreError(Uncertain); }
+                    if (!Equal(completed.revision, Hash(bytes))) problem = "replaced content could not be verified";
+                    else if (original.acl != null && !Equal(completed.acl, original.acl)) problem = "access settings differ after replacement";
+                    else SameParents(parents.ToArray());
+                } catch (Exception error) { problem = "replacement could not be reread"; verifyError = error; }
+                if (problem != null) { uncertain = true; throw UncertainBecause(problem, verifyError); }
             } finally {
                 if (lockStream != null) lockStream.Dispose();
                 // Failed ReplaceFile can leave the only surviving copy at temp.
