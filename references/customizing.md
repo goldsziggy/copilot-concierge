@@ -88,7 +88,9 @@ At the start of every objective, Concierge's orchestrator loads `copilot-concier
 
 Routing only changes who does the work. Approval, delegation, the task list and reporting work the same way, and Copilot's permissions still apply to your agents.
 
-Routed Scout agents and escalations doing Scout work also receive the `scout` skill. They retain its bounded project-notes exception, path checks and explicit no-write handling; other roles cannot inherit that exception.
+Routed Scout agents and escalations doing Scout work also receive the `scout` skill. In the unreleased development version they retain its separate private-memory and repository-knowledge scopes, bundled helper, path and revision checks, and explicit no-write handling. Only Scout work gets these two narrow persistence destinations; other roles do not inherit a general learning-write exception. If a routed agent cannot use the helper, it returns session-only findings rather than creating another note store or editing the files directly.
+
+Private preferences apply only to useful presentation or workflow style within the current request. They do not supply repository facts, override routing or model requirements, grant approvals, or justify publishing personal data. Pass a worker only a relevant preference, not the whole private memory file. Repository knowledge needs current repository evidence and stays separate from private memory. An implementer may review and include a knowledge diff in an already authorized relevant commit; Scout cannot stage or commit. See [memory and knowledge](memory-and-knowledge.md).
 
 Routed `ship-it` agents also receive the built-in `ship-it` skill: read-only preflight, separate explicit publication consent for exact metadata, supported draft creation and immediate revalidation remain mandatory. Omit the worker's tool list when it needs inherited provider integrations; that grants no extra publication consent.
 

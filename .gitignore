@@ -5,3 +5,5 @@ verification/**/native-state/
 verification/**/raw/
 .DS_Store
 /.copilot-concierge/project-notes.md
+/.copilot-concierge/memory.json
+/.config/copilot-concierge/memory.json

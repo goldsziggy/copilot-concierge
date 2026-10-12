@@ -1,6 +1,18 @@
-# Migrating to Concierge 0.5
+# Migrating to Concierge
 
 Concierge is the maintained native Copilot plugin. Its canonical public repository is `goldsziggy/copilot-concierge`; its package, plugin and marketplace IDs are `copilot-concierge`. The former private development repository remains separate and unchanged. The historical public `v0.3.1` tag and release keep their Zilot source, IDs and uploaded assets.
+
+## From 0.5.0 project notes to memory and knowledge (unreleased)
+
+This migration belongs to the development version. No new release or installation is implied, and existing sessions and installed copies keep their previous behavior.
+
+Scout treats `.copilot-concierge/project-notes.md` as read-only migration input. It checks each useful fact against current repository evidence, leaves personal or secret content behind, and moves only selected confirmed facts into the managed section of `docs/concierge/knowledge.md`. Notes are not copied wholesale, used as their own evidence, or converted into personal memories. Scout reports what it retained, corrected, skipped or could not verify.
+
+The original note file stays unchanged; Scout no longer maintains it alongside the new knowledge document. Completed migration retires legacy reads, and later edits to the old notes are not imported. Future corrections use current repository sources. Existing knowledge entries are reconciled instead of duplicated. If `docs/concierge/knowledge.md` already exists without Concierge's ownership markers, Scout preserves it and reports the conflict rather than adopting or overwriting it. User-written text outside valid markers is preserved. Explicit no-write instructions, unavailable prerequisites or unsafe paths leave migration pending and keep discovery in the current session.
+
+Private preferences start separately at `~/.config/copilot-concierge/memory.json`, outside all Git worktrees. Only direct user preferences or user-confirmed inferences may be saved; repository files, old notes and transcripts cannot seed that file. You can inspect, correct, forget or disable memory in ordinary conversation. See [memory and knowledge](memory-and-knowledge.md).
+
+After reviewing migrated knowledge, an implementer may include the documentation diff in an authorized relevant commit. Scout never stages or commits, changes ignore rules, deletes the old notes or rewrites history. The old local notes should remain untracked. Removing a fact from today's knowledge document does not erase it from earlier commits.
 
 ## From Concierge 0.4.x
 
@@ -10,7 +22,7 @@ The plugin and marketplace IDs stay `copilot-concierge`. Version 0.5.0 renames t
 2. Update shortcuts and scripts to `copilot --agent copilot-concierge:concierge`, or select **concierge** in the app. Start a fresh session and restart the app if its picker is stale.
 3. Prefer `models.concierge` in configuration. The launcher still accepts `models.frontdesk` as a deprecated input alias. Do not put both keys in the same configuration file.
 
-Scout may create or refresh `.copilot-concierge/project-notes.md` within its bounded note rules unless you explicitly prohibit file writes. Existing project configuration, notes and Copilot session history are preserved by updates and removal.
+Published 0.5.0 may create or refresh `.copilot-concierge/project-notes.md` within its bounded note rules unless you explicitly prohibit file writes. The unreleased development version instead uses the migration above. Existing project configuration, notes and Copilot session history are preserved by updates and removal.
 
 ## From the Zilot 0.3.x plugin
 

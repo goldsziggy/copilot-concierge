@@ -1,6 +1,14 @@
 # Capability matrix: Copilot CLI and the GitHub Copilot app
 
-## Concierge 0.5.0 scope
+## Unreleased memory and repository knowledge
+
+The development branch replaces Scout's maintained local note with private OS-user preferences and versioned repository knowledge. Concierge and Sol remain control-only; the same Scout (including routed/escalated Scout work) retrieves and curates both stores. Explicit file-write restrictions apply separately to each destination. The bundled Node 20+ helper uses plain files and read-only Git root checks; there is no service or transcript capture.
+
+Private preferences are outside Git at `~/.config/copilot-concierge/memory.json`. Verified facts and decisions are in a managed section of `docs/concierge/knowledge.md`; assumptions remain in the current brief. The old project note is preserved as read-only migration input and is not maintained in parallel. See [memory and knowledge](memory-and-knowledge.md).
+
+Persistence requires Node.js 20+ and Git, existing tool/path permission, and a supported local filesystem. Native Windows persistence currently stops safely because the helper cannot establish reparse-point and ACL guarantees; ordinary plugin work can continue without persistence. POSIX file checks and revision comparisons are bounded safeguards, not a security boundary against hostile same-user races. This feature has no live model/session acceptance yet and is not installed in the ongoing comparison experiment.
+
+## Released Concierge 0.5.0 scope
 
 The current entry is `copilot-concierge:concierge`; `frontdesk` is a historical name, not an invocation alias. The source adds bounded Scout project notes, an orchestrated Ship it role and verification of custom profile model pins before dispatch. These are instruction contracts; current source, installation and live-trial evidence is recorded separately in [runtime verification](runtime-verification.md).
 

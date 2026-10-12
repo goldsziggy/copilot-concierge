@@ -1,6 +1,14 @@
 # Runtime verification
 
-## Concierge 0.5.0 — current contract and evidence boundaries
+## Unreleased memory and knowledge implementation
+
+The isolated development branch adds a self-contained Scout filesystem helper, private user preference records, confirmed repository knowledge under `docs/concierge`, and reviewed migration of legacy project notes. These are plain-file operations, not a daemon, database or transcript service. The helper checks schemas, bounded storage, paths and revisions; Scout and review still establish truth, appropriate user provenance and privacy of prose.
+
+Verification for this branch uses synthetic homes and disposable Git repositories. Behavioral tests cover persistence/reload, corrections/removal, disabled memory, repository and private-store isolation, managed-doc preservation, unsafe paths, optimistic concurrency and selected migration. Instruction checks cover control-only routing, privacy scope, routed Scout/escalation, rollover and deliberate knowledge commits. These tests are not evidence that a model followed the new workflow.
+
+No active comparison session, installed plugin/cache, Digivice checkout or user memory was changed for this work. No new model trials were run. Native Windows persistent learning is explicitly unavailable until its path/ACL checks can be supported; the rest of the plugin may continue session-only. Existing 0.5.0 observations below describe the previous project-notes contract, not acceptance of this feature.
+
+## Published Concierge 0.5.0 — contract and evidence boundaries
 
 Version 0.5.0 uses `copilot-concierge:concierge` as the sole user-facing entry. The launcher accepts `models.concierge`, with `models.frontdesk` as a deprecated input alias; this is configuration compatibility, not an agent alias.
 

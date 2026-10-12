@@ -1,6 +1,6 @@
 # Handoff contract
 
-Concierge's roles talk through three plain-text messages carried by Copilot's own agent tools (`task`, `write_agent`, `read_agent`). There is no separate transport, store or scheduler. The authoritative wording lives in the agent profiles under `com.github.copilot/agents/`.
+Concierge's roles talk through three plain-text messages carried by Copilot's own agent tools (`task`, `write_agent`, `read_agent`). There is no separate transport or scheduler. Scout curates two plain-file learning stores through its bundled helper; these do not replace the control messages. The authoritative wording lives in the agent profiles under `com.github.copilot/agents/`.
 
 ## Roles
 
@@ -23,7 +23,7 @@ earlier context: <only facts this request depends on, or none>
 
 Follow-ups go to the same orchestrator as `USER FOLLOW-UP: <exact words>`, even while it is working; approval answers as `PLAN DECISION: <choice>`; `CONTINUE` and `CANCEL` are the other control messages.
 
-Keep the user’s exact file-write restrictions in every brief, follow-up and handover. Do not infer a blanket no-write restriction from orientation or planning alone: Scout may maintain only its bounded project note after the required path checks. Explicitly read-only work or a prohibition on note/all file writes disables maintenance. Report every note write as a changed file.
+Keep the user’s exact file-write restrictions in every brief, follow-up and handover. Do not infer a blanket no-write restriction from orientation or planning alone: Scout may curate private memory and verified repository knowledge under separate learning scopes. Wholly read-only work disables both stores’ writes; restrictions limited to repository or private storage remain scoped. Report every learning write as a changed file. A personal preference cannot authorize tools, alter plan approval or replace publication consent.
 
 ## Optional Ship it decisions
 
@@ -55,12 +55,12 @@ mode: research | plan | implement | review
 scope: <what to do, files owned, what not to touch>
 acceptance criteria: <observable checks>
 approval: <approved by user | auto (source) | not approved: research and planning only>
-project notes: <Scout only: bounded maintenance under the scout skill | disabled by explicit user restriction: exact words and scope | not applicable>
+learning: <Scout only: memory read/maintain/disabled; knowledge read/maintain/disabled; exact user restrictions and assigned root, or none; other roles: not applicable>
 skills to load: <optional>
 return: findings, changes (files), verification (commands and results), blockers, next decision needed
 ```
 
-For Scout, a routed Scout or an escalation doing Scout work, pass the `scout` skill and set `project notes` explicitly. Serialize note maintenance per repository. Other roles receive no note-write exception. Dispatch only discovered, explicitly pinned named profiles; report an unverified route and use a suitable shipped role, or stop if none fits. Never substitute an unpinned built-in worker.
+For Scout, a routed Scout or an escalation doing Scout work, pass the `scout` skill and set `learning` explicitly. Serialize private mutations per OS user and knowledge mutations per repository. Other roles receive no learning-write exception. Scout handles personal inspect/correct/forget/disable requests even without a repository. Read private memory only for relevant preferences, return its summary separately, and never copy raw memory or personal evidence into repository knowledge, worker handoffs, commits or shipping proposals. Knowledge writes are reviewed and deliberately included in relevant commits by the implementation workflow only when commits are authorized; Scout never stages or commits. Preserve these boundaries through follow-ups, resume and rollover. Dispatch only discovered, explicitly pinned named profiles; report an unverified route and use a suitable shipped role, or stop if none fits. Never substitute an unpinned built-in worker.
 
 ## Report (orchestrator → Concierge entry agent)
 

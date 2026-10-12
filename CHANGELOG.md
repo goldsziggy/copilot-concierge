@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Separate Scout learning into small private preferences outside Git worktrees and confirmed repository knowledge in `docs/concierge/knowledge.md`. Keep the existing roles and model requirements.
+- Support inspecting, correcting, forgetting, disabling and resuming private memory. Save explicit user preferences or user-confirmed inferences without storing transcripts, task histories, secrets or approval settings.
+- Organize knowledge into tech stacks, conventions, business rules, findings and decisions, with current repository sources and dates. Preserve user-written documentation, report changes and include relevant knowledge deliberately in commits only when committing is authorized.
+- Reuse Scout and a bounded Node.js helper with separate storage scopes, path checks and revision checks. Fail closed to session-only context when persistence is unavailable; native Windows persistence is not supported yet.
+- Treat 0.5.0 local project notes as read-only migration input: reverify useful facts, preserve the original file and stop maintaining duplicate note stores.
+- Keep this work separate from the published 0.5.0 installation and live comparison sessions. Source checks do not establish new live model acceptance.
+
 ## 0.5.0 — 2026-10-11
 
 - Rename the visible entry agent to **concierge** and the CLI invocation to `copilot-concierge:concierge`. There is no `frontdesk` agent alias; update launch commands and start a fresh session.

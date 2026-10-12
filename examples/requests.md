@@ -48,7 +48,35 @@ Add an explicit `copilot-concierge-routing` row for your team agent (for example
 
 > Help me understand how this project is organized and which checks matter before I make a change.
 
-Scout gathers source evidence and may create or refresh `.copilot-concierge/project-notes.md` for future requests. Notes stay within 12 facts and 2 KiB, use safe paths and remain advisory. Say “Do not write any files, including project notes” for wholly read-only discovery. This describes the current instruction contract, not a historical acceptance result.
+In the unreleased development version, Scout gathers source evidence and may maintain `docs/concierge/knowledge.md` for future requests. It records confirmed facts with sources and dates, preserving other documentation. Say “Do not write any files” for discovery without memory or knowledge writes. This describes the development instruction contract, not a live acceptance result.
+
+## Personal preferences (unreleased)
+
+> Remember that I prefer a short summary, then details.
+
+This is a private preference used across your projects on this computer. It does not go into repository documentation or commits. Concierge asks before saving a preference inferred from repeated behavior rather than your direct words.
+
+> What do you remember about me?
+
+> Change my preference: give me the detailed explanation first.
+
+> Forget my preference for short answers.
+
+> Stop remembering my preferences.
+
+You can inspect, correct, remove or disable saved preferences. “Forget all my preferences” clears saved preferences; “stop remembering” clears saved preferences and prevents future saves until you ask to resume. These requests do not erase Copilot's own chat history.
+
+## Knowledge that belongs with the code (unreleased)
+
+> Document why we use integer cents for prices.
+
+Scout checks the code, tests and existing design records. If the reason is supported, it records a confirmed decision and its sources in `docs/concierge/knowledge.md`; otherwise it asks for the missing rationale instead of inventing one. A description of what the code does is not proof of why it was chosen.
+
+> Correct the checkout rule: shipping is free from 50, not 75. Check the current tests before updating the docs.
+
+> Remove the obsolete payment finding from Concierge's knowledge.
+
+Corrections must agree with current repository evidence. Removing a managed entry preserves other entries and user-written text. If committing is already part of the task, the implementer reviews the knowledge diff and includes the relevant update deliberately; Scout never commits it itself. See [memory and knowledge](../references/memory-and-knowledge.md).
 
 ## Preparing a draft PR or MR
 
