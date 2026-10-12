@@ -1,12 +1,14 @@
 # Capability matrix: Copilot CLI and the GitHub Copilot app
 
-## Unreleased memory and repository knowledge
+## Concierge 0.6.0 candidate (unreleased)
 
 The development branch replaces Scout's maintained local note with private OS-user preferences and versioned repository knowledge. Concierge and Sol remain control-only; the same Scout (including routed/escalated Scout work) retrieves and curates both stores. Explicit file-write restrictions apply separately to each destination. The bundled Node 20+ helper uses plain files and read-only Git root checks; there is no service or transcript capture.
 
 Private preferences are outside Git at `~/.config/copilot-concierge/memory.json`. Verified facts and decisions are in a managed section of `docs/concierge/knowledge.md`; assumptions remain in the current brief. The old project note is preserved as read-only migration input and is not maintained in parallel. See [memory and knowledge](memory-and-knowledge.md).
 
-Persistence requires Node.js 20+ and Git, existing tool/path permission, and a supported local filesystem. Native Windows persistence currently stops safely because the helper cannot establish reparse-point and ACL guarantees; ordinary plugin work can continue without persistence. POSIX file checks and revision comparisons are bounded safeguards, not a security boundary against hostile same-user races. This feature has no live model/session acceptance yet and is not installed in the ongoing comparison experiment.
+Persistence requires Node.js 20+ and Git, existing tool/path permission, and a supported local filesystem. POSIX uses the Node filesystem helper; Windows has a bundled Windows PowerShell 5.1/.NET adapter for local fixed NTFS drives. Windows checks use file handles and SID-based ownership/access rules, not Unix mode bits. Unsupported paths, access rules or host policy stop persistence while ordinary work can continue with session-only context. See [supported storage](memory-and-knowledge.md#supported-storage).
+
+The Windows implementation and portable policy checks do not establish native Windows behavior. Native Windows integration tests and live Copilot workflows require separate runs; no native Windows host or new model-session evidence is available for this local change. The installed plugin and ongoing comparison experiment remain unchanged.
 
 ## Released Concierge 0.5.0 scope
 

@@ -57,11 +57,15 @@ Then describe the goal, ask a question or paste a ticket. Concierge asks focused
 
 Copilot keeps its own tool permissions. To stop being asked before each command or edit, use `copilot --agent copilot-concierge:concierge --allow-all` (or `/allow-all`) in the CLI, or **Mode → Tool permissions → Approve all** in the app. That is separate from Concierge's plan approval.
 
-## Persistent learning in the unreleased development version
+## Persistent learning in the 0.6.0 candidate (unreleased)
 
-The published 0.5.0 plugin uses local Scout project notes. The development version separates private preferences from repository knowledge; marketplace installation does not yet include that change.
+The published 0.5.0 plugin uses local Scout project notes. The unreleased 0.6.0 candidate separates private preferences from repository knowledge; marketplace installation does not yet include that change.
 
-Persistence needs Node.js 20 or later and Git on the host where Scout runs. Scout uses the bundled helper; no service, database or background process is installed. If either prerequisite is missing, access is denied, or a safe path cannot be established, it continues with session-only context. Native Windows persistence currently stops because the helper cannot establish the required reparse-point and permission checks; this does not prevent ordinary Concierge work.
+Persistence needs Node.js 20 or later and Git on the host where Scout runs. Scout uses the bundled helper; no service, database or background process is installed. If a prerequisite is missing, access is denied, or a safe path cannot be established, it continues with session-only context.
+
+On Windows, the helper uses the included adapter through **Windows PowerShell 5.1** and .NET Framework at the system path. This is separate from the PowerShell version used to run Copilot above; you do not select or install a PowerShell module for Concierge. Storage is limited to local fixed NTFS drives. Network shares, unsupported filesystems, linked paths and path aliases are rejected. The adapter checks Windows ownership and access rules rather than Unix permission bits. It does not elevate access, change execution policy or repair existing permissions; if host policy blocks the script, learning remains session-only. See [supported storage and Windows limits](memory-and-knowledge.md#supported-storage).
+
+The Windows implementation is present, but it has not yet been exercised on a native Windows host for this change. Portable tests do not establish Windows filesystem behavior; [verification status](runtime-verification.md#concierge-060-candidate-unreleased) records that distinction.
 
 Private preferences use `~/.config/copilot-concierge/memory.json` in your operating-system account's home directory, outside every Git worktree. They are shared across your projects on that computer, not synced between devices and not separated by Copilot sign-in. Repository knowledge uses only `docs/concierge/knowledge.md` in the assigned Git worktree. The helper does not write into an installed plugin or redirect storage into the project if private storage is unavailable. See [memory and knowledge](memory-and-knowledge.md).
 

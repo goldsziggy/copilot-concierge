@@ -1,6 +1,6 @@
 # Memory and repository knowledge
 
-This is the **unreleased development contract**. Published Concierge 0.5.0 uses the earlier local project notes. No live Copilot session has verified this new separation yet; source checks and persistence fixtures are separate evidence.
+This describes the **unreleased Concierge 0.6.0 candidate**. Published Concierge 0.5.0 uses the earlier local project notes. No live Copilot session has verified this new separation yet; source checks and persistence fixtures are separate evidence.
 
 Concierge learns in two places, both through Scout. It does not add another assistant, database, background service or transcript recorder.
 
@@ -66,11 +66,29 @@ Knowledge is expected to travel with the repository. Removing a current entry do
 
 An explicit whole-task “no changes” or “do not write any files” instruction disables both memory and knowledge writes, including migration. “Keep the repository read-only” disables repository knowledge writes; it does not broaden permission for private memory. A product-only instruction such as “explain the code; do not implement a change” still permits the ordinary narrow learning writes. A specific refusal to remember or document something takes precedence. Copilot's own path and tool permissions remain authoritative.
 
-Persistent learning requires Node.js 20 or later and Git. Scout uses only `skills/scout/scripts/learning.mjs` bundled with its skill. Missing prerequisites, denied permissions, an unsafe destination or an unresolved conflict result in session-only context, with the gap reported. There is no direct-edit fallback or alternate memory file. Native Windows persistence is currently unavailable because the helper cannot establish the required reparse-point and private-access checks; ordinary work can continue without saving.
+Persistent learning requires Node.js 20 or later and Git. Scout uses only `skills/scout/scripts/learning.mjs` and its bundled platform adapter from the loaded skill. Missing prerequisites, denied permissions, an unsafe destination or an unresolved conflict result in session-only context, with the gap reported. There is no direct-edit fallback or alternate memory file.
 
-The private path uses the operating-system account's home, not a project setting or a request-supplied directory. The helper rejects storage inside Git worktrees, unsafe path components and nonordinary destination files. New private directories use mode 0700 and memory files use mode 0600 on supported POSIX hosts. Existing owner-owned configuration directories can be readable by others but must not be group- or world-writable; the memory file itself must remain private. Existing file permissions are not widened. Repository knowledge requires the exact assigned Git root, with contained evidence files. The helper creates temporary files and an empty lock while replacing a store, then removes them normally. An interrupted process may leave a private temporary file or stale lock requiring deliberate review; it does not silently recover or create permanent history. Mutations use the last-read content revision and recheck the destination before replacing it; if state changed, Scout rereads and reconciles instead of overwriting another writer's update.
+### Supported storage
 
-These checks protect against common path mistakes and stale edits. They are not a security boundary against hostile processes running as the same operating-system user or all possible filesystem races. Private memory is not encrypted or synchronized by Concierge. Anyone using the same operating-system account can share its preferences; switching Copilot accounts does not isolate them.
+The private path uses the operating-system account's home, not a project setting or a request-supplied directory. On Windows this is the account's profile directory plus `.config\copilot-concierge\memory.json`; it remains outside every Git worktree. Repository knowledge requires the exact assigned Git root and contained evidence files. Both platforms reject unsafe path components and nonordinary destination files. Mutations use the last-read content revision and recheck the destination before replacing it; if state changed, Scout rereads and reconciles instead of overwriting another writer's update.
+
+**POSIX hosts:** new private directories use mode 0700 and memory files use mode 0600. Existing owner-owned configuration directories can be readable by others but must not be group- or world-writable; the memory file itself must remain private. Existing file permissions are not widened.
+
+**Windows:** the helper invokes its bundled Windows PowerShell 5.1/.NET Framework adapter through the system executable with `-NoProfile -NonInteractive -File`. It sends structured input through standard input. This is separate from the shell used to run Copilot. It does not pass an execution-policy bypass, request elevation, load a user PowerShell profile or change existing access rules to make an operation succeed. Missing PowerShell, unavailable .NET/PInvoke support or a policy that blocks the bundled script leaves learning session-only.
+
+The supported Windows storage scope is **local fixed NTFS drives**, using canonical absolute paths of at most 240 characters with an uppercase drive letter and the filesystem's actual path spelling. Network shares, UNC/device paths, alternate data streams, short-name aliases, reparse points of any type, files with multiple hard links and unresolved metadata are rejected. Checks use Windows file handles, identities and security identifiers (SIDs), rather than inferring protection from Unix mode bits.
+
+New private files and directories grant access only to the current Windows account SID, before any private bytes are written. An existing memory file must be owned by that account and have a protected DACL; its allowed principals can also include SYSTEM and built-in Administrators. Private ancestors must have trusted ownership and no unsafe modification access. The Windows TrustedInstaller principal is accepted only for system ancestors above the assigned home, not as another reader of private memory. Unsupported ownership or access rules stop the operation without repairing permissions.
+
+For an existing knowledge document, the adapter applies its owner, group and DACL to the staging file at creation and verifies them before writing content. It preserves and rechecks those settings during replacement. Auditing settings (SACLs) are outside this preservation guarantee; unsupported security-descriptor handling stops the write.
+
+The Windows adapter is implemented, but native Windows execution and live Copilot acceptance are **not yet verified for this change**. Portable policy tests on macOS cannot establish Windows ACL, handle or replacement behavior. See [verification scope](runtime-verification.md#concierge-060-candidate-unreleased).
+
+### Interrupted or conflicting updates
+
+The helper uses temporary files and a lock during replacement, then removes them on normal completion. An interrupted operation can leave temporary or recovery files and a stale lock requiring deliberate review. It does not silently discard recovery material or create a permanent memory history. A Windows replacement error can have an uncertain outcome: Scout must reread the destination through the helper before deciding what happened, report unresolved recovery state and never assume an error means nothing changed. There is no delete-then-move or direct-write fallback.
+
+These checks protect against common path mistakes and stale edits. They are not a guarantee of crash durability or a security boundary against hostile processes running as the same operating-system user, trusted Windows administrators or all possible filesystem races. Private memory is not encrypted or synchronized by Concierge. Anyone using the same operating-system account can share its preferences; switching Copilot accounts does not isolate them.
 
 ## Keep learning bounded
 

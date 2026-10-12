@@ -1,12 +1,16 @@
 # Runtime verification
 
-## Unreleased memory and knowledge implementation
+## Concierge 0.6.0 candidate (unreleased)
 
 The isolated development branch adds a self-contained Scout filesystem helper, private user preference records, confirmed repository knowledge under `docs/concierge`, and reviewed migration of legacy project notes. These are plain-file operations, not a daemon, database or transcript service. The helper checks schemas, bounded storage, paths and revisions; Scout and review still establish truth, appropriate user provenance and privacy of prose.
 
 Verification for this branch uses synthetic homes and disposable Git repositories. Behavioral tests cover persistence/reload, corrections/removal, disabled memory, repository and private-store isolation, managed-doc preservation, unsafe paths, optimistic concurrency and selected migration. Instruction checks cover control-only routing, privacy scope, routed Scout/escalation, rollover and deliberate knowledge commits. These tests are not evidence that a model followed the new workflow.
 
-No active comparison session, installed plugin/cache, Digivice checkout or user memory was changed for this work. No new model trials were run. Native Windows persistent learning is explicitly unavailable until its path/ACL checks can be supported; the rest of the plugin may continue session-only. Existing 0.5.0 observations below describe the previous project-notes contract, not acceptance of this feature.
+The follow-up Windows implementation replaces the blanket platform refusal with a bundled Windows PowerShell 5.1/.NET adapter for local fixed NTFS storage. It adds Windows handle-based path checks, SID-based access rules and guarded store replacement while retaining the common schema, managed Markdown and migration contract. Implementing these checks is not evidence that Windows has executed them successfully.
+
+Verification has three separate scopes: portable schema, adapter-contract and platform-policy tests on macOS; native Windows filesystem integration tests; and live Copilot/model workflows. Native Windows cases in `tests/learning-windows.test.mjs` exercise real filesystem, ACL and handle APIs and skip on other platforms; they are not replaced with a simulated Windows filesystem. Native Windows integration and new Copilot/model acceptance have not yet been run for this change. The existing Windows Node 20 and 22 CI jobs run `npm test`, so those cases will run when the candidate branch reaches CI. No new remote CI result is recorded here yet. Exact local results belong in the implementation report; the historical test counts below do not cover this change.
+
+No active comparison session, installed plugin/cache, Digivice checkout or user memory was changed for this work. No new model trials were run. Existing 0.5.0 observations below describe the previous project-notes contract, not acceptance of this feature.
 
 ## Published Concierge 0.5.0 — contract and evidence boundaries
 

@@ -7,7 +7,7 @@ import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createLearning } from '../skills/scout/scripts/learning.mjs';
 
-const supported = { skip: process.platform === 'win32' ? 'POSIX storage checks; Windows explicitly safe-stops.' : false };
+const supported = { skip: process.platform === 'win32' ? 'POSIX storage checks; native Windows storage is covered by learning-windows.test.mjs.' : false };
 const date = '2026-10-12';
 const preference = (value = 'Use concise answers.') => ({ id: 'answer-length', kind: 'response_style', value, user_evidence: 'User explicitly asked to remember concise answers.', checked_on: date });
 const fact = (summary = 'This repository uses Node.js.', source = 'package.json') => ({ id: 'node-runtime', category: 'Tech stack', status: 'confirmed', summary, sources: [{ path: source, locator: 'engines.node', checked_on: date }] });
@@ -286,9 +286,9 @@ test('existing update locks stop writes without deleting another operation lock'
   await assert.rejects(fs.access(knowledge), { code: 'ENOENT' });
 });
 
-test('Windows persistence safe-stops before filesystem or repository access', async () => {
-  const api = createLearning({ home: '/not-used', platform: 'win32' });
-  for (const store of ['memory', 'knowledge', 'legacy']) await assert.rejects(api.run(store, 'read'), /Windows.*reparse points.*ACLs/);
+test('Windows persistence never substitutes a simulated filesystem on other hosts', { skip: process.platform === 'win32' }, async () => {
+  const api = createLearning({ platform: 'win32' });
+  await assert.rejects(api.run('memory', 'read'), /actual Windows host/);
 });
 
 

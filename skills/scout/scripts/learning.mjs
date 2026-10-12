@@ -10,6 +10,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { createWindowsStorage } from './learning-windows.mjs';
 
 const exec = promisify(execFile);
 const START = '<!-- concierge-knowledge:start -->';
@@ -247,11 +248,13 @@ async function privateParent(file) {
   const stat = await fs.lstat(path.dirname(file));
   if (!stat.isDirectory() || stat.isSymbolicLink() || stat.uid !== process.getuid() || (stat.mode & 0o022) !== 0) fail('Private memory directory must be owned by this user and not writable by group or others.');
 }
-async function projectRoot(project) {
+async function projectRoot(project, windows) {
   if (typeof project !== 'string' || !path.isAbsolute(project)) fail('An explicit absolute --project Git root is required.');
-  const root = path.resolve(project);
-  if (await fs.realpath(root) !== root) fail('Use the canonical repository path, without symlink aliases.');
-  await directoryChain(root, root);
+  const root = windows ? await windows.project(project) : path.resolve(project);
+  if (!windows) {
+    if (await fs.realpath(root) !== root) fail('Use the canonical repository path, without symlink aliases.');
+    await directoryChain(root, root);
+  }
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
   env.GIT_CONFIG_NOSYSTEM = '1';
   env.GIT_CONFIG_GLOBAL = os.devNull;
@@ -271,28 +274,33 @@ async function rejectGitAncestor(file) {
 
 // Tests may inject a disposable home. The CLI always uses the OS account's home,
 // never HOME, XDG_CONFIG_HOME, repository settings, or a supplied storage path.
-export function createLearning({ home = os.userInfo().homedir, platform = process.platform } = {}) {
+export function createLearning({ home, platform = process.platform } = {}) {
+  const windows = platform === 'win32' ? createWindowsStorage() : null;
+  const read = windows ? (...args) => windows.read(...args) : readFile;
+  const replace = windows ? (...args) => windows.write(...args) : atomicWrite;
   return {
     async run(store, action, { project, payload } = {}) {
-      if (platform === 'win32') fail('Learning storage is unavailable on Windows: this helper cannot verify reparse points and private ACLs. Continue without persistence.');
       if (!['memory', 'knowledge', 'legacy'].includes(store)) fail('Unknown store.');
       const actions = store === 'memory' ? ['read', 'set', 'remove', 'clear', 'disable', 'enable'] : store === 'knowledge' ? ['read', 'upsert', 'remove', 'migrate'] : ['read'];
       if (!actions.includes(action)) fail('Unsupported operation for this store.');
       if (action === 'read' && payload !== undefined) fail('Read takes no payload.');
-      const root = project !== undefined || store !== 'memory' ? await projectRoot(project) : null;
+      const root = project !== undefined || store !== 'memory' ? await projectRoot(project, windows) : null;
       let anchor, file, limit;
       if (store === 'memory') {
-        anchor = path.resolve(home);
-        if (await fs.realpath(anchor) !== anchor) fail('OS home must be canonical, without symlink aliases.');
+        anchor = path.resolve(home ?? (windows ? await windows.home() : os.userInfo().homedir));
+        if (!windows && await fs.realpath(anchor) !== anchor) fail('OS home must be canonical, without symlink aliases.');
         file = path.join(anchor, '.config', 'copilot-concierge', 'memory.json');
         if (root && inside(root, file)) fail('Private memory cannot live inside the assigned repository.');
-        await directoryChain(anchor, path.dirname(file));
-        for (const [directory] of await chainIdentity(anchor, path.dirname(file))) {
-          const stat = await fs.lstat(directory);
-          if (stat.uid !== process.getuid() || (stat.mode & 0o022) !== 0) fail('Private memory ancestors must be owned by this user and not writable by group or others.');
+        if (windows) await windows.memory(anchor, file);
+        else {
+          await directoryChain(anchor, path.dirname(file));
+          for (const [directory] of await chainIdentity(anchor, path.dirname(file))) {
+            const stat = await fs.lstat(directory);
+            if (stat.uid !== process.getuid() || (stat.mode & 0o022) !== 0) fail('Private memory ancestors must be owned by this user and not writable by group or others.');
+          }
+          await rejectGitAncestor(file);
+          if (await lstat(path.dirname(file))) await privateParent(file);
         }
-        await rejectGitAncestor(file);
-        if (await lstat(path.dirname(file))) await privateParent(file);
         limit = MEMORY_LIMIT;
       } else {
         anchor = root;
@@ -302,13 +310,13 @@ export function createLearning({ home = os.userInfo().homedir, platform = proces
       if (store === 'legacy') {
         // A retired note is never opened again, even if its former path is now
         // absent, oversized or unsafe. The recorded hash identifies the review.
-        const canonical = await readFile(root, path.join(root, 'docs', 'concierge', 'knowledge.md'), DOC_LIMIT);
+        const canonical = await read(root, path.join(root, 'docs', 'concierge', 'knowledge.md'), DOC_LIMIT);
         const migration = parseKnowledge(canonical.bytes).state.migration;
         if (migration) return { path: file, revision: migration.legacy_revision, retired: true, content: null };
-        const legacy = await readFile(anchor, file, limit);
+        const legacy = await read(anchor, file, limit);
         return { path: file, revision: revision(legacy.bytes), retired: false, content: legacy.bytes === null ? null : decode(legacy.bytes) };
       }
-      const original = await readFile(anchor, file, limit, store === 'memory');
+      const original = await read(anchor, file, limit, store === 'memory');
       const rev = revision(original.bytes);
       let state, document;
       if (store === 'memory') {
@@ -352,7 +360,7 @@ export function createLearning({ home = os.userInfo().homedir, platform = proces
           }
           if (!Array.isArray(payload.records)) fail('Migration requires explicitly selected reverified records.');
           payload.records.forEach(knowledgeRecord);
-          const legacy = await readFile(root, path.join(root, '.copilot-concierge', 'project-notes.md'), LEGACY_LIMIT);
+          const legacy = await read(root, path.join(root, '.copilot-concierge', 'project-notes.md'), LEGACY_LIMIT);
           if (revision(legacy.bytes) !== payload.expected_legacy_revision) fail('Legacy notes changed; review them again.');
           state.migration = { legacy_revision: payload.expected_legacy_revision };
           for (const record of payload.records) state.records = state.records.filter(item => item.id !== record.id).concat(record);
@@ -363,18 +371,24 @@ export function createLearning({ home = os.userInfo().homedir, platform = proces
         const added = action === 'upsert' ? [payload.record] : action === 'migrate' ? payload.records : [];
         for (const record of added) for (const source of record.sources) {
           const sourceFile = path.join(root, source.path);
-          if (!await directoryChain(root, path.dirname(sourceFile))) fail(`Missing source directory: ${source.path}`);
-          regular(await lstat(sourceFile), source.path);
-          if (await fs.realpath(sourceFile) !== sourceFile) fail('Source path must use its canonical filesystem spelling, without aliases.');
+          if (windows) await windows.source(root, sourceFile);
+          else {
+            if (!await directoryChain(root, path.dirname(sourceFile))) fail(`Missing source directory: ${source.path}`);
+            regular(await lstat(sourceFile), source.path);
+            if (await fs.realpath(sourceFile) !== sourceFile) fail('Source path must use its canonical filesystem spelling, without aliases.');
+          }
         }
       }
       const bytes = store === 'memory' ? jsonBytes(state) : Buffer.from(document.before + block(state) + document.after);
-      if (store === 'memory') await rejectGitAncestor(file);
+      if (store === 'memory') {
+        if (windows) await windows.memory(anchor, file);
+        else await rejectGitAncestor(file);
+      }
       if (action === 'migrate') {
-        const latest = await readFile(root, path.join(root, '.copilot-concierge', 'project-notes.md'), LEGACY_LIMIT);
+        const latest = await read(root, path.join(root, '.copilot-concierge', 'project-notes.md'), LEGACY_LIMIT);
         if (revision(latest.bytes) !== payload.expected_legacy_revision) fail('Legacy notes changed before migration; review again.');
       }
-      await atomicWrite(anchor, file, original, bytes, limit, store === 'memory');
+      await replace(anchor, file, original, bytes, limit, store === 'memory');
       const result = { path: file, revision: hash(bytes), changed: !original.bytes?.equals(bytes) };
       return store === 'memory' ? { ...result, enabled: state.enabled, count: state.preferences.length } : { ...result, state };
     }
