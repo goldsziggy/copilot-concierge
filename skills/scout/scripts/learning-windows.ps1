@@ -148,13 +148,22 @@ namespace ConciergeLearning {
                 binary = new byte[(int)length]; Marshal.Copy(security, binary, 0, binary.Length);
             } finally { LocalFree(security); }
             RawSecurityDescriptor descriptor = new RawSecurityDescriptor(binary, 0);
-            string acl = descriptor.GetSddlForm(AccessControlSections.Owner | AccessControlSections.Group | AccessControlSections.Access);
+            string acl = Access(descriptor);
             return new Metadata {
                 Identity = info.Volume.ToString("x8") + ":" + info.IndexHigh.ToString("x8") + info.IndexLow.ToString("x8") + ":" + info.Attributes.ToString("x8") + ":" + info.Links + ":" + Hash(Utf8.GetBytes(acl)),
                 Directory = (info.Attributes & DirectoryBit) != 0,
                 Size = ((long)info.SizeHigh << 32) | info.SizeLow,
                 Acl = acl, Security = binary, Descriptor = descriptor
             };
+        }
+        // Owner, group, DACL protection and every ACE (type, flags, mask, SID).
+        // Auto-inheritance and "defaulted" bookkeeping bits are omitted: they
+        // differ between creation-time inheritance and ReplaceFile without
+        // changing who can access the object.
+        private static string Access(RawSecurityDescriptor descriptor) {
+            ControlFlags kept = descriptor.ControlFlags & (ControlFlags.DiscretionaryAclPresent | ControlFlags.DiscretionaryAclProtected);
+            return new RawSecurityDescriptor(kept, descriptor.Owner, descriptor.Group, null, descriptor.DiscretionaryAcl)
+                .GetSddlForm(AccessControlSections.Owner | AccessControlSections.Group | AccessControlSections.Access);
         }
         private static Metadata MetadataAt(string file, bool missingAllowed) {
             using (SafeFileHandle handle = Open(file, false, missingAllowed)) { return handle == null ? null : Inspect(handle, file); }

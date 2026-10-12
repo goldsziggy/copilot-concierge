@@ -93,12 +93,15 @@ function powershell(body, target) {
   const command = "$ErrorActionPreference='Stop'; $p=$env:CONCIERGE_FIXTURE_PATH; " + body;
   return execFileSync(powershellExecutable(process.env.SystemRoot), ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', command], { env: { ...process.env, CONCIERGE_FIXTURE_PATH: target }, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 60000 });
 }
+// .NET calls instead of Get-Acl/Set-Acl: a Windows PowerShell child can inherit
+// PowerShell 7's module path, which prevents the Security module from loading.
+const acl = "$d=[System.IO.Directory]::Exists($p); $a=if ($d) { [System.IO.Directory]::GetAccessControl($p) } else { [System.IO.File]::GetAccessControl($p) }; ";
 // Adds an Everyone allow rule, as a user or another tool might.
-const grantEveryone = (target, rights) => powershell(`$a=Get-Acl -LiteralPath $p; $s=New-Object System.Security.Principal.SecurityIdentifier('S-1-1-0'); $a.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($s, '${rights}', 'Allow'))); Set-Acl -LiteralPath $p -AclObject $a`, target);
-const sddl = target => powershell("(Get-Acl -LiteralPath $p).GetSecurityDescriptorSddlForm('Access,Owner,Group')", target).trim();
+const grantEveryone = (target, rights) => powershell(acl + `$s=New-Object System.Security.Principal.SecurityIdentifier('S-1-1-0'); $a.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($s, '${rights}', 'Allow'))); if ($d) { [System.IO.Directory]::SetAccessControl($p, $a) } else { [System.IO.File]::SetAccessControl($p, $a) }`, target);
+const sddl = target => powershell(acl + "$a.GetSecurityDescriptorSddlForm('Access,Owner,Group')", target).trim();
 // Independent read-only view of an object's owner and DACL by SID, via the OS.
 function security(target) {
-  const body = '$a=Get-Acl -LiteralPath $p; $t=[System.Security.Principal.SecurityIdentifier]; [pscustomobject]@{ owner=$a.GetOwner($t).Value; protected=$a.AreAccessRulesProtected; rules=@($a.GetAccessRules($true, $true, $t) | ForEach-Object { [pscustomobject]@{ sid=$_.IdentityReference.Value; allow=($_.AccessControlType -eq [System.Security.AccessControl.AccessControlType]::Allow); inherited=$_.IsInherited } }) } | ConvertTo-Json -Compress -Depth 4';
+  const body = acl + '$t=[System.Security.Principal.SecurityIdentifier]; [pscustomobject]@{ owner=$a.GetOwner($t).Value; protected=$a.AreAccessRulesProtected; rules=@($a.GetAccessRules($true, $true, $t) | ForEach-Object { [pscustomobject]@{ sid=$_.IdentityReference.Value; allow=($_.AccessControlType -eq [System.Security.AccessControl.AccessControlType]::Allow); inherited=$_.IsInherited } }) } | ConvertTo-Json -Compress -Depth 4';
   return JSON.parse(powershell(body, target));
 }
 function assertCurrentUserOnly(target, sid) {
@@ -261,31 +264,36 @@ test('native Windows learning stays unavailable when system PowerShell cannot st
   await assert.rejects(fs.access(path.dirname(path.dirname(memory))), { code: 'ENOENT' });
 });
 
-// Characterizes the host behavior the adapter relies on: a staging file created
-// with a copied descriptor matches it, and ReplaceFile keeps the replaced DACL.
-test('native Windows ReplaceFile keeps the replaced file security descriptor', native, async t => {
+// Characterizes the host behavior the adapter relies on. Raw descriptors are
+// logged; access (owner, group, DACL protection and ACEs) must be unchanged.
+test('native Windows staging and ReplaceFile keep the replaced file access settings', native, async t => {
   const { repo } = await fixture(t);
-  const body = `$results = foreach ($private in @($false, $true)) {
-    $a = Join-Path $p ('a-' + $private + '.txt'); $b = Join-Path $p ('b-' + $private + '.txt')
+  const body = `function Access($text) {
+    $d = New-Object System.Security.AccessControl.RawSecurityDescriptor($text)
+    $kept = [int]$d.ControlFlags -band [int]([System.Security.AccessControl.ControlFlags]'DiscretionaryAclPresent,DiscretionaryAclProtected')
+    (New-Object System.Security.AccessControl.RawSecurityDescriptor([System.Security.AccessControl.ControlFlags]$kept, $d.Owner, $d.Group, $null, $d.DiscretionaryAcl)).GetSddlForm('Owner,Group,Access')
+  }
+  $results = foreach ($private in @($false, $true)) {
+    $a = [System.IO.Path]::Combine($p, 'a-' + $private + '.txt'); $b = [System.IO.Path]::Combine($p, 'b-' + $private + '.txt')
     if ($private) {
       $u = [System.Security.Principal.WindowsIdentity]::GetCurrent().User
       $fs = New-Object System.Security.AccessControl.FileSecurity; $fs.SetOwner($u); $fs.SetAccessRuleProtection($true, $false)
       $fs.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($u, 'FullControl', 'Allow')))
       (New-Object System.IO.FileStream($a, 'CreateNew', 'ReadData,WriteData,ReadPermissions,ReadAttributes', 'None', 4096, 'WriteThrough', $fs)).Dispose()
     } else { [System.IO.File]::WriteAllText($a, 'one') }
-    $before = (Get-Acl -LiteralPath $a).GetSecurityDescriptorSddlForm('Owner,Group,Access')
+    $before = [System.IO.File]::GetAccessControl($a).GetSecurityDescriptorSddlForm('Owner,Group,Access')
     $copy = New-Object System.Security.AccessControl.FileSecurity; $copy.SetSecurityDescriptorSddlForm($before, 'Owner,Group,Access')
     (New-Object System.IO.FileStream($b, 'CreateNew', 'ReadData,WriteData,ReadPermissions,ReadAttributes', 'None', 4096, 'WriteThrough', $copy)).Dispose()
-    $staged = (Get-Acl -LiteralPath $b).GetSecurityDescriptorSddlForm('Owner,Group,Access')
+    $staged = [System.IO.File]::GetAccessControl($b).GetSecurityDescriptorSddlForm('Owner,Group,Access')
     [System.IO.File]::Replace($b, $a, [NullString]::Value, $false)
-    $after = (Get-Acl -LiteralPath $a).GetSecurityDescriptorSddlForm('Owner,Group,Access')
-    [pscustomobject]@{ private = $private; before = $before; staged = $staged; after = $after }
+    $after = [System.IO.File]::GetAccessControl($a).GetSecurityDescriptorSddlForm('Owner,Group,Access')
+    [pscustomobject]@{ private = $private; before = $before; staged = $staged; after = $after; beforeAccess = (Access $before); stagedAccess = (Access $staged); afterAccess = (Access $after) }
   }
   ConvertTo-Json -InputObject @($results) -Compress`;
   const results = JSON.parse(powershell(body, repo));
   t.diagnostic(JSON.stringify(results));
   for (const result of results) {
-    assert.equal(result.staged, result.before, `staged descriptor (private=${result.private})`);
-    assert.equal(result.after, result.before, `replaced descriptor (private=${result.private})`);
+    assert.equal(result.stagedAccess, result.beforeAccess, `staged access (private=${result.private})`);
+    assert.equal(result.afterAccess, result.beforeAccess, `replaced access (private=${result.private})`);
   }
 });
