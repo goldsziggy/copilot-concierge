@@ -170,7 +170,7 @@ test('native Windows rejects unsafe private ACLs without reading or repairing th
   grantEveryone(memory, 'ReadData');
   const unsafe = sddl(memory);
   assert.match(unsafe, /;;;WD\)/, 'fixture must add an Everyone rule');
-  await assert.rejects(api.run('memory', 'read'), unsafeAcl);
+  await assert.rejects(api.run('memory', 'read'), { message: unsafeAcl });
   assert.equal(sddl(memory), unsafe, 'unsafe ACL must not be repaired automatically');
 });
 
@@ -179,14 +179,14 @@ test('native Windows rejects junctions and hardlinked destinations without alter
   const outside = path.join(directory, 'outside');
   await fs.mkdir(outside);
   await fs.symlink(outside, path.join(repo, 'docs'), 'junction');
-  await assert.rejects(api.run('knowledge', 'read', { project: repo }), unsafePath);
+  await assert.rejects(api.run('knowledge', 'read', { project: repo }), { message: unsafePath });
   assert.deepEqual(await fs.readdir(outside), []);
   await fs.rm(path.join(repo, 'docs'));
   await fs.mkdir(path.dirname(knowledge), { recursive: true });
   const target = path.join(outside, 'target.md');
   await fs.writeFile(target, 'synthetic external content');
   await fs.link(target, knowledge);
-  await assert.rejects(api.run('knowledge', 'read', { project: repo }), unsafePath);
+  await assert.rejects(api.run('knowledge', 'read', { project: repo }), { message: unsafePath });
   assert.equal(await fs.readFile(target, 'utf8'), 'synthetic external content');
 });
 
@@ -214,11 +214,11 @@ test('native Windows refuses Git-contained memory and writable private ancestors
   await mutate(api, 'memory', 'set', repo, null, { record: preference('Synthetic private preference.') });
   // A .git marker is enough; no user repository or real memory store is touched.
   await fs.mkdir(path.join(home, '.git'));
-  await assert.rejects(api.run('memory', 'read', { project: repo }), /^Private memory cannot live inside a Git working tree\.$/);
+  await assert.rejects(api.run('memory', 'read', { project: repo }), { message: /^Private memory cannot live inside a Git working tree\.$/ });
   await fs.rmdir(path.join(home, '.git'));
   const config = path.dirname(path.dirname(memory));
   grantEveryone(config, 'DeleteSubdirectoriesAndFiles');
-  await assert.rejects(api.run('memory', 'read'), unsafeAcl);
+  await assert.rejects(api.run('memory', 'read'), { message: unsafeAcl });
 });
 
 test('native Windows repository knowledge inherits ordinary access and survives a checkout-style rewrite', native, async t => {
@@ -290,7 +290,7 @@ test('native Windows refuses an update while another lock exists and leaves that
   const lock = path.join(path.dirname(knowledge), '.knowledge.md.concierge-lock');
   await fs.writeFile(lock, 'another writer');
   const before = await fs.readFile(knowledge);
-  await assert.rejects(mutate(api, 'knowledge', 'upsert', repo, result.revision, { record: fact('Blocked update.') }), /^Learning update is locked/);
+  await assert.rejects(mutate(api, 'knowledge', 'upsert', repo, result.revision, { record: fact('Blocked update.') }), { message: /^Learning update is locked/ });
   assert.equal(await fs.readFile(lock, 'utf8'), 'another writer');
   assert.ok((await fs.readFile(knowledge)).equals(before));
   assert.deepEqual((await fs.readdir(path.dirname(knowledge))).sort(), ['.knowledge.md.concierge-lock', 'knowledge.md']);
@@ -306,14 +306,35 @@ test('native Windows reports a sharing conflict during the rename as a clean con
   const body = "$h=[System.IO.File]::Open($p, 'Open', 'Read', 'Read'); [Console]::Out.WriteLine('open'); [Console]::Out.Flush(); $n=0; while (-not [System.IO.File]::Exists($env:CONCIERGE_RELEASE) -and $n -lt 1200) { [System.Threading.Thread]::Sleep(100); $n++ }; $h.Dispose()";
   const holder = spawn(powershellExecutable(process.env.SystemRoot), ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', "$ErrorActionPreference='Stop'; $p=$env:CONCIERGE_FIXTURE_PATH; " + body], { env: { ...process.env, CONCIERGE_FIXTURE_PATH: knowledge, CONCIERGE_RELEASE: release }, stdio: ['ignore', 'pipe', 'pipe'] });
   const exited = new Promise(resolve => holder.once('close', resolve));
-  t.after(async () => { await fs.writeFile(release, ''); await exited; });
+  // after() hooks run in registration order, so the fixture folder may already
+  // be gone here; stop a holder that is still waiting instead of signalling it.
+  t.after(() => { if (holder.exitCode === null) holder.kill(); return exited; });
   await new Promise((resolve, reject) => {
     holder.stdout.on('data', chunk => { if (String(chunk).includes('open')) resolve(); });
     holder.once('close', () => reject(new Error('file holder exited early')));
   });
-  await assert.rejects(mutate(api, 'knowledge', 'upsert', repo, result.revision, { record: fact('Blocked update.') }), conflict);
+  await assert.rejects(mutate(api, 'knowledge', 'upsert', repo, result.revision, { record: fact('Blocked update.') }), { message: conflict });
   await fs.writeFile(release, '');
   assert.equal(await exited, 0);
   assert.ok((await fs.readFile(knowledge)).equals(before));
+  assert.deepEqual(await fs.readdir(path.dirname(knowledge)), ['knowledge.md']);
+});
+
+test('native Windows updates a repository document owned by another account under a CREATOR OWNER folder rule', native, async t => {
+  const { api, repo, knowledge } = await fixture(t);
+  let result = await mutate(api, 'knowledge', 'upsert', repo, null, { record: fact('Node.js 20 or later is required.') });
+  const bytes = await fs.readFile(knowledge);
+  await fs.rm(knowledge);
+  // The folder grants each creator full control, as C:\\ does for new folders.
+  powershell(acl + "$co=New-Object System.Security.Principal.SecurityIdentifier('S-1-3-0'); $a.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($co, 'FullControl', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow'))); [System.IO.Directory]::SetAccessControl($p, $a)", path.dirname(knowledge));
+  // Recreate the document owned by the account SID instead of this elevated
+  // writer's default owner, so its creator rule names a different account.
+  powershell("$u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User; $fs=New-Object System.Security.AccessControl.FileSecurity; $fs.SetOwner($u); (New-Object System.IO.FileStream($p, 'CreateNew', 'ReadData,WriteData,ReadPermissions,ReadAttributes', 'None', 4096, 'WriteThrough', $fs)).Dispose()", knowledge);
+  await fs.writeFile(knowledge, bytes);
+  const before = security(knowledge);
+  result = await mutate(api, 'knowledge', 'upsert', repo, result.revision, { record: fact('Node.js 20 and 22 are tested.') });
+  t.diagnostic(JSON.stringify({ before, after: security(knowledge) }));
+  assertInherits(knowledge);
+  assert.equal((await api.run('knowledge', 'read', { project: repo })).revision, result.revision);
   assert.deepEqual(await fs.readdir(path.dirname(knowledge)), ['knowledge.md']);
 });
