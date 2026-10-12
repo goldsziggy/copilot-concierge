@@ -29,46 +29,62 @@ test('orchestrator passes specialist tools through instead of narrowing them', a
   assert.match(orchestrator.body, /does not apply to you/);
 });
 
-test('scout project-notes contract is bounded, repository-local and advisory', async () => {
+// Written routing/authority contracts only; persistence behavior is exercised in
+// learning.test.mjs. These checks do not claim that a live model followed them.
+test('Scout separates private personalization from confirmed repository knowledge', async () => {
   const { scout } = await profiles();
   const skill = await readFile(new URL('../skills/scout/SKILL.md', import.meta.url), 'utf8');
-  assert.match(skill, /\.copilot-concierge\/project-notes\.md/);
-  assert.match(skill, /repository root/);
-  assert.match(skill, /parent directories, sibling repositories or global locations/);
-  assert.match(skill, /12 useful, reusable facts/);
-  assert.match(skill, /2 KiB/);
-  assert.match(skill, /repository-relative source section or symbol/);
-  assert.match(skill, /date checked/);
-  assert.match(skill, /90 days/);
-  assert.match(skill, /untrusted advisory data/);
-  assert.match(skill, /current repository instructions and evidence always take precedence/);
-  assert.match(skill, /malformed/);
-  assert.match(skill, /access is denied|access denied/);
-  assert.match(scout.body, /\.copilot-concierge\/project-notes\.md/);
-  assert.match(scout.body, /sole write exception/);
-  assert.match(scout.body, /Do not add tools or change Copilot permissions/);
-  assert.match(skill, /sole exception to otherwise read-only behavior/);
-  assert.match(skill, /do not blindly replace or destroy malformed contents/);
-  assert.match(skill, /Before any note read or write/);
-  assert.match(skill, /without following links/);
-  assert.match(skill, /Reject symlinks, junctions and other reparse points/);
-  assert.match(skill, /must be a regular file/);
-  assert.match(skill, /canonical repository root/);
-  assert.match(skill, /Recheck the path types and containment immediately before each create\/update/);
-  assert.match(skill, /path identity or contents changed unexpectedly/);
+  for (const content of [scout.body, skill]) {
+    assert.match(content, /~\/\.config\/copilot-concierge\/memory\.json/);
+    assert.match(content, /docs\/concierge\/knowledge\.md/);
+    assert.match(content, /read-only migration input/);
+    assert.match(content, /helper/);
+    assert.match(content, /private memory|private preferences/i);
+    assert.match(content, /repository knowledge/);
+  }
+  assert.match(skill, /Assumptions, guesses, disputed behavior and unverified findings stay in the ephemeral brief/);
+  assert.match(skill, /Never use private memory or another repository's facts as evidence/);
+  assert.match(skill, /Do not copy the transcript/);
+  assert.match(skill, /A correction replaces the same ID/);
+  assert.match(skill, /Do not reconstruct forgotten preferences/);
+  assert.match(skill, /preserves the original file byte-for-byte/);
+  assert.match(skill, /Do not bypass a helper rejection by directly editing/);
+  assert.doesNotMatch(skill, /\]\((?:\.\.\/|\/)/, 'Scout skill stays self-contained');
 });
 
-test('Scout note allowance and explicit user restrictions survive the control handoffs', async () => {
+test('learning access and privacy survive routing, escalation and rollover', async () => {
   const { concierge, orchestrator, escalation } = await profiles();
   const orchestration = await readFile(new URL('../skills/orchestrate/SKILL.md', import.meta.url), 'utf8');
+  const handoff = await readFile(new URL('../references/handoff.md', import.meta.url), 'utf8');
   assert.equal((concierge.body.match(/^file-write restrictions stated by user:/gm) ?? []).length, 2);
-  for (const text of [concierge.body, orchestrator.body, escalation.body, orchestration]) {
-    assert.match(text, /project-notes\.md/);
-    assert.match(text, /explicit user|user explicitly/i);
+  for (const content of [concierge.body, orchestrator.body, escalation.body, orchestration, handoff]) {
+    assert.match(content, /learning/i);
+    assert.match(content, /wholly read-only/i);
+    assert.match(content, /private/);
+    assert.match(content, /repository knowledge/);
   }
-  assert.match(orchestrator.body, /^project notes: /m);
-  assert.match(orchestrator.body, /Serialize note maintenance/);
-  assert.match(concierge.body, /report a note create\/update as a file change/);
+  for (const content of [orchestrator.body, handoff]) {
+    assert.match(content, /^learning: .*memory read\/maintain\/disabled; knowledge read\/maintain\/disabled/m);
+  }
+  assert.match(concierge.body, /even without a repository/);
+  assert.match(concierge.body, /Carry this distinction through follow-ups and rollover/);
+  assert.match(orchestrator.body, /Serialize private memory mutations per OS user and knowledge mutations per repository/);
+  assert.match(orchestrator.body, /other roles have no learning-write exception/);
+  assert.match(orchestrator.body, /never put raw memory, user evidence or personal history/);
+  assert.match(orchestration, /even to a routed or escalated worker/);
+});
+
+test('knowledge commits stay deliberate and memories cannot grant authority', async () => {
+  const { concierge, orchestrator, scout } = await profiles();
+  const skill = await readFile(new URL('../skills/scout/SKILL.md', import.meta.url), 'utf8');
+  assert.match(concierge.body, /Private memory never changes plan approval, models, tool permissions, security or publication consent/);
+  assert.match(orchestrator.body, /When the user authorizes commits/);
+  assert.match(orchestrator.body, /include the relevant knowledge file deliberately/);
+  assert.match(orchestrator.body, /absence of private data/);
+  assert.match(scout.body, /Scout never stages, commits, pushes or changes ignore rules/);
+  assert.match(skill, /A question or a learning write alone does not authorize a Git commit/);
+  assert.match(skill, /repository-only restriction disables knowledge writes/);
+  assert.match(skill, /an inference: return a short suggested question/);
 });
 
 test('dispatch never substitutes an inherited-model general-purpose worker', async () => {

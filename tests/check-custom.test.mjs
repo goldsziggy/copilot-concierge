@@ -79,3 +79,45 @@ test('routing table parsing ignores the header and divider and trims backticks',
     { role: 'reviewer', agent: 'acme-review', skills: ['a', 'b'], when: 'always' },
   ]);
 });
+
+test('documented .claude and .agents project locations are checked too', async t => {
+  const root = await project(t, {
+    '.claude/agents/claude-reviewer.agent.md': agent('"Reviewer."'),
+    '.agents/skills/agents-rules/SKILL.md': skill('agents-rules'),
+    '.claude/skills/claude-rules/SKILL.md': skill('claude-rules'),
+  });
+  const result = await checkRoots([root]);
+  assert.deepEqual(result.errors, []);
+  assert.deepEqual(result.agents, ['claude-reviewer']);
+  assert.deepEqual(result.skills.sort(), ['agents-rules', 'claude-rules']);
+});
+
+test('duplicate agent IDs and skill names are reported because Copilot keeps only the first', async t => {
+  const root = await project(t, {
+    '.github/agents/team-reviewer.agent.md': agent('"Reviewer."'),
+    '.claude/agents/team-reviewer.agent.md': agent('"Other reviewer."'),
+    '.github/skills/team-rules/SKILL.md': skill('team-rules'),
+    '.claude/skills/team-rules/SKILL.md': skill('team-rules'),
+  });
+  const warnings = (await checkRoots([root])).warnings.join('\n');
+  assert.match(warnings, /duplicate agent ID "team-reviewer"/);
+  assert.match(warnings, /duplicate skill "team-rules"/);
+});
+
+test('custom files cannot silently take over Concierge skill or agent names', async t => {
+  const root = await project(t, {
+    '.github/agents/scout.agent.md': agent('"Team scout."'),
+    '.github/skills/review/SKILL.md': skill('review'),
+  });
+  const result = await checkRoots([root]);
+  assert.match(result.errors.join('\n'), /"review" is a Concierge skill name/);
+  assert.match(result.errors.join('\n'), /agent ID "scout" is a Concierge agent name/);
+  const shipped = await project(t, {
+    'plugin.json': JSON.stringify({ name: 'copilot-concierge' }),
+    'com.github.copilot/agents/scout.agent.md': agent('"Scout."'),
+    'skills/review/SKILL.md': skill('review'),
+  });
+  const own = await checkRoots([shipped]);
+  assert.deepEqual(own.errors, []);
+  assert.doesNotMatch(own.warnings.join('\n'), /is a Concierge (skill|agent) name/);
+});

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="910" viewBox="0 0 1120 910" role="img" aria-labelledby="title description">
   <title id="title">How Concierge coordinates your work</title>
-  <desc id="description">Talk to your Concierge. It talks to the orchestrator for you. No need to be a prompt-engineering expert—let your Concierge take care of that. Concierge handles questions, plan approval and progress. Its orchestrator chooses Scout for source context and bounded local project notes, planning and design specialists, and implementation and review specialists as needed. Specialists return evidence to the orchestrator. Model choices are configured separately.</desc>
+  <desc id="description">Talk to your Concierge. It talks to the orchestrator for you. No need to be a prompt-engineering expert—let your Concierge take care of that. Concierge handles questions, plan approval and progress. Its orchestrator chooses Scout for source context, private user preferences and verified repository knowledge, planning and design specialists, and implementation and review specialists as needed. Specialists return evidence to the orchestrator. Model choices are configured separately.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#007e87" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -37,9 +37,9 @@
   <text x="64" y="454" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Repository, docs and tickets</text>
   <text x="64" y="484" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Ground the work in sources</text>
   <rect x="60" y="510" width="280" height="86" rx="12" fill="#e5f7f6" />
-  <text x="76" y="538" font-size="20" font-weight="650" font-family="Arial, Helvetica, sans-serif" fill="#062342">Local project notes</text>
-  <text x="76" y="565" font-size="19" font-family="Arial, Helvetica, sans-serif" fill="#466175">Up to 12 facts / 2 KiB</text>
-  <text x="76" y="588" font-size="17" font-family="Arial, Helvetica, sans-serif" fill="#466175">Current source evidence wins</text>
+  <text x="76" y="538" font-size="20" font-weight="650" font-family="Arial, Helvetica, sans-serif" fill="#062342">Memory + knowledge</text>
+  <text x="76" y="565" font-size="19" font-family="Arial, Helvetica, sans-serif" fill="#466175">Private preferences</text>
+  <text x="76" y="588" font-size="17" font-family="Arial, Helvetica, sans-serif" fill="#466175">Verified repository docs</text>
   <rect x="400" y="369" width="320" height="246" rx="18" fill="white" stroke="#c7d9de" />
   <rect x="427" y="392" width="25" height="31" rx="4" fill="none" stroke="#007e87" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
   <path d="M433 401 H446 M433 409 H446 M433 417 H441" fill="none" stroke="#007e87" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />

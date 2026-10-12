@@ -57,6 +57,20 @@ Then describe the goal, ask a question or paste a ticket. Concierge asks focused
 
 Copilot keeps its own tool permissions. To stop being asked before each command or edit, use `copilot --agent copilot-concierge:concierge --allow-all` (or `/allow-all`) in the CLI, or **Mode → Tool permissions → Approve all** in the app. That is separate from Concierge's plan approval.
 
+## Persistent learning in the 0.6.0 candidate (unreleased)
+
+The published 0.5.0 plugin uses local Scout project notes. The unreleased 0.6.0 candidate separates private preferences from repository knowledge; marketplace installation does not yet include that change.
+
+Persistence needs Node.js 20 or later and Git on the host where Scout runs. Scout uses the bundled helper; no service, database or background process is installed. If a prerequisite is missing, access is denied, or a safe path cannot be established, it continues with session-only context.
+
+On Windows, the helper uses the included adapter through **Windows PowerShell 5.1** and .NET Framework at the system path. This is separate from the PowerShell version used to run Copilot above; you do not select or install a PowerShell module for Concierge. Storage is limited to local fixed NTFS drives. Network shares, unsupported filesystems, linked paths and path aliases are rejected. The adapter checks Windows ownership and access rules rather than Unix permission bits. It does not elevate access, change execution policy or repair existing permissions. See [supported storage and Windows limits](memory-and-knowledge.md#supported-storage).
+
+**Windows execution policy.** The adapter is a PowerShell script, so Windows PowerShell's execution policy must allow it. Windows client editions, such as Windows 10 and 11, default to `Restricted`, which blocks all scripts, so learning stays session-only unless the effective policy allows local scripts. That includes a Process-scope policy inherited from the shell that started Copilot; Concierge does not set one. Windows Server defaults to `RemoteSigned`, which runs local unsigned scripts but not unsigned scripts marked as downloaded from the internet, such as files from a ZIP that kept its download mark. Group Policy can set either. Windows PowerShell 5.1 has its own policy settings, separate from PowerShell 7; run `Get-ExecutionPolicy -List` in Windows PowerShell to see them. Concierge never changes or bypasses the policy. Whether to allow local scripts is your or your administrator's decision. [Microsoft: execution policies](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-5.1)
+
+Native Windows tests for this adapter pass in GitHub Actions on a Windows Server 2025 runner with Node 20 and 22, using real NTFS, ACL and file-handle APIs under the runner's default policy. They do not cover Windows client editions, non-elevated sessions, other filesystems, a second ordinary user or live Copilot sessions. See [verification status](runtime-verification.md#concierge-060-candidate-unreleased).
+
+Private preferences use `~/.config/copilot-concierge/memory.json` in your operating-system account's home directory, outside every Git worktree. They are shared across your projects on that computer, not synced between devices and not separated by Copilot sign-in. Repository knowledge uses only `docs/concierge/knowledge.md` in the assigned Git worktree. The helper does not write into an installed plugin or redirect storage into the project if private storage is unavailable. See [memory and knowledge](memory-and-knowledge.md).
+
 ## Configure (optional)
 
 Concierge reads two optional files; nothing creates them for you:
@@ -117,4 +131,4 @@ copilot plugin uninstall copilot-concierge@copilot-concierge
 copilot plugin marketplace remove copilot-concierge
 ```
 
-Use `copilot plugin uninstall copilot-concierge` if you installed it directly from a path. In the app, open the plugin's actions in **Customize → Installed** and uninstall it. Your configuration and `.copilot-concierge/project-notes.md` remain in place. Delete those files yourself if you no longer want them; inspect their contents first. Uninstalling does not remove project notes from repositories. Copilot keeps its own session history; removing Concierge does not delete it.
+Use `copilot plugin uninstall copilot-concierge` if you installed it directly from a path. In the app, open the plugin's actions in **Customize → Installed** and uninstall it. Your configuration and learning files remain in place. In the development version these include private `~/.config/copilot-concierge/memory.json` and repository `docs/concierge/knowledge.md`; earlier `.copilot-concierge/project-notes.md` files are also preserved. Before uninstalling, you can ask Concierge to forget saved preferences or remove its managed knowledge entries. Inspect files before deleting them yourself, and preserve any user-written text in the knowledge document. Uninstalling does not remove files from repositories or erase earlier commits. Copilot keeps its own session history; removing Concierge does not delete it.

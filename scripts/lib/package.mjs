@@ -5,7 +5,7 @@ import path from 'node:path';
 export const PACKAGE_FILES = [
   '.github', '.gitignore', '.gitattributes', '.editorconfig', '.nvmrc', 'AGENTS.md', 'distribution',
   'plugin.json', 'package.json', 'README.md', 'CHANGELOG.md', 'LICENSE', 'NOTICE',
-  'skills', 'references', 'com.github.copilot', 'examples', 'assets',
+  'skills', 'references', 'docs', 'com.github.copilot', 'examples', 'assets',
   'scripts/configure.mjs', 'scripts/launch.mjs', 'scripts/validate.mjs', 'scripts/package.mjs', 'scripts/release-check.mjs', 'scripts/check-custom.mjs',
   'scripts/archive.py', 'scripts/test.mjs', 'scripts/lib', 'tests',
 ];

@@ -1,6 +1,16 @@
 # Capability matrix: Copilot CLI and the GitHub Copilot app
 
-## Concierge 0.5.0 scope
+## Concierge 0.6.0 candidate (unreleased)
+
+The development branch replaces Scout's maintained local note with private OS-user preferences and versioned repository knowledge. Concierge and Sol remain control-only; the same Scout (including routed/escalated Scout work) retrieves and curates both stores. Explicit file-write restrictions apply separately to each destination. The bundled Node 20+ helper uses plain files and read-only Git root checks; there is no service or transcript capture.
+
+Private preferences are outside Git at `~/.config/copilot-concierge/memory.json`. Verified facts and decisions are in a managed section of `docs/concierge/knowledge.md`; assumptions remain in the current brief. The old project note is preserved as read-only migration input and is not maintained in parallel. See [memory and knowledge](memory-and-knowledge.md).
+
+Persistence requires Node.js 20+ and Git, existing tool/path permission, and a supported local filesystem. POSIX uses the Node filesystem helper; Windows has a bundled Windows PowerShell 5.1/.NET adapter for local fixed NTFS drives. Windows checks use file handles and SID-based ownership/access rules, not Unix mode bits. Unsupported paths, access rules or host policy stop persistence while ordinary work can continue with session-only context. See [supported storage](memory-and-knowledge.md#supported-storage).
+
+Native Windows storage tests pass in CI on a GitHub-hosted Windows Server 2025 runner with Node 20 and 22. Windows client editions default to the `Restricted` execution policy, which blocks the adapter, so learning stays session-only there unless local scripts are already allowed. Concierge never changes that policy. No live Copilot session has exercised the new learning workflow on any platform. See [runtime verification](runtime-verification.md#concierge-060-candidate-unreleased). The installed plugin and ongoing comparison experiment remain unchanged.
+
+## Released Concierge 0.5.0 scope
 
 The current entry is `copilot-concierge:concierge`; `frontdesk` is a historical name, not an invocation alias. The source adds bounded Scout project notes, an orchestrated Ship it role and verification of custom profile model pins before dispatch. These are instruction contracts; current source, installation and live-trial evidence is recorded separately in [runtime verification](runtime-verification.md).
 

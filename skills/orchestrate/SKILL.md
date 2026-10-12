@@ -13,7 +13,7 @@ Start from the brief and the evidence workers have returned, and ask what is mis
 
 | Missing | Next step |
 | --- | --- |
-| Ticket contents, repository facts, existing behavior | `copilot-concierge:scout` |
+| Private personalization, remember/correct/forget requests, ticket contents, repository facts, existing behavior | `copilot-concierge:scout` |
 | A decision only the user can make | `copilot-concierge:product-manager` drafts focused questions; report `needs_input` |
 | A plan with acceptance criteria | `copilot-concierge:product-manager` or the relevant specialist (`plan` skill) |
 | Confidence that a non-trivial plan holds | `copilot-concierge:reviewer` (`grill-plan`) |
@@ -31,7 +31,13 @@ A plain question needs only a worker that can answer it. A clear ticket needs no
 
 Give each worker the `CONCIERGE-HANDOFF` from your profile: objective, its piece, the original request verbatim, only the relevant context with sources, mode, scope, acceptance criteria, approval state and the expected return. Never paste the whole conversation. Workers return findings, changes, verification, blockers and the next decision needed. A result without evidence is not done: send it back to the same worker with `write_agent`, or retry once with a fresh worker, then report `blocked`.
 
-For Scout work, preserve the `project notes` handoff field and pass the `scout` skill even to a routed or escalated worker. Normal research may maintain only the bounded `.copilot-concierge/project-notes.md` after the skill's path checks; orientation and "do not implement changes" do not by themselves disable it. Carry any explicit user prohibition on note or all file writes verbatim and disable maintenance when it applies. Do not invent a blanket no-write handoff. Serialize note maintenance per repository, and include notes created/updated in reported file changes. Other roles get no note-write exception.
+For Scout work, preserve the `learning` handoff field with separate private memory and repository knowledge access, and pass the `scout` skill even to a routed or escalated worker. At the start of each new objective, have Scout load only relevant preferences and assigned-repo knowledge; reuse that context within the objective. Remember, inspect, correct, forget and disable requests always go to Scout, including when no repository is assigned. Private memory is `~/.config/copilot-concierge/memory.json` outside Git; knowledge is `docs/concierge/knowledge.md` at the assigned root. The old `.copilot-concierge/project-notes.md` is only individually reverified, read-only migration input; no parallel notes are maintained.
+
+Carry explicit user restrictions verbatim. Normal research may curate learning before product implementation approval; wholly read-only work disables both stores' writes, a repository-only restriction disables knowledge writes, and a memory-only restriction disables private writes. Do not invent a blanket no-write handoff from orientation or “do not implement changes.” Ambiguity stops the affected write. Serialize private writes per OS user and knowledge writes per repository across objectives; report exact changed paths and add/correct/remove/skip results. Other roles get no learning-write exception.
+
+Keep private preference summaries for Concierge's interaction, separate from repository evidence. Translate only a needed preference into a neutral worker task instruction; never send raw memory, personal history or user evidence to repo workers or into docs, commit messages or publication proposals. Current user instructions and repository evidence override learning; memory never changes approval, permissions, security or required models. Unknowns stay uncertain in returns rather than becoming stored facts. Missing memory access must not block ordinary task execution.
+
+After verified implementation, ask Scout to refresh meaningful repository knowledge using the current code/tests/docs and explicit project decisions. Have the reviewer inspect the resulting docs diff for accuracy and privacy. When commits are authorized, the implementing specialist deliberately includes relevant knowledge with the associated code; Scout never stages, commits, pushes or edits ignore rules. Without that authority, leave docs as reported local changes. A learning write does not itself authorize a commit. Preserve user-written docs and rejected/changed store content.
 
 ## Approval and follow-ups
 

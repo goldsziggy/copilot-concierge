@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0 — unreleased candidate
+
+- Separate Scout learning into small private preferences outside Git worktrees and confirmed repository knowledge in `docs/concierge/knowledge.md`. Keep the existing roles and model requirements.
+- Support inspecting, correcting, forgetting, disabling and resuming private memory. Save explicit user preferences or user-confirmed inferences without storing transcripts, task histories, secrets or approval settings.
+- Organize knowledge into tech stacks, conventions, business rules, findings and decisions, with current repository sources and dates. Preserve user-written documentation, report changes and include relevant knowledge deliberately in commits only when committing is authorized.
+- Reuse Scout and a bounded Node.js helper with separate storage scopes, path checks and revision checks. Continue with session-only context when persistence is unavailable.
+- Add a bundled Windows PowerShell 5.1/.NET storage adapter for local fixed NTFS drives. It checks paths through file handles, rejects links, reparse points and aliases, and checks ownership and access by SID rather than Unix mode bits. Private memory gets a protected current-user-only DACL; repository knowledge keeps inherited or existing access. Updates are staged with the original DACL and renamed into place; an unverifiable outcome keeps recovery files and the lock. Git root checks start Git from the helper's own folder, so a repository cannot supply a lookalike `git` executable.
+- Never change or bypass PowerShell execution policy, request elevation or repair ACLs. Windows client editions block the adapter under their default `Restricted` policy, so learning stays session-only there unless local scripts are already allowed.
+- Add focused guides for custom agents, routing charters and skills, plus a customization quick start. They cover supported locations and Copilot's documented loading order, copyable examples, discovery, verification, troubleshooting and unsupported behavior.
+- Extend `check-custom.mjs` to `.claude/agents`, `.agents/skills` and `.claude/skills`. It reports duplicate agent IDs and skill names, and rejects team agents or skills that reuse a Concierge name. Its summary lists are sorted.
+- Treat 0.5.0 local project notes as read-only migration input: reverify useful facts, preserve the original file and stop maintaining duplicate note stores.
+- Verification: source tests pass on Node 20 and 22, and native Windows storage tests pass on a GitHub-hosted Windows Server 2025 runner. No live Copilot session has verified the 0.6.0 learning workflow or the new customization examples on any platform. This work is separate from the published 0.5.0 installation.
+
 ## 0.5.0 — 2026-10-11
 
 - Rename the visible entry agent to **concierge** and the CLI invocation to `copilot-concierge:concierge`. There is no `frontdesk` agent alias; update launch commands and start a fresh session.

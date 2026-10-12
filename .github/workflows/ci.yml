@@ -44,7 +44,8 @@ jobs:
 
   windows-source-checks:
     runs-on: windows-latest
-    timeout-minutes: 10
+    # Native learning tests start Windows PowerShell 5.1 for each storage step.
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -60,5 +61,6 @@ jobs:
       - run: npm test
       - run: npm run validate
       - run: npm run catalog:check
-      # These are source checks only. POSIX launcher fixtures skip Windows;
+      # npm test includes native Windows learning-storage tests against real
+      # NTFS, ACL and file-handle APIs. POSIX launcher fixtures skip Windows;
       # Copilot activation/model sessions remain separate manual acceptance.
