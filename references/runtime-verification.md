@@ -12,12 +12,14 @@ Verification has three separate scopes: portable schema, adapter-contract and pl
 
 ### Native Windows CI, 2026-10-12
 
-GitHub Actions [run 38257802862](https://github.com/goldsziggy/copilot-concierge/actions/runs/38257802862) on commit `7c5e5f1` passed all four jobs. The Windows jobs used the `windows-2025-vs2026` runner image (version 20260925.250.1) with Node 20.20.2 and 22.23.3. Each ran 10 native storage tests and the portable adapter tests; POSIX-only fixtures were skipped as designed. The native tests cover:
+GitHub Actions [run 38263163051](https://github.com/goldsziggy/copilot-concierge/actions/runs/38263163051) on commit `1b574fb` passed all four jobs, as did the matching pull-request run. The Windows jobs used the `windows-2025-vs2026` runner image with Node 20.20.2 and 22.23.3. Each ran 13 native storage tests and the portable adapter tests; POSIX-only fixtures were skipped as designed. Commits after `1b574fb` change only documentation and rerun the same jobs. The native tests cover:
 
 - private memory persistence, reload, correction, disabling and refusal to save while disabled, with created folders and the file owned by and granted only to the current account SID through a protected DACL;
 - refusal to read a memory file after an Everyone rule is added, without changing that rule;
 - repository knowledge whose new file and folders inherit their parent's access, survive a checkout-style rewrite and keep only inherited rules after an update;
 - an existing knowledge file with an added explicit rule and user text, preserved across two concurrent writers, exactly one of which succeeds, with no leftover temporary or lock files;
+- an update to a knowledge file owned by another account under a folder with a CREATOR OWNER rule, keeping its explicit rule while the writer's default owner applies;
+- refusal to write while another lock exists, leaving that lock untouched, and a clean conflict with no leftover files when another program holds the document open during the final rename;
 - junction and hard-link rejection without touching their targets; refusal of memory under a `.git` ancestor or below a folder that grants Everyone delete-child access;
 - selected, idempotent legacy migration that leaves the old note unchanged and private preferences out of the document;
 - the command-line UTF-8 input path, including rejection of malformed input;
@@ -25,7 +27,9 @@ GitHub Actions [run 38257802862](https://github.com/goldsziggy/copilot-concierge
 
 Earlier native runs on this branch found four defects that macOS checks could not show; each is fixed: Git for Windows rejected Node's `\\.\nul` path for the global-config override, so every repository-root check failed; PowerShell converted absent snapshot values to empty strings, so every first write was rejected; `ReplaceFile` turned a repository file's inherited access rules into explicit copies, so updates now rename a staged file that already carries the verified descriptor; and Windows auto-inheritance flags differ between equivalent descriptors, so comparisons now cover owner, group, DACL protection and every rule but not those flags.
 
-Limits: the runner is Windows Server, whose default execution policy allows local scripts, and it runs as an elevated built-in Administrator account. Windows client editions, whose default `Restricted` policy blocks the adapter, non-NTFS or network volumes, a second ordinary user, hostile same-user races and live Copilot workflows were not tested.
+An independent read-only review of the branch then found no blockers. Its findings were fixed before the run above: Git now starts from the helper's own folder, so Windows cannot run a lookalike `git` from the repository; repository documents keep their DACL while the writer's default owner applies, so a non-elevated session can update a document an elevated process created; EFS-encrypted store files are replaced by encrypted files; read-only store files are refused; helper file names count toward the path limit; native tests assert exact messages; and the checker rejects reused Concierge agent and skill names. A follow-up review of those fixes found the encryption and CREATOR OWNER cases and two test defects, which were also fixed.
+
+Limits: the runner is Windows Server, whose default execution policy allows local scripts, and it runs as an elevated built-in Administrator account. Windows client editions, whose default `Restricted` policy blocks the adapter, a non-elevated session, EFS-encrypted or read-only store files, non-NTFS or network volumes, a second ordinary user, hostile same-user races and live Copilot workflows were not tested.
 
 No active comparison session, installed plugin or cache, other project checkout or user memory was changed for this work. No new model trials were run. Existing 0.5.0 observations below describe the previous project-notes contract, not acceptance of this feature.
 
