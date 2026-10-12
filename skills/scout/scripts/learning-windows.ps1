@@ -455,7 +455,11 @@ namespace ConciergeLearning {
                 Assert-NullableString $request.original.identity; Assert-NullableString $request.original.acl; Assert-NullableString $request.original.revision
                 if ($request.original.parents -isnot [array] -or $request.original.parents.Count -gt 120) { throw 'invalid request' }
                 $original = New-Object ConciergeLearning.Snapshot
-                $original.identity = $request.original.identity; $original.acl = $request.original.acl; $original.revision = $request.original.revision
+                # PowerShell turns $null into '' when assigning a .NET string, so
+                # leave absent snapshot values at their default null.
+                if ($null -ne $request.original.identity) { $original.identity = $request.original.identity }
+                if ($null -ne $request.original.acl) { $original.acl = $request.original.acl }
+                if ($null -ne $request.original.revision) { $original.revision = $request.original.revision }
                 $parents = New-Object 'System.Collections.Generic.List[ConciergeLearning.Parent]'
                 foreach ($entry in $request.original.parents) {
                     Assert-Object $entry @('path', 'identity'); Assert-String $entry.path; Assert-String $entry.identity
