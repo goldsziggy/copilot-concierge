@@ -6,7 +6,7 @@ Tell Concierge what you want to get done. It brings in the right specialists, he
 
 Concierge is a native plugin for **GitHub Copilot CLI and the GitHub Copilot app**. It uses Copilot's agents, skills and permissions. You need a signed-in Copilot account with access to the configured models; the defaults are GPT-6 Luna and GPT-6.1 Sol.
 
-**Development branch:** the memory and repository-knowledge changes below are unreleased. The marketplace commands install the published plugin; they do not enable these changes yet.
+**0.6.0 development candidate — not released.** The memory and repository-knowledge changes below are on this branch. The marketplace commands install the published 0.5.0 plugin; they do not enable these changes yet.
 
 ## Get started
 
@@ -52,11 +52,18 @@ Concierge asks you to approve a short plan by default. Say “go ahead without a
 
 You can say “What do you remember about me?”, “Forget my preference for short answers”, “Stop remembering my preferences” or “Correct that project rule.” Current instructions and current source evidence always take precedence. Private preferences, personal information and secrets do not belong in repository knowledge. Approval and security settings stay in their existing controls, separate from memory.
 
-Say “Do not write any files” to keep both kinds of learning in the current session. Persistent learning needs Node.js 20+ and Git; when unavailable or access is denied, Concierge continues without saving. Native Windows persistence is not supported yet. [Memory, knowledge and migration details →](references/memory-and-knowledge.md)
+Say “Do not write any files” to keep both kinds of learning in the current session. Persistent learning needs Node.js 20+ and Git; when unavailable or access is denied, Concierge continues without saving. On Windows, persistence uses a bundled Windows PowerShell 5.1 adapter on local NTFS drives, and its native tests pass in CI. Windows client editions block that script under their default execution policy, so learning stays session-only there unless local scripts are already allowed. [Memory, knowledge and migration details →](references/memory-and-knowledge.md)
 
 ## Make it yours
 
-Add your organization's agents, skills and routing rules without changing Concierge. Roles use one explicitly configured model with Copilot's required-model policy; an unavailable model is reported. The app's root session model still needs attention in its model picker. [Custom agents and skills →](references/customizing.md) · [Model configuration →](references/install.md#session-local-launcher)
+Add your organization's agents, skills and routing rules without changing Concierge. Each guide covers file locations, a copyable example, discovery, verification, troubleshooting and what is not supported:
+
+- [Customization quick start](references/customizing.md): add a team reviewer and rules in four steps, then share them as a team plugin.
+- [Custom agents](references/custom-agents.md): specialist profiles with one required model, tools and a charter.
+- [Routing charters](references/routing-charters.md): tell Concierge which agent and skills handle each role.
+- [Skills](references/custom-skills.md): reusable guidance for Concierge's workers or your own.
+
+Roles use one explicitly configured model with Copilot's required-model policy; an unavailable model is reported. The app's root session model still needs attention in its model picker. [Model configuration →](references/install.md#session-local-launcher)
 
 ## Verification and limits
 
