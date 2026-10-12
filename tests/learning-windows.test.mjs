@@ -323,18 +323,23 @@ test('native Windows reports a sharing conflict during the rename as a clean con
 test('native Windows updates a repository document owned by another account under a CREATOR OWNER folder rule', native, async t => {
   const { api, repo, knowledge } = await fixture(t);
   let result = await mutate(api, 'knowledge', 'upsert', repo, null, { record: fact('Node.js 20 or later is required.') });
-  const bytes = await fs.readFile(knowledge);
-  await fs.rm(knowledge);
   // The folder grants each creator full control, as C:\\ does for new folders.
   powershell(acl + "$co=New-Object System.Security.Principal.SecurityIdentifier('S-1-3-0'); $a.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($co, 'FullControl', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow'))); [System.IO.Directory]::SetAccessControl($p, $a)", path.dirname(knowledge));
-  // Recreate the document owned by the account SID instead of this elevated
-  // writer's default owner, so its creator rule names a different account.
-  powershell("$u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User; $fs=New-Object System.Security.AccessControl.FileSecurity; $fs.SetOwner($u); (New-Object System.IO.FileStream($p, 'CreateNew', 'ReadData,WriteData,ReadPermissions,ReadAttributes', 'None', 4096, 'WriteThrough', $fs)).Dispose()", knowledge);
+  const bytes = await fs.readFile(knowledge);
+  await fs.rm(knowledge);
   await fs.writeFile(knowledge, bytes);
+  // Give the document to the account SID instead of this elevated writer's
+  // default owner, then add an explicit rule; Windows recomputes inherited
+  // rules, so the creator rule names a different account than a new file would.
+  powershell("$u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User; $a=[System.IO.File]::GetAccessControl($p, 'Owner'); $a.SetOwner($u); [System.IO.File]::SetAccessControl($p, $a); $a=[System.IO.File]::GetAccessControl($p); $a.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule((New-Object System.Security.Principal.SecurityIdentifier('S-1-1-0')), 'ReadData', 'Allow'))); [System.IO.File]::SetAccessControl($p, $a)", knowledge);
   const before = security(knowledge);
   result = await mutate(api, 'knowledge', 'upsert', repo, result.revision, { record: fact('Node.js 20 and 22 are tested.') });
-  t.diagnostic(JSON.stringify({ before, after: security(knowledge) }));
-  assertInherits(knowledge);
+  const after = security(knowledge);
+  t.diagnostic(JSON.stringify({ before, after }));
+  const explicit = info => info.rules.filter(rule => !rule.inherited);
+  assert.equal(after.protected, false);
+  assert.deepEqual(explicit(after), [{ sid: 'S-1-1-0', allow: true, inherited: false }]);
+  assert.deepEqual(explicit(after), explicit(before));
   assert.equal((await api.run('knowledge', 'read', { project: repo })).revision, result.revision);
   assert.deepEqual(await fs.readdir(path.dirname(knowledge)), ['knowledge.md']);
 });
