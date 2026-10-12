@@ -114,7 +114,9 @@ function assertCurrentUserOnly(target, sid) {
 function assertInherits(target) {
   const info = security(target);
   assert.equal(info.protected, false, `${target} should inherit like other repository files`);
-  assert.ok(info.rules.some(rule => rule.inherited), `${target} should keep inherited access rules`);
+  assert.ok(info.rules.length > 0, `${target} should keep inherited access rules`);
+  // Updates must not turn inherited rules into explicit copies.
+  for (const rule of info.rules) assert.equal(rule.inherited, true, `${target} has only inherited rules`);
 }
 
 test('native Windows private memory persists, corrects and forgets with a verified restrictive DACL', native, async t => {
@@ -264,36 +266,16 @@ test('native Windows learning stays unavailable when system PowerShell cannot st
   await assert.rejects(fs.access(path.dirname(path.dirname(memory))), { code: 'ENOENT' });
 });
 
-// Characterizes the host behavior the adapter relies on. Raw descriptors are
-// logged; access (owner, group, DACL protection and ACEs) must be unchanged.
-test('native Windows staging and ReplaceFile keep the replaced file access settings', native, async t => {
-  const { repo } = await fixture(t);
-  const body = `function Access($text) {
-    $d = New-Object System.Security.AccessControl.RawSecurityDescriptor($text)
-    $kept = [int]$d.ControlFlags -band [int]([System.Security.AccessControl.ControlFlags]'DiscretionaryAclPresent,DiscretionaryAclProtected')
-    (New-Object System.Security.AccessControl.RawSecurityDescriptor([System.Security.AccessControl.ControlFlags]$kept, $d.Owner, $d.Group, $null, $d.DiscretionaryAcl)).GetSddlForm('Owner,Group,Access')
-  }
-  $results = foreach ($private in @($false, $true)) {
-    $a = [System.IO.Path]::Combine($p, 'a-' + $private + '.txt'); $b = [System.IO.Path]::Combine($p, 'b-' + $private + '.txt')
-    if ($private) {
-      $u = [System.Security.Principal.WindowsIdentity]::GetCurrent().User
-      $fs = New-Object System.Security.AccessControl.FileSecurity; $fs.SetOwner($u); $fs.SetAccessRuleProtection($true, $false)
-      $fs.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule($u, 'FullControl', 'Allow')))
-      (New-Object System.IO.FileStream($a, 'CreateNew', 'ReadData,WriteData,ReadPermissions,ReadAttributes', 'None', 4096, 'WriteThrough', $fs)).Dispose()
-    } else { [System.IO.File]::WriteAllText($a, 'one') }
-    $before = [System.IO.File]::GetAccessControl($a).GetSecurityDescriptorSddlForm('Owner,Group,Access')
-    $copy = New-Object System.Security.AccessControl.FileSecurity; $copy.SetSecurityDescriptorSddlForm($before, 'Owner,Group,Access')
-    (New-Object System.IO.FileStream($b, 'CreateNew', 'ReadData,WriteData,ReadPermissions,ReadAttributes', 'None', 4096, 'WriteThrough', $copy)).Dispose()
-    $staged = [System.IO.File]::GetAccessControl($b).GetSecurityDescriptorSddlForm('Owner,Group,Access')
-    [System.IO.File]::Replace($b, $a, [NullString]::Value, $false)
-    $after = [System.IO.File]::GetAccessControl($a).GetSecurityDescriptorSddlForm('Owner,Group,Access')
-    [pscustomobject]@{ private = $private; before = $before; staged = $staged; after = $after; beforeAccess = (Access $before); stagedAccess = (Access $staged); afterAccess = (Access $after) }
-  }
-  ConvertTo-Json -InputObject @($results) -Compress`;
-  const results = JSON.parse(powershell(body, repo));
-  t.diagnostic(JSON.stringify(results));
-  for (const result of results) {
-    assert.equal(result.stagedAccess, result.beforeAccess, `staged access (private=${result.private})`);
-    assert.equal(result.afterAccess, result.beforeAccess, `replaced access (private=${result.private})`);
-  }
+test('native Windows learning stays unavailable when execution policy blocks the bundled script', native, async t => {
+  const { api, memory } = await fixture(t);
+  // A Process-scope policy reaches the child through this variable; Concierge
+  // never sets it, so this simulates a host whose policy blocks local scripts.
+  const original = process.env.PSExecutionPolicyPreference;
+  const restore = () => { if (original === undefined) delete process.env.PSExecutionPolicyPreference; else process.env.PSExecutionPolicyPreference = original; };
+  t.after(restore);
+  process.env.PSExecutionPolicyPreference = 'Restricted';
+  await assert.rejects(invokeWindows({ op: 'context' }), /no valid result/);
+  await assert.rejects(api.run('memory', 'read'), /no valid result/);
+  restore();
+  await assert.rejects(fs.access(path.dirname(path.dirname(memory))), { code: 'ENOENT' });
 });

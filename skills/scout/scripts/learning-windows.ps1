@@ -15,6 +15,7 @@ try {
     Add-Type -Language CSharp -TypeDefinition @'
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
@@ -75,11 +76,16 @@ namespace ConciergeLearning {
         [DllImport("kernel32.dll")] private static extern IntPtr LocalFree(IntPtr value);
         [DllImport("userenv.dll", CharSet=CharSet.Unicode, SetLastError=true)]
         private static extern bool GetUserProfileDirectoryW(IntPtr token, StringBuilder profile, ref uint size);
+        [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+        private static extern bool MoveFileExW(string existing, string replacement, uint flags);
+        private const uint ReplaceExisting = 0x1, WriteThrough = 0x8;
 
         private static void Stop(string message) { throw new StoreError(message); }
         // Bounded, content-free cause for an uncertain outcome.
         private static StoreError UncertainBecause(string cause, Exception error) {
-            string detail = error == null ? "" : error is StoreError ? " (" + error.Message + ")" : " (Windows error " + (Marshal.GetHRForException(error) & 0xFFFF) + ")";
+            Win32Exception native = error as Win32Exception;
+            string detail = error == null ? "" : error is StoreError ? " (" + error.Message + ")" :
+                " (Windows error " + (native != null ? native.NativeErrorCode : Marshal.GetHRForException(error) & 0xFFFF) + ")";
             return new StoreError(Uncertain + " Cause: " + cause + detail + ".");
         }
         private static bool Equal(string a, string b) { return String.Equals(a, b, StringComparison.Ordinal); }
@@ -158,7 +164,7 @@ namespace ConciergeLearning {
         }
         // Owner, group, DACL protection and every ACE (type, flags, mask, SID).
         // Auto-inheritance and "defaulted" bookkeeping bits are omitted: they
-        // differ between creation-time inheritance and ReplaceFile without
+        // can differ between creation-time inheritance and later reads without
         // changing who can access the object.
         private static string Access(RawSecurityDescriptor descriptor) {
             ControlFlags kept = descriptor.ControlFlags & (ControlFlags.DiscretionaryAclPresent | ControlFlags.DiscretionaryAclProtected);
@@ -381,8 +387,11 @@ namespace ConciergeLearning {
                 if (privateFile) Memory(root, file);
                 if (!Equal(MetadataAt(temp, false).Identity, tempIdentity)) Stop(Conflict);
                 try {
+                    // The staged file already carries the verified descriptor. A
+                    // same-directory rename keeps it exactly; ReplaceFile would turn
+                    // a repository file's inherited ACEs into explicit copies.
                     if (original.identity == null) File.Move(temp, file);
-                    else File.Replace(temp, file, null, false);
+                    else if (!MoveFileExW(temp, file, ReplaceExisting | WriteThrough)) throw new Win32Exception(Marshal.GetLastWin32Error());
                     published = true;
                 } catch (Exception error) {
                     // Classify from observed state, not the error code. Only an
@@ -402,7 +411,7 @@ namespace ConciergeLearning {
                 if (problem != null) { uncertain = true; throw UncertainBecause(problem, verifyError); }
             } finally {
                 if (lockStream != null) lockStream.Dispose();
-                // Failed ReplaceFile can leave the only surviving copy at temp.
+                // An unverifiable rename can leave the only new copy at temp.
                 // Keep both recovery material and the stale lock when uncertain.
                 if (!uncertain) {
                     SameParents(parents.ToArray());
