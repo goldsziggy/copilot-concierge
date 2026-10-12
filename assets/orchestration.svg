@@ -1,12 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1100" viewBox="0 0 1120 1100" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="910" viewBox="0 0 1120 910" role="img" aria-labelledby="title description">
   <title id="title">How Concierge coordinates your work</title>
-  <desc id="description">Talk to your Concierge. It talks to the orchestrator for you. No need to be a prompt-engineering expert—let your Concierge take care of that. Concierge handles questions, plan approval and progress. Its orchestrator chooses Scout for source context and bounded local project notes, planning and design specialists, and implementation and review specialists as needed. Specialists return evidence to the orchestrator. After verified implementation, optional Ship it first asks to run read-only preflight, then asks for separate confirmation of exact details before a draft GitHub pull request or GitLab merge request can be created through existing authorized tools. Model choices are configured separately.</desc>
+  <desc id="description">Talk to your Concierge. It talks to the orchestrator for you. No need to be a prompt-engineering expert—let your Concierge take care of that. Concierge handles questions, plan approval and progress. Its orchestrator chooses Scout for source context and bounded local project notes, planning and design specialists, and implementation and review specialists as needed. Specialists return evidence to the orchestrator. Model choices are configured separately.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#007e87" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
     </marker>
   </defs>
-  <rect width="1120" height="1100" rx="24" fill="#f3f9fa" />
+  <rect width="1120" height="910" rx="24" fill="#f3f9fa" />
   <rect x="40" y="40" width="8" height="46" rx="4" fill="#00bfc3" />
   <text x="65" y="71" font-size="34" font-weight="750" font-family="Arial, Helvetica, sans-serif" fill="#062342">One request. A coordinated team.</text>
   <text x="65" y="107" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Native Copilot agents and skills, with you in the conversation.</text>
@@ -60,25 +60,10 @@
   <text x="784" y="569" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="21">Run focused checks</text>
   <text x="784" y="599" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="21">Review the evidence</text>
   <text x="560" y="651" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="#466175" font-size="21">Specialists report back to the orchestrator. Escalation is available when needed.</text>
-  <rect x="40" y="686" width="1040" height="162" rx="18" fill="#e5f7f6" stroke="#b9d9d9" />
-  <rect x="64" y="709" width="108" height="27" rx="13.5" fill="#55e1db" />
-  <text x="118" y="728" font-size="14" font-weight="750" text-anchor="middle" letter-spacing="1.4" font-family="Arial, Helvetica, sans-serif" fill="#062342">OPTIONAL</text>
-  <text x="190" y="732" font-family="Arial, Helvetica, sans-serif" fill="#062342" font-size="27" font-weight="700">Ship it — after verified implementation</text>
-  <text x="64" y="778" font-size="22" font-weight="650" font-family="Arial, Helvetica, sans-serif" fill="#062342">Accept preflight</text>
-  <path d="M250 772 H280" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-  <path d="M273 767 L281 772 L273 777" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-  <text x="298" y="778" font-size="22" font-family="Arial, Helvetica, sans-serif" fill="#466175">Read-only checks</text>
-  <path d="M495 772 H525" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-  <path d="M518 767 L526 772 L518 777" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-  <text x="544" y="778" font-size="22" font-weight="650" font-family="Arial, Helvetica, sans-serif" fill="#062342">Confirm exact details</text>
-  <path d="M786 772 H816" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-  <path d="M809 767 L817 772 L809 777" fill="none" stroke="#007e87" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-  <text x="835" y="778" font-size="22" font-family="Arial, Helvetica, sans-serif" fill="#466175">Draft PR / MR</text>
-  <text x="64" y="820" font-size="20" font-family="Arial, Helvetica, sans-serif" fill="#466175">Existing authorized tools only. No commits, pushes or merges.</text>
-  <text x="560" y="881" text-anchor="middle" font-size="18" font-family="Arial, Helvetica, sans-serif" fill="#466175">Roles describe the workflow. Copilot permissions and configured models still apply.</text>
-  <rect x="40" y="910" width="1040" height="158" rx="18" fill="#062342" />
-  <text x="64" y="950" font-size="28" font-weight="700" font-family="Arial, Helvetica, sans-serif" fill="#fff">Talk to your Concierge.</text>
-  <text x="64" y="982" font-size="23" font-family="Arial, Helvetica, sans-serif" fill="#d9eff1">It talks to the orchestrator for you.</text>
-  <text x="64" y="1014" font-size="23" font-family="Arial, Helvetica, sans-serif" fill="#d9eff1">No need to be a prompt-engineering expert—</text>
-  <text x="64" y="1046" font-size="23" font-family="Arial, Helvetica, sans-serif" fill="#d9eff1">let your Concierge take care of that.</text>
+  <text x="560" y="690" text-anchor="middle" font-size="18" font-family="Arial, Helvetica, sans-serif" fill="#466175">Roles describe the workflow. Copilot permissions and configured models still apply.</text>
+  <rect x="40" y="720" width="1040" height="158" rx="18" fill="#062342" />
+  <text x="64" y="760" font-size="28" font-weight="700" font-family="Arial, Helvetica, sans-serif" fill="#fff">Talk to your Concierge.</text>
+  <text x="64" y="792" font-size="23" font-family="Arial, Helvetica, sans-serif" fill="#d9eff1">It talks to the orchestrator for you.</text>
+  <text x="64" y="824" font-size="23" font-family="Arial, Helvetica, sans-serif" fill="#d9eff1">No need to be a prompt-engineering expert—</text>
+  <text x="64" y="856" font-size="23" font-family="Arial, Helvetica, sans-serif" fill="#d9eff1">let your Concierge take care of that.</text>
 </svg>

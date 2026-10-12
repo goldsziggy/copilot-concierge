@@ -26,7 +26,7 @@ Upgrading from 0.4? The entry agent is now **concierge**, replacing **frontdesk*
 
 ## A small team behind one conversation
 
-![Orchestration: you talk to Concierge, which routes your goal to an orchestrator. The orchestrator chooses Scout for context and local project notes, planning and UX specialists, and implementation and review specialists. Evidence and questions return through the orchestrator to Concierge. After verification, optional Ship it requires acceptance of read-only preflight and separate confirmation before creating a draft pull or merge request.](assets/orchestration.svg)
+![Orchestration: you talk to Concierge, which routes your goal to an orchestrator. The orchestrator chooses Scout for context and local project notes, planning and UX specialists, and implementation and review specialists. Evidence and questions return through the orchestrator to Concierge.](assets/orchestration.svg)
 
 You stay in one conversation. Concierge relays questions, shows the plan and keeps you updated. Its orchestrator decides which specialists the task needs, coordinates independent work and checks their evidence. A small request does not need the whole team.
 
