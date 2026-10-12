@@ -111,7 +111,7 @@ test('custom files cannot silently take over Concierge skill or agent names', as
   });
   const result = await checkRoots([root]);
   assert.match(result.errors.join('\n'), /"review" is a Concierge skill name/);
-  assert.match(result.warnings.join('\n'), /agent ID "scout" matches a Concierge agent name/);
+  assert.match(result.errors.join('\n'), /agent ID "scout" is a Concierge agent name/);
   const shipped = await project(t, {
     'plugin.json': JSON.stringify({ name: 'copilot-concierge' }),
     'com.github.copilot/agents/scout.agent.md': agent('"Scout."'),
@@ -119,5 +119,5 @@ test('custom files cannot silently take over Concierge skill or agent names', as
   });
   const own = await checkRoots([shipped]);
   assert.deepEqual(own.errors, []);
-  assert.doesNotMatch(own.warnings.join('\n'), /Concierge (skill|agent) name/);
+  assert.doesNotMatch(own.warnings.join('\n'), /is a Concierge (skill|agent) name/);
 });

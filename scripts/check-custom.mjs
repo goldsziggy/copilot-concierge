@@ -97,8 +97,8 @@ export async function checkRoots(roots) {
         if (/\b(task|write_agent|ask_user|update_todo)\b/.test(parsed.fields.tools ?? '')) warnings.push(`${where}: workers should report to the orchestrator, not dispatch agents, ask the user or own the task list`);
         const localId = agentId(agentsDir, file);
         const id = rootLocations.pluginName && dir !== '.github/agents' ? `${rootLocations.pluginName}:${localId}` : localId;
-        if (rootLocations.pluginName !== 'copilot-concierge' && CONCIERGE_AGENTS.includes(id)) warnings.push(`${where}: agent ID "${id}" matches a Concierge agent name; Copilot deduplicates agents by ID, so choose a distinct team name`);
-        if (agents.has(id)) warnings.push(`${where}: duplicate agent ID "${id}" (also ${agents.get(id)}); Copilot loads only the first one it finds`);
+        if (rootLocations.pluginName !== 'copilot-concierge' && CONCIERGE_AGENTS.includes(id)) errors.push(`${where}: agent ID "${id}" is a Concierge agent name; Copilot keeps only one agent per ID and loads plugin agents after personal and project agents, so choose a distinct team name`);
+        if (agents.has(id)) warnings.push(`${where}: duplicate agent ID "${id}" (also ${agents.get(id)}); Copilot loads only one, following its documented loading order`);
         else agents.set(id, where);
       }
     }
@@ -116,8 +116,8 @@ export async function checkRoots(roots) {
         for (const problem of parsed.problems) errors.push(`${where}: ${problem}`);
         if (parsed.fields.name !== entry.name) errors.push(`${where}: name must match its folder (${entry.name})`);
         if (!parsed.fields.description) errors.push(`${where}: add a description`);
-        if (rootLocations.pluginName !== 'copilot-concierge' && CONCIERGE_SKILLS.includes(entry.name)) errors.push(`${where}: "${entry.name}" is a Concierge skill name; project and personal skills load before plugin skills, so this would replace Concierge's own skill. Rename it`);
-        if (skills.has(entry.name)) warnings.push(`${where}: duplicate skill "${entry.name}" (also ${skills.get(entry.name)}); Copilot loads only the first one it finds`);
+        if (rootLocations.pluginName !== 'copilot-concierge' && CONCIERGE_SKILLS.includes(entry.name)) errors.push(`${where}: "${entry.name}" is a Concierge skill name; Copilot keeps only one skill per name, so this could replace Concierge's own skill. Rename it`);
+        if (skills.has(entry.name)) warnings.push(`${where}: duplicate skill "${entry.name}" (also ${skills.get(entry.name)}); Copilot loads only one, following its documented loading order`);
         else skills.set(entry.name, where);
         if (/^copilot-concierge-routing(-|$)/.test(entry.name)) routing.push({ where, rows: routingRows(text) });
       }
@@ -141,9 +141,9 @@ export async function checkRoots(roots) {
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   const roots = process.argv.slice(2).length ? process.argv.slice(2).map(r => path.resolve(r)) : [process.cwd(), path.join(os.homedir(), '.copilot')];
   const result = await checkRoots(roots);
-  console.log(`Agents: ${result.agents.join(', ') || 'none'}`);
-  console.log(`Skills: ${result.skills.join(', ') || 'none'}`);
-  console.log(`Routing tables: ${result.routing.join(', ') || 'none'}`);
+  console.log(`Agents: ${result.agents.sort().join(', ') || 'none'}`);
+  console.log(`Skills: ${result.skills.sort().join(', ') || 'none'}`);
+  console.log(`Routing tables: ${result.routing.sort().join(', ') || 'none'}`);
   for (const warning of result.warnings) console.log(`warning: ${warning}`);
   for (const error of result.errors) console.error(`error: ${error}`);
   if (result.errors.length) process.exitCode = 1;

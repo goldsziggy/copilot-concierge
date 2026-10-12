@@ -35,11 +35,11 @@ namespace ConciergeLearning {
     public sealed class Account { public string home; public string sid; }
     internal sealed class Metadata {
         public string Identity; public string Acl; public byte[] Security; public long Size;
-        public bool Directory; public RawSecurityDescriptor Descriptor;
+        public bool Directory; public uint Attributes; public RawSecurityDescriptor Descriptor;
     }
     public static class Store {
         private const uint ReadControl = 0x20000, ReadAttributes = 0x80;
-        private const uint Reparse = 0x400, DirectoryBit = 0x10;
+        private const uint Reparse = 0x400, DirectoryBit = 0x10, ReadOnlyBit = 0x1, EncryptedBit = 0x4000;
         private const uint OpenFlags = 0x00200000 | 0x02000000;
         private const string UnsafePath = "Windows learning requires an ordinary canonical path on a local fixed NTFS drive, without links, reparse points or path aliases.";
         private const string UnsafeAcl = "Windows learning cannot verify the required ownership and access protections; existing permissions were not repaired.";
@@ -157,7 +157,7 @@ namespace ConciergeLearning {
             string acl = Access(descriptor);
             return new Metadata {
                 Identity = info.Volume.ToString("x8") + ":" + info.IndexHigh.ToString("x8") + info.IndexLow.ToString("x8") + ":" + info.Attributes.ToString("x8") + ":" + info.Links + ":" + Hash(Utf8.GetBytes(acl)),
-                Directory = (info.Attributes & DirectoryBit) != 0,
+                Directory = (info.Attributes & DirectoryBit) != 0, Attributes = info.Attributes,
                 Size = ((long)info.SizeHigh << 32) | info.SizeLow,
                 Acl = acl, Security = binary, Descriptor = descriptor
             };
@@ -170,6 +170,14 @@ namespace ConciergeLearning {
             ControlFlags kept = descriptor.ControlFlags & (ControlFlags.DiscretionaryAclPresent | ControlFlags.DiscretionaryAclProtected);
             return new RawSecurityDescriptor(kept, descriptor.Owner, descriptor.Group, null, descriptor.DiscretionaryAcl)
                 .GetSddlForm(AccessControlSections.Owner | AccessControlSections.Group | AccessControlSections.Access);
+        }
+        // Repository documents keep their DACL; like other tools that replace a
+        // file, the writer's default owner applies (a non-elevated session cannot
+        // assign an elevated owner). Private memory compares the whole descriptor.
+        private static string Compared(string acl, bool privateFile) {
+            if (acl == null || privateFile) return acl;
+            RawSecurityDescriptor descriptor = new RawSecurityDescriptor(acl);
+            return new RawSecurityDescriptor(descriptor.ControlFlags, null, null, null, descriptor.DiscretionaryAcl).GetSddlForm(AccessControlSections.Access);
         }
         private static Metadata MetadataAt(string file, bool missingAllowed) {
             using (SafeFileHandle handle = Open(file, false, missingAllowed)) { return handle == null ? null : Inspect(handle, file); }
@@ -327,12 +335,12 @@ namespace ConciergeLearning {
             }
             if (!foundRoot) Stop(Conflict);
         }
-        private static bool Unpublished(string root, string file, int limit, bool privateFile, Snapshot original, string temp, string tempIdentity) {
+        // A failed rename leaves the source in place. If the staged file is still
+        // at its path with the same identity, none of this write was published.
+        private static bool Unpublished(string temp, string tempIdentity) {
             try {
-                Snapshot now = Read(root, file, limit, privateFile);
                 Metadata staged = MetadataAt(temp, true);
-                return Equal(now.identity, original.identity) && Equal(now.revision, original.revision) && Equal(now.acl, original.acl) &&
-                    staged != null && tempIdentity != null && Equal(staged.Identity, tempIdentity);
+                return staged != null && tempIdentity != null && Equal(staged.Identity, tempIdentity);
             } catch { return false; }
         }
         public static void Write(string root, string file, int limit, bool privateFile, Snapshot original, string encoded) {
@@ -349,9 +357,10 @@ namespace ConciergeLearning {
             SameParents(original.parents);
             string temp = Path.Combine(Path.GetDirectoryName(file), ".concierge-" + Guid.NewGuid().ToString("N") + ".tmp");
             string lockPath = Path.Combine(Path.GetDirectoryName(file), "." + Path.GetFileName(file) + ".concierge-lock");
+            Lexical(temp); Lexical(lockPath); // Keep helper files within the path limit too.
             FileStream lockStream = null;
             string lockIdentity = null, tempIdentity = null;
-            bool uncertain = false, published = false;
+            bool uncertain = false, published = false, verified = false;
             try {
                 try { lockStream = NewFile(lockPath, PrivateFileSecurity()); }
                 catch { throw new StoreError("Learning update is locked or its exclusive lock cannot be created; inspect any stale lock before retrying."); }
@@ -359,14 +368,19 @@ namespace ConciergeLearning {
                 SameParents(parents.ToArray());
                 Snapshot current = Read(root, file, limit, privateFile);
                 if (!Equal(current.identity, original.identity) || !Equal(current.revision, original.revision) || !Equal(current.acl, original.acl)) Stop(Conflict);
+                Metadata existing = MetadataAt(file, true);
+                // A rename cannot carry these attributes; never drop EFS protection silently.
+                if (existing != null && (existing.Attributes & EncryptedBit) != 0) Stop("Encrypted learning files are not supported; the file was left unchanged.");
+                if (existing != null && (existing.Attributes & ReadOnlyBit) != 0) Stop("The learning file is read-only; it was left unchanged.");
                 // New private files get the explicit current-user-only descriptor.
                 // A new repository document inherits its directory's access, as a
-                // checkout would. An existing file's verified owner/group/DACL is
-                // copied at creation; if the token cannot apply it, no content is written.
+                // checkout would. An existing file's verified DACL (and, for private
+                // memory, its owner and group) is copied at creation; if the token
+                // cannot apply it, no content is written.
                 FileSecurity staging = privateFile ? PrivateFileSecurity() : null;
                 if (current.acl != null) {
                     staging = new FileSecurity();
-                    staging.SetSecurityDescriptorSddlForm(current.acl, AccessControlSections.Owner | AccessControlSections.Group | AccessControlSections.Access);
+                    staging.SetSecurityDescriptorSddlForm(current.acl, privateFile ? AccessControlSections.Owner | AccessControlSections.Group | AccessControlSections.Access : AccessControlSections.Access);
                 }
                 FileStream created;
                 try { created = NewFile(temp, staging); }
@@ -377,7 +391,7 @@ namespace ConciergeLearning {
                     catch (Exception error) { uncertain = true; throw UncertainBecause("staged file metadata could not be read", error); }
                     tempIdentity = staged.Identity; // Also permits verified cleanup after a partial staging write.
                     if (privateFile) CheckAcl(staged, true, false);
-                    if (current.acl != null && !Equal(staged.Acl, current.acl)) Stop(UnsafeAcl);
+                    if (current.acl != null && !Equal(Compared(staged.Acl, privateFile), Compared(current.acl, privateFile))) Stop(UnsafeAcl);
                     stream.Write(bytes, 0, bytes.Length); stream.Flush(true);
                     tempIdentity = Inspect(stream.SafeFileHandle, temp).Identity;
                 }
@@ -397,7 +411,7 @@ namespace ConciergeLearning {
                     // Classify from observed state, not the error code. Only an
                     // unchanged destination plus intact staged bytes is a plain
                     // conflict (for example, a concurrent reader's sharing lock).
-                    if (!Unpublished(root, file, limit, privateFile, original, temp, tempIdentity)) { uncertain = true; throw UncertainBecause("replacement failed", error); }
+                    if (!Unpublished(temp, tempIdentity)) { uncertain = true; throw UncertainBecause("replacement failed", error); }
                     Stop(Conflict);
                 }
                 string problem = null;
@@ -405,15 +419,16 @@ namespace ConciergeLearning {
                 try {
                     Snapshot completed = Read(root, file, limit, privateFile);
                     if (!Equal(completed.revision, Hash(bytes))) problem = "replaced content could not be verified";
-                    else if (original.acl != null && !Equal(completed.acl, original.acl)) problem = "access settings differ after replacement";
+                    else if (original.acl != null && !Equal(Compared(completed.acl, privateFile), Compared(original.acl, privateFile))) problem = "access settings differ after replacement";
                     else SameParents(parents.ToArray());
                 } catch (Exception error) { problem = "replacement could not be reread"; verifyError = error; }
                 if (problem != null) { uncertain = true; throw UncertainBecause(problem, verifyError); }
+                verified = true;
             } finally {
                 if (lockStream != null) lockStream.Dispose();
                 // An unverifiable rename can leave the only new copy at temp.
                 // Keep both recovery material and the stale lock when uncertain.
-                if (!uncertain) {
+                if (!uncertain) try {
                     SameParents(parents.ToArray());
                     if (!published && tempIdentity != null) {
                         Metadata remaining = MetadataAt(temp, true);
@@ -424,6 +439,10 @@ namespace ConciergeLearning {
                         if (!Equal(remainingLock.Identity, lockIdentity)) Stop(Conflict);
                         File.Delete(lockPath);
                     }
+                } catch {
+                    // Do not report a verified update as a failed write.
+                    if (verified) throw new StoreError("Learning update was written and verified, but its lock or temporary file could not be removed; inspect the folder before the next update.");
+                    throw;
                 }
             }
         }

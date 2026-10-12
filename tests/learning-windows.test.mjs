@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createLearning } from '../skills/scout/scripts/learning.mjs';
 import { createWindowsStorage, windowsPath, powershellExecutable, invokeWindows } from '../skills/scout/scripts/learning-windows.mjs';
@@ -11,6 +11,10 @@ const native = { skip: process.platform !== 'win32' ? 'Requires real Windows NTF
 const preference = value => ({ id: 'answer-style', kind: 'response_style', value, user_evidence: 'User explicitly requested this presentation preference.', checked_on: '2026-10-12' });
 const fact = summary => ({ id: 'runtime', category: 'Tech stack', status: 'confirmed', summary, sources: [{ path: 'package.json', locator: 'engines.node', checked_on: '2026-10-12' }] });
 const cli = fileURLToPath(new URL('../skills/scout/scripts/learning.mjs', import.meta.url));
+// Exact adapter messages, so a crash reported through the generic error cannot pass.
+const unsafePath = /^Windows learning requires an ordinary canonical path on a local fixed NTFS drive, without links, reparse points or path aliases\.$/;
+const unsafeAcl = /^Windows learning cannot verify the required ownership and access protections; existing permissions were not repaired\.$/;
+const conflict = /^Learning state, permissions or directory identity changed; read current state before retrying\.$/;
 
 // Portable tests cover request construction and lexical input handling only.
 // They do not simulate NTFS, access tokens, DACLs or Windows replacement semantics.
@@ -166,7 +170,7 @@ test('native Windows rejects unsafe private ACLs without reading or repairing th
   grantEveryone(memory, 'ReadData');
   const unsafe = sddl(memory);
   assert.match(unsafe, /;;;WD\)/, 'fixture must add an Everyone rule');
-  await assert.rejects(api.run('memory', 'read'), /private|ACL|access|secure/i);
+  await assert.rejects(api.run('memory', 'read'), unsafeAcl);
   assert.equal(sddl(memory), unsafe, 'unsafe ACL must not be repaired automatically');
 });
 
@@ -175,14 +179,14 @@ test('native Windows rejects junctions and hardlinked destinations without alter
   const outside = path.join(directory, 'outside');
   await fs.mkdir(outside);
   await fs.symlink(outside, path.join(repo, 'docs'), 'junction');
-  await assert.rejects(api.run('knowledge', 'read', { project: repo }), /reparse|safe|path/i);
+  await assert.rejects(api.run('knowledge', 'read', { project: repo }), unsafePath);
   assert.deepEqual(await fs.readdir(outside), []);
   await fs.rm(path.join(repo, 'docs'));
   await fs.mkdir(path.dirname(knowledge), { recursive: true });
   const target = path.join(outside, 'target.md');
   await fs.writeFile(target, 'synthetic external content');
   await fs.link(target, knowledge);
-  await assert.rejects(api.run('knowledge', 'read', { project: repo }), /link|regular|safe/i);
+  await assert.rejects(api.run('knowledge', 'read', { project: repo }), unsafePath);
   assert.equal(await fs.readFile(target, 'utf8'), 'synthetic external content');
 });
 
@@ -210,11 +214,11 @@ test('native Windows refuses Git-contained memory and writable private ancestors
   await mutate(api, 'memory', 'set', repo, null, { record: preference('Synthetic private preference.') });
   // A .git marker is enough; no user repository or real memory store is touched.
   await fs.mkdir(path.join(home, '.git'));
-  await assert.rejects(api.run('memory', 'read', { project: repo }), /Git working tree/);
+  await assert.rejects(api.run('memory', 'read', { project: repo }), /^Private memory cannot live inside a Git working tree\.$/);
   await fs.rmdir(path.join(home, '.git'));
   const config = path.dirname(path.dirname(memory));
   grantEveryone(config, 'DeleteSubdirectoriesAndFiles');
-  await assert.rejects(api.run('memory', 'read'), /ACL|ancestor|private|safe|access/i);
+  await assert.rejects(api.run('memory', 'read'), unsafeAcl);
 });
 
 test('native Windows repository knowledge inherits ordinary access and survives a checkout-style rewrite', native, async t => {
@@ -278,4 +282,38 @@ test('native Windows learning stays unavailable when execution policy blocks the
   await assert.rejects(api.run('memory', 'read'), /no valid result/);
   restore();
   await assert.rejects(fs.access(path.dirname(path.dirname(memory))), { code: 'ENOENT' });
+});
+
+test('native Windows refuses an update while another lock exists and leaves that lock alone', native, async t => {
+  const { api, repo, knowledge } = await fixture(t);
+  const result = await mutate(api, 'knowledge', 'upsert', repo, null, { record: fact('Node.js 20 or later is required.') });
+  const lock = path.join(path.dirname(knowledge), '.knowledge.md.concierge-lock');
+  await fs.writeFile(lock, 'another writer');
+  const before = await fs.readFile(knowledge);
+  await assert.rejects(mutate(api, 'knowledge', 'upsert', repo, result.revision, { record: fact('Blocked update.') }), /^Learning update is locked/);
+  assert.equal(await fs.readFile(lock, 'utf8'), 'another writer');
+  assert.ok((await fs.readFile(knowledge)).equals(before));
+  assert.deepEqual((await fs.readdir(path.dirname(knowledge))).sort(), ['.knowledge.md.concierge-lock', 'knowledge.md']);
+});
+
+test('native Windows reports a sharing conflict during the rename as a clean conflict', native, async t => {
+  const { api, repo, directory, knowledge } = await fixture(t);
+  const result = await mutate(api, 'knowledge', 'upsert', repo, null, { record: fact('Node.js 20 or later is required.') });
+  const before = await fs.readFile(knowledge);
+  // Another program holds the document open for reading without delete sharing,
+  // so reads still work but the final rename is refused.
+  const release = path.join(directory, 'release-holder');
+  const body = "$h=[System.IO.File]::Open($p, 'Open', 'Read', 'Read'); [Console]::Out.WriteLine('open'); [Console]::Out.Flush(); $n=0; while (-not [System.IO.File]::Exists($env:CONCIERGE_RELEASE) -and $n -lt 1200) { [System.Threading.Thread]::Sleep(100); $n++ }; $h.Dispose()";
+  const holder = spawn(powershellExecutable(process.env.SystemRoot), ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', "$ErrorActionPreference='Stop'; $p=$env:CONCIERGE_FIXTURE_PATH; " + body], { env: { ...process.env, CONCIERGE_FIXTURE_PATH: knowledge, CONCIERGE_RELEASE: release }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const exited = new Promise(resolve => holder.once('close', resolve));
+  t.after(async () => { await fs.writeFile(release, ''); await exited; });
+  await new Promise((resolve, reject) => {
+    holder.stdout.on('data', chunk => { if (String(chunk).includes('open')) resolve(); });
+    holder.once('close', () => reject(new Error('file holder exited early')));
+  });
+  await assert.rejects(mutate(api, 'knowledge', 'upsert', repo, result.revision, { record: fact('Blocked update.') }), conflict);
+  await fs.writeFile(release, '');
+  assert.equal(await exited, 0);
+  assert.ok((await fs.readFile(knowledge)).equals(before));
+  assert.deepEqual(await fs.readdir(path.dirname(knowledge)), ['knowledge.md']);
 });

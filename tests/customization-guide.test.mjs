@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import { checkRoots, frontmatter } from '../scripts/check-custom.mjs';
@@ -76,14 +77,15 @@ test('README and the customization hub link every extension guide', async () => 
   }
 });
 
-test('quick-start copy commands and expected checker output match the starter', async t => {
+test('quick-start copy commands and expected checker output match the real checker', async t => {
   const hub = await readFile(path.join(root, 'references/customizing.md'), 'utf8');
   for (const file of [agentFile, path.dirname(rulesFile), path.dirname(routeFile)]) {
     assert.ok(hub.includes(`examples/customization-starter/${file.split(path.sep).join('/')}`), `quick start copies ${file}`);
   }
-  const result = await checkRoots([starter]);
-  assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.warnings, []);
-  assert.match(hub, /Agents: team-reviewer\nSkills: team-review-rules, copilot-concierge-routing\nRouting tables: \.github\/skills\/copilot-concierge-routing\/SKILL\.md\nNo problems found\./);
-  assert.deepEqual(result.skills.sort(), ['copilot-concierge-routing', 'team-review-rules']);
+  // Run the actual CLI on a copy of the starter, as the quick start does.
+  const directory = await fixture(t);
+  for (const relative of [agentFile, rulesFile, routeFile]) await put(directory, relative, await readFile(path.join(starter, relative)));
+  const output = execFileSync(process.execPath, [path.join(root, 'scripts/check-custom.mjs'), '.'], { cwd: directory, encoding: 'utf8' }).replace(/\\/g, '/');
+  const expected = hub.match(/Expect:\n\n```text\n([\s\S]*?)\n```/)[1];
+  assert.equal(output.trim(), expected);
 });

@@ -27,7 +27,7 @@ Earlier native runs on this branch found four defects that macOS checks could no
 
 Limits: the runner is Windows Server, whose default execution policy allows local scripts, and it runs as an elevated built-in Administrator account. Windows client editions, whose default `Restricted` policy blocks the adapter, non-NTFS or network volumes, a second ordinary user, hostile same-user races and live Copilot workflows were not tested.
 
-No active comparison session, installed plugin/cache, Digivice checkout or user memory was changed for this work. No new model trials were run. Existing 0.5.0 observations below describe the previous project-notes contract, not acceptance of this feature.
+No active comparison session, installed plugin or cache, other project checkout or user memory was changed for this work. No new model trials were run. Existing 0.5.0 observations below describe the previous project-notes contract, not acceptance of this feature.
 
 ## Published Concierge 0.5.0 — contract and evidence boundaries
 

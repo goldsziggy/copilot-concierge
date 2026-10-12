@@ -259,7 +259,9 @@ async function projectRoot(project, windows) {
   env.GIT_CONFIG_NOSYSTEM = '1';
   // Git for Windows maps /dev/null to NUL but rejects Node's \\.\nul spelling.
   env.GIT_CONFIG_GLOBAL = '/dev/null';
-  const { stdout } = await exec('git', ['-c', 'core.fsmonitor=false', '-C', root, 'rev-parse', '--show-toplevel'], { env, maxBuffer: 8192 });
+  // Start Git from the helper's own folder: Windows looks for a bare command
+  // in the working directory before PATH, which may be the repository.
+  const { stdout } = await exec('git', ['-c', 'core.fsmonitor=false', '-C', root, 'rev-parse', '--show-toplevel'], { env, maxBuffer: 8192, cwd: path.dirname(fileURLToPath(import.meta.url)) });
   if (path.resolve(stdout.trim()) !== root) fail('--project must be the exact assigned Git root, not a subdirectory.');
   return root;
 }

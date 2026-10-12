@@ -45,12 +45,12 @@ Expect:
 
 ```text
 Agents: team-reviewer
-Skills: team-review-rules, copilot-concierge-routing
+Skills: copilot-concierge-routing, team-review-rules
 Routing tables: .github/skills/copilot-concierge-routing/SKILL.md
 No problems found.
 ```
 
-The order of names can differ. With no arguments, the checker scans the current folder and `~/.copilot`. Errors set a failing exit code; warnings do not, so read both. The checker covers frontmatter basics, folder and name agreement, route references, duplicates and reused Concierge names. It does not run Copilot, parse all YAML, validate tools or check that a model is available. [Checker source](../scripts/check-custom.mjs)
+With no arguments, the checker scans the current folder and `~/.copilot`. Errors set a failing exit code; warnings do not, so read both. The checker covers frontmatter basics, folder and name agreement, route references, duplicates and reused Concierge names. It does not run Copilot, parse all YAML, validate tools or check that a model is available. [Checker source](../scripts/check-custom.mjs)
 
 ### 4. Try it in a fresh session
 
@@ -130,7 +130,7 @@ copilot plugin install team-concierge-tools@team-concierge-marketplace
 copilot plugin list
 ```
 
-Then open a fresh Concierge session in the target project and repeat the check from step 4. Installed plugin components are cached: after changing the plugin, update or reinstall it and start a fresh session. For teammates, host the reviewed plugin and catalog in your own repository and use `OWNER/REPOSITORY` instead of the local path. Registration uses the catalog's `name`; agent IDs use `plugin.json`'s `name`. [Native plugin commands](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference)
+Then open a fresh Concierge session in the target project and repeat the check from step 4. GitHub documents that a plugin installed from a local folder marketplace loads from that folder, so changes apply in a fresh session; a plugin installed directly from a path or from a remote marketplace may be cached, so reinstall or run `copilot plugin update` after changing it. For teammates, host the reviewed plugin and catalog in your own repository and use `OWNER/REPOSITORY` instead of the local path. Registration uses the catalog's `name`; agent IDs use `plugin.json`'s `name`. [Native plugin commands](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference)
 
 ## Keep custom roles within Concierge's contract
 
