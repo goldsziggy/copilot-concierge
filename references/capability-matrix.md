@@ -8,7 +8,7 @@ Private preferences are outside Git at `~/.config/copilot-concierge/memory.json`
 
 Persistence requires Node.js 20+ and Git, existing tool/path permission, and a supported local filesystem. POSIX uses the Node filesystem helper; Windows has a bundled Windows PowerShell 5.1/.NET adapter for local fixed NTFS drives. Windows checks use file handles and SID-based ownership/access rules, not Unix mode bits. Unsupported paths, access rules or host policy stop persistence while ordinary work can continue with session-only context. See [supported storage](memory-and-knowledge.md#supported-storage).
 
-The Windows implementation and portable policy checks do not establish native Windows behavior. Native Windows integration tests and live Copilot workflows require separate runs; no native Windows host or new model-session evidence is available for this local change. The installed plugin and ongoing comparison experiment remain unchanged.
+Native Windows storage tests pass in CI on a GitHub-hosted Windows Server 2025 runner with Node 20 and 22. Windows client editions default to the `Restricted` execution policy, which blocks the adapter, so learning stays session-only there unless local scripts are already allowed. Concierge never changes that policy. No live Copilot session has exercised the new learning workflow on any platform. See [runtime verification](runtime-verification.md#concierge-060-candidate-unreleased). The installed plugin and ongoing comparison experiment remain unchanged.
 
 ## Released Concierge 0.5.0 scope
 

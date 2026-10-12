@@ -6,9 +6,26 @@ The isolated development branch adds a self-contained Scout filesystem helper, p
 
 Verification for this branch uses synthetic homes and disposable Git repositories. Behavioral tests cover persistence/reload, corrections/removal, disabled memory, repository and private-store isolation, managed-doc preservation, unsafe paths, optimistic concurrency and selected migration. Instruction checks cover control-only routing, privacy scope, routed Scout/escalation, rollover and deliberate knowledge commits. These tests are not evidence that a model followed the new workflow.
 
-The follow-up Windows implementation replaces the blanket platform refusal with a bundled Windows PowerShell 5.1/.NET adapter for local fixed NTFS storage. It adds Windows handle-based path checks, SID-based access rules and guarded store replacement while retaining the common schema, managed Markdown and migration contract. Implementing these checks is not evidence that Windows has executed them successfully.
+The follow-up Windows implementation replaces the blanket platform refusal with a bundled Windows PowerShell 5.1/.NET adapter for local fixed NTFS storage. It adds Windows handle-based path checks, SID-based access rules and staged replacement while retaining the common schema, managed Markdown and migration contract.
 
-Verification has three separate scopes: portable schema, adapter-contract and platform-policy tests on macOS; native Windows filesystem integration tests; and live Copilot/model workflows. Native Windows cases in `tests/learning-windows.test.mjs` exercise real filesystem, ACL and handle APIs and skip on other platforms; they are not replaced with a simulated Windows filesystem. Native Windows integration and new Copilot/model acceptance have not yet been run for this change. The existing Windows Node 20 and 22 CI jobs run `npm test`, so those cases will run when the candidate branch reaches CI. No new remote CI result is recorded here yet. Exact local results belong in the implementation report; the historical test counts below do not cover this change.
+Verification has three separate scopes: portable schema, adapter-contract and platform-policy tests; native Windows filesystem integration tests; and live Copilot/model workflows. Native Windows cases in `tests/learning-windows.test.mjs` exercise real filesystem, ACL and handle APIs and skip on other platforms; they are not replaced with a simulated Windows filesystem. No live Copilot/model session has exercised this change on any platform. The historical test counts below do not cover it.
+
+### Native Windows CI, 2026-10-12
+
+GitHub Actions [run 38257802862](https://github.com/goldsziggy/copilot-concierge/actions/runs/38257802862) on commit `7c5e5f1` passed all four jobs. The Windows jobs used the `windows-2025-vs2026` runner image (version 20260925.250.1) with Node 20.20.2 and 22.23.3. Each ran 10 native storage tests and the portable adapter tests; POSIX-only fixtures were skipped as designed. The native tests cover:
+
+- private memory persistence, reload, correction, disabling and refusal to save while disabled, with created folders and the file owned by and granted only to the current account SID through a protected DACL;
+- refusal to read a memory file after an Everyone rule is added, without changing that rule;
+- repository knowledge whose new file and folders inherit their parent's access, survive a checkout-style rewrite and keep only inherited rules after an update;
+- an existing knowledge file with an added explicit rule and user text, preserved across two concurrent writers, exactly one of which succeeds, with no leftover temporary or lock files;
+- junction and hard-link rejection without touching their targets; refusal of memory under a `.git` ancestor or below a folder that grants Everyone delete-child access;
+- selected, idempotent legacy migration that leaves the old note unchanged and private preferences out of the document;
+- the command-line UTF-8 input path, including rejection of malformed input;
+- fail-closed behavior when the system PowerShell path is missing or a Process-scope `Restricted` policy blocks the bundled script.
+
+Earlier native runs on this branch found four defects that macOS checks could not show; each is fixed: Git for Windows rejected Node's `\\.\nul` path for the global-config override, so every repository-root check failed; PowerShell converted absent snapshot values to empty strings, so every first write was rejected; `ReplaceFile` turned a repository file's inherited access rules into explicit copies, so updates now rename a staged file that already carries the verified descriptor; and Windows auto-inheritance flags differ between equivalent descriptors, so comparisons now cover owner, group, DACL protection and every rule but not those flags.
+
+Limits: the runner is Windows Server, whose default execution policy allows local scripts, and it runs as an elevated built-in Administrator account. Windows client editions, whose default `Restricted` policy blocks the adapter, non-NTFS or network volumes, a second ordinary user, hostile same-user races and live Copilot workflows were not tested.
 
 No active comparison session, installed plugin/cache, Digivice checkout or user memory was changed for this work. No new model trials were run. Existing 0.5.0 observations below describe the previous project-notes contract, not acceptance of this feature.
 
