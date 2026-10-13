@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-10-12T13:42:48.988Z",
+  "checkedAt": "2026-10-13T13:26:41.789Z",
   "cliVersion": "GitHub Copilot CLI 1.0.95.\nRun 'copilot update' to check for updates.",
   "plugin": {
     "name": "copilot-concierge",
-    "manifestVersion": "0.6.0"
+    "manifestVersion": "0.6.1"
   },
   "result": "pass",
   "checks": [

@@ -28,11 +28,11 @@ copilot plugin install copilot-concierge@copilot-concierge
 
 App: open **Customize → Plugins**, use the marketplace control beside the marketplace dropdown, and add `goldsziggy/copilot-concierge`. Find **copilot-concierge** and select **Install**. Restart the app after a CLI installation if the plugin does not appear. See [GitHub’s app instructions](https://docs.github.com/en/copilot/how-tos/github-copilot-app/customize-github-copilot-app#adding-plugins).
 
-`goldsziggy/copilot-concierge` is the canonical, maintained plugin repository. Its marketplace follows `main`; use `goldsziggy/copilot-concierge#v0.5.0` to pin the published 0.5.0 release. No access to the former private development repository is needed.
+`goldsziggy/copilot-concierge` is the canonical, maintained plugin repository. Its marketplace follows `main`; use `goldsziggy/copilot-concierge#v0.6.1` to pin the 0.6.1 release. No access to the former private development repository is needed.
 
 ### From a local copy
 
-Unzip `copilot-concierge-0.5.0.zip` (it contains a `copilot-concierge` folder) or clone the repository. On macOS, choose a location the app can read: historical app trials encountered privacy restrictions under `~/Documents` and external drives. Then point Copilot at the extracted or cloned `copilot-concierge` folder:
+Unzip `copilot-concierge-0.6.1.zip` (it contains a `copilot-concierge` folder) or clone the repository. On macOS, choose a location the app can read: historical app trials encountered privacy restrictions under `~/Documents` and external drives. Then point Copilot at the extracted or cloned `copilot-concierge` folder:
 
 ```sh
 copilot plugin marketplace add /path/to/copilot-concierge
@@ -57,9 +57,9 @@ Then describe the goal, ask a question or paste a ticket. Concierge asks focused
 
 Copilot keeps its own tool permissions. To stop being asked before each command or edit, use `copilot --agent copilot-concierge:concierge --allow-all` (or `/allow-all`) in the CLI, or **Mode → Tool permissions → Approve all** in the app. That is separate from Concierge's plan approval.
 
-## Persistent learning in the 0.6.0 candidate (unreleased)
+## Persistent learning
 
-The published 0.5.0 plugin uses local Scout project notes. The unreleased 0.6.0 candidate separates private preferences from repository knowledge; marketplace installation does not yet include that change.
+Version 0.6.1 includes the private preferences and repository knowledge developed for the 0.6.0 candidate. Version 0.5.0 used local Scout project notes; see the [migration guide](migration.md#from-050-project-notes-to-memory-and-knowledge).
 
 Persistence needs Node.js 20 or later and Git on the host where Scout runs. Scout uses the bundled helper; no service, database or background process is installed. If a prerequisite is missing, access is denied, or a safe path cannot be established, it continues with session-only context.
 
@@ -131,4 +131,4 @@ copilot plugin uninstall copilot-concierge@copilot-concierge
 copilot plugin marketplace remove copilot-concierge
 ```
 
-Use `copilot plugin uninstall copilot-concierge` if you installed it directly from a path. In the app, open the plugin's actions in **Customize → Installed** and uninstall it. Your configuration and learning files remain in place. In the development version these include private `~/.config/copilot-concierge/memory.json` and repository `docs/concierge/knowledge.md`; earlier `.copilot-concierge/project-notes.md` files are also preserved. Before uninstalling, you can ask Concierge to forget saved preferences or remove its managed knowledge entries. Inspect files before deleting them yourself, and preserve any user-written text in the knowledge document. Uninstalling does not remove files from repositories or erase earlier commits. Copilot keeps its own session history; removing Concierge does not delete it.
+Use `copilot plugin uninstall copilot-concierge` if you installed it directly from a path. In the app, open the plugin's actions in **Customize → Installed** and uninstall it. Your configuration and learning files remain in place. These include private `~/.config/copilot-concierge/memory.json` and repository `docs/concierge/knowledge.md`; earlier `.copilot-concierge/project-notes.md` files are also preserved. Before uninstalling, you can ask Concierge to forget saved preferences or remove its managed knowledge entries. Inspect files before deleting them yourself, and preserve any user-written text in the knowledge document. Uninstalling does not remove files from repositories or erase earlier commits. Copilot keeps its own session history; removing Concierge does not delete it.

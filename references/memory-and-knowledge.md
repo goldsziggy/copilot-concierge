@@ -1,6 +1,6 @@
 # Memory and repository knowledge
 
-This describes the **unreleased Concierge 0.6.0 candidate**. Published Concierge 0.5.0 uses the earlier local project notes. No live Copilot session has verified this new separation yet; source checks and persistence fixtures are separate evidence.
+This describes the learning features developed for the 0.6.0 candidate and included in **Concierge 0.6.1**. Version 0.5.0 used the earlier local project notes. No live Copilot session has verified this new separation yet; source checks and persistence fixtures are separate evidence.
 
 Concierge learns in two places, both through Scout. It does not add another assistant, database, background service or transcript recorder.
 
@@ -74,7 +74,7 @@ The private path uses the operating-system account's home, not a project setting
 
 **POSIX hosts:** new private directories use mode 0700 and memory files use mode 0600. Existing owner-owned configuration directories can be readable by others but must not be group- or world-writable; the memory file itself must remain private. Existing file permissions are not widened.
 
-**Windows:** the helper invokes its bundled Windows PowerShell 5.1/.NET Framework adapter through the system executable with `-NoProfile -NonInteractive -File`. It sends structured input through standard input. This is separate from the shell used to run Copilot. It does not pass an execution-policy bypass, request elevation, load a user PowerShell profile or change existing access rules to make an operation succeed. Missing PowerShell, unavailable .NET/PInvoke support or a policy that blocks the bundled script leaves learning session-only. Windows client editions block scripts under their default `Restricted` policy, so persistence is unavailable there unless the computer's Windows PowerShell policy already allows local scripts; see [Windows execution policy](install.md#persistent-learning-in-the-060-candidate-unreleased).
+**Windows:** the helper invokes its bundled Windows PowerShell 5.1/.NET Framework adapter through the system executable with `-NoProfile -NonInteractive -File`. It sends structured input through standard input. This is separate from the shell used to run Copilot. It does not pass an execution-policy bypass, request elevation, load a user PowerShell profile or change existing access rules to make an operation succeed. Missing PowerShell, unavailable .NET/PInvoke support or a policy that blocks the bundled script leaves learning session-only. Windows client editions block scripts under their default `Restricted` policy, so persistence is unavailable there unless the computer's Windows PowerShell policy already allows local scripts; see [Windows execution policy](install.md#persistent-learning).
 
 The supported Windows storage scope is **local fixed NTFS drives**, using canonical absolute paths of at most 240 characters, including the helper's temporary and lock file names, with an uppercase drive letter and the filesystem's actual path spelling. Network shares, UNC/device paths, alternate data streams, short-name aliases, reparse points of any type, files with multiple hard links and unresolved metadata are rejected. Checks use Windows file handles, identities and security identifiers (SIDs), rather than inferring protection from Unix mode bits.
 
@@ -98,6 +98,6 @@ The helper provides `memory` read, set, remove, clear, disable and enable operat
 
 ## Existing project notes
 
-The earlier `.copilot-concierge/project-notes.md` becomes read-only migration input. Scout rechecks useful facts against current repository evidence and writes only selected confirmed knowledge. It preserves the original, does not turn it into personal memory and no longer maintains a second active notes store. Migration respects the same path, ownership, privacy and write-scope rules. See the [migration guide](migration.md#from-050-project-notes-to-memory-and-knowledge-unreleased).
+The earlier `.copilot-concierge/project-notes.md` becomes read-only migration input. Scout rechecks useful facts against current repository evidence and writes only selected confirmed knowledge. It preserves the original, does not turn it into personal memory and no longer maintains a second active notes store. Migration respects the same path, ownership, privacy and write-scope rules. See the [migration guide](migration.md#from-050-project-notes-to-memory-and-knowledge).
 
 Uninstalling Concierge leaves memory, repository documentation and old notes in place. Inspect, forget or disable private preferences before removal if desired. Preserve user-authored text when removing knowledge, and remember that uninstalling does not erase Git or Copilot history.

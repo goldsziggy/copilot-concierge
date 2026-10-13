@@ -96,12 +96,31 @@ handover:
 - sources: <key files and links>
 
 message:
-<short plain-language message: questions with suggested answers; or the plan (outcome, steps, checks); or the result, verification and follow-ups>
+<short plain-language message: questions with suggested answers; or the structured plan below; or the result, verification and follow-ups>
+```
+
+For `needs_approval`, use a compact plain-text plan with the sections `Plan`, `Scope`, `Steps`, `Checks` and optional `Watch-outs`. Put each section on its own line, separated by blank lines; use 3–5 short numbered steps where appropriate. Aim for about 120 words, but never omit material scope or risks to meet that target. Describe concrete actions and observable checks. Explicitly identify publishing, deployment, deletion or other consequential actions. Never compress the plan into a paragraph or rely on Markdown tables or cards rendering. Resolve blocking questions through `needs_input` before requesting approval. A revised plan must identify what changed, for example in `Scope`, and return as a new `needs_approval` when approval is required.
+
+Use this shape in `message` (omit `Watch-outs` when there are no material risks):
+
+```text
+Plan: <concrete outcome>
+
+Scope: <included files or behavior, boundaries; what changed if revised>
+
+Steps:
+1. <concrete action>
+2. <concrete action>
+3. <concrete action>
+
+Checks: <observable completion checks>
+
+Watch-outs: <material risks or consequential actions>
 ```
 
 The `handover` is for the Concierge entry agent, not the user: at most ten short lines, enough for a fresh orchestrator to continue without the conversation. Keep it current in every report.
 
-The Concierge entry agent answers with `USER FOLLOW-UP`, `PLAN DECISION`, `CONTINUE` or `CANCEL`. Only `PLAN DECISION: Approve` approves a plan.
+The Concierge entry agent answers with `USER FOLLOW-UP`, `PLAN DECISION`, `CONTINUE` or `CANCEL`. Only `PLAN DECISION: Approve` approves the displayed plan. `PLAN DECISION: Change something` leaves it unapproved: resolve the requested change and return the revised plan for new approval; an earlier approval does not authorize a revision. `PLAN DECISION: Cancel` cancels the objective: stop dispatching, send `STOP` to running workers and report `cancelled`. A missing or ambiguous answer is not approval.
 
 Ship it offer responses and publication confirmation arrive as `USER FOLLOW-UP` with the user's exact words. An offer acceptance only starts read-only preflight. Only a separate affirmative response to the displayed exact proposal authorizes draft creation; a bare plan approval does not. Use `needs_input`, not `needs_approval` or an auto-continuing `checkpoint`, for that decision.
 

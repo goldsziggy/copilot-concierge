@@ -4,7 +4,7 @@ Concierge is a native Copilot Agent Plugins 1.0 package, distributed through a G
 
 ## Native marketplace
 
-The repository contains `.github/plugin/marketplace.json`, with `source: "./"` resolving from its root. Users register the repository and install `copilot-concierge@copilot-concierge`; see [installation](install.md). Pin a published release with `goldsziggy/copilot-concierge#v0.5.0`.
+The repository contains `.github/plugin/marketplace.json`, with `source: "./"` resolving from its root. Users register the repository and install `copilot-concierge@copilot-concierge`; see [installation](install.md). Pin a published release with `goldsziggy/copilot-concierge#v0.6.1`.
 
 This route requires public repository access for unauthenticated consumers, not a Visual Studio Marketplace publisher account. No signing certificate is required by the documented native marketplace procedure. [Creating a marketplace](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace).
 

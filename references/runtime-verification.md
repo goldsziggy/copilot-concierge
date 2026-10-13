@@ -1,6 +1,18 @@
 # Runtime verification
 
-## Concierge 0.6.0 candidate (unreleased)
+## Concierge 0.6.1 structured plan approvals — 2026-10-13
+
+The release candidate is based on main `dc08552d6405e88cdc5e2bb6cbfd6c176804ccfb`. It adds structured approval plans to the orchestrator and preserves them through Concierge's existing `ask_user` flow. It also ships the memory, knowledge and customization work from the previously unpublished 0.6.0 candidate; historical evidence below retains its original scope.
+
+Source-contract checks in `tests/approval-format.test.mjs` cover section spacing and numbered steps, exact choices and PLAN DECISION messages, Approve, Change something, Cancel, revised-plan approval, blocking questions, missing/ambiguous answers and fallback when `ask_user` is unavailable. Existing tests still guard role/model/tool boundaries, approval precedence and separate publication consent. These tests inspect instructions and examples; they do not execute a model or demonstrate UI rendering.
+
+The macOS Node 20.19.4 and 22.22.0 source suites each passed 105 tests, with 13 native Windows tests skipped. Validation and synchronized catalog checks passed. Offline Copilot CLI 1.0.95 accepted the 0.6.1 catalog and returned its expected plugin metadata in temporary host state; see `distribution/native-catalog-validation.json`. This metadata check does not install the plugin or invoke models. The release's exact commit, Linux/Windows CI and artifact evidence are recorded in the linked GitHub [release](https://github.com/goldsziggy/copilot-concierge/releases/tag/v0.6.1) and [Actions runs](https://github.com/goldsziggy/copilot-concierge/actions).
+
+No pre-release live model or rendered app/CLI approval test is claimed here. Approve, Change something, Cancel, revision handling and the no-tool fallback are source-contract coverage until observed in a bounded host session. The existing app session was left untouched. The memory/knowledge workflow, GitHub/GitLab draft creation and Windows/Linux model workflows still have the live-verification limits documented below. Installation, catalog discovery and static tests alone do not prove those workflows.
+
+<a id="concierge-060-candidate-unreleased"></a>
+
+## Historical Concierge 0.6.0 candidate checks
 
 The isolated development branch adds a self-contained Scout filesystem helper, private user preference records, confirmed repository knowledge under `docs/concierge`, and reviewed migration of legacy project notes. These are plain-file operations, not a daemon, database or transcript service. The helper checks schemas, bounded storage, paths and revisions; Scout and review still establish truth, appropriate user provenance and privacy of prose.
 
