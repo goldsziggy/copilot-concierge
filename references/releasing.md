@@ -27,8 +27,8 @@ Packaging writes `dist/copilot-concierge-<version>.zip` and its `.zip.sha256` fi
 The release job checks out the specified tag, verifies matching package/plugin versions, requires the tag to resolve to `HEAD` and the source tree to be clean, then tests, validates and builds it. `--artifacts` verifies the resulting ZIP against its checksum. The read-only local equivalents are:
 
 ```sh
-node scripts/release-check.mjs --tag v0.5.0
-node scripts/release-check.mjs --tag v0.5.0 --artifacts
+node scripts/release-check.mjs --tag v0.6.1
+node scripts/release-check.mjs --tag v0.6.1 --artifacts
 ```
 
 Use the actual version when it changes. The checker requires a Git checkout and never writes tags, edits files or contacts a remote.

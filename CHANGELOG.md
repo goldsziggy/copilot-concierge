@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.6.0 — unreleased candidate
+## 0.6.1 — 2026-10-13
+
+- Present approval plans as plain-text Plan, Scope, Steps, Checks and optional Watch-outs sections, with blank lines and short numbered steps. Keep material scope, risks and consequential actions visible; resolve blocking questions before approval.
+- Preserve the plan in the existing `ask_user` question or immediately before it. Keep the exact Approve / Change something / Cancel choices and PLAN DECISION protocol; only Approve authorizes the displayed plan, and revisions need fresh approval. With no question tool, show the same plan and choices and wait.
+- Add a copyable example and source-contract regressions for formatting, decisions, revisions and fallback. Copilot permissions and separate Ship it publication consent are unchanged.
+- Include the memory, knowledge, Windows storage and customization changes developed for 0.6.0 below; 0.6.0 was not published separately. See runtime verification for source checks and host limits.
+
+## 0.6.0 — development work included in 0.6.1
 
 - Separate Scout learning into small private preferences outside Git worktrees and confirmed repository knowledge in `docs/concierge/knowledge.md`. Keep the existing roles and model requirements.
 - Support inspecting, correcting, forgetting, disabling and resuming private memory. Save explicit user preferences or user-confirmed inferences without storing transcripts, task histories, secrets or approval settings.
@@ -11,7 +18,7 @@
 - Add focused guides for custom agents, routing charters and skills, plus a customization quick start. They cover supported locations and Copilot's documented loading order, copyable examples, discovery, verification, troubleshooting and unsupported behavior.
 - Extend `check-custom.mjs` to `.claude/agents`, `.agents/skills` and `.claude/skills`. It reports duplicate agent IDs and skill names, and rejects team agents or skills that reuse a Concierge name. Its summary lists are sorted.
 - Treat 0.5.0 local project notes as read-only migration input: reverify useful facts, preserve the original file and stop maintaining duplicate note stores.
-- Verification: source tests pass on Node 20 and 22, and native Windows storage tests pass on a GitHub-hosted Windows Server 2025 runner. No live Copilot session has verified the 0.6.0 learning workflow or the new customization examples on any platform. This work is separate from the published 0.5.0 installation.
+- Verification: source tests pass on Node 20 and 22, and native Windows storage tests pass on a GitHub-hosted Windows Server 2025 runner. No live Copilot session has verified the 0.6.0 learning workflow or the new customization examples on any platform. These candidate checks preceded the 0.6.1 release; they did not change the then-installed 0.5.0 plugin.
 
 ## 0.5.0 — 2026-10-11
 

@@ -2,9 +2,9 @@
 
 Concierge is the maintained native Copilot plugin. Its canonical public repository is `goldsziggy/copilot-concierge`; its package, plugin and marketplace IDs are `copilot-concierge`. The former private development repository remains separate and unchanged. The historical public `v0.3.1` tag and release keep their Zilot source, IDs and uploaded assets.
 
-## From 0.5.0 project notes to memory and knowledge (unreleased)
+## From 0.5.0 project notes to memory and knowledge
 
-This migration belongs to the development version. No new release or installation is implied, and existing sessions and installed copies keep their previous behavior.
+Version 0.6.1 introduces this migration. Update the marketplace and plugin using the [installation guide](install.md#update), then start a fresh session; existing sessions retain their loaded profiles. Scout reverifies selected facts from the old local note and preserves the original file.
 
 Scout treats `.copilot-concierge/project-notes.md` as read-only migration input. It checks each useful fact against current repository evidence, leaves personal or secret content behind, and moves only selected confirmed facts into the managed section of `docs/concierge/knowledge.md`. Notes are not copied wholesale, used as their own evidence, or converted into personal memories. Scout reports what it retained, corrected, skipped or could not verify.
 
@@ -22,7 +22,7 @@ The plugin and marketplace IDs stay `copilot-concierge`. Version 0.5.0 renames t
 2. Update shortcuts and scripts to `copilot --agent copilot-concierge:concierge`, or select **concierge** in the app. Start a fresh session and restart the app if its picker is stale.
 3. Prefer `models.concierge` in configuration. The launcher still accepts `models.frontdesk` as a deprecated input alias. Do not put both keys in the same configuration file.
 
-Published 0.5.0 may create or refresh `.copilot-concierge/project-notes.md` within its bounded note rules unless you explicitly prohibit file writes. The unreleased development version instead uses the migration above. Existing project configuration, notes and Copilot session history are preserved by updates and removal.
+Published 0.5.0 may create or refresh `.copilot-concierge/project-notes.md` within its bounded note rules unless you explicitly prohibit file writes. Version 0.6.1 instead uses the migration above. Existing project configuration, notes and Copilot session history are preserved by updates and removal.
 
 ## From the Zilot 0.3.x plugin
 

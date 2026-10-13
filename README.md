@@ -6,7 +6,7 @@ Tell Concierge what you want to get done. It brings in the right specialists, he
 
 Concierge is a native plugin for **GitHub Copilot CLI and the GitHub Copilot app**. It uses Copilot's agents, skills and permissions. You need a signed-in Copilot account with access to the configured models; the defaults are GPT-6 Luna and GPT-6.1 Sol.
 
-**0.6.0 development candidate — not released.** The memory and repository-knowledge changes below are on this branch. The marketplace commands install the published 0.5.0 plugin; they do not enable these changes yet.
+**0.6.1** adds structured plan approvals and includes the memory, repository-knowledge and customization work developed for 0.6.0.
 
 ## Get started
 
@@ -40,7 +40,7 @@ Ticket access depends on your existing integrations. Concierge does not bundle a
 
 ## You're in control
 
-Concierge asks you to approve a short plan by default. Say “go ahead without asking” to skip that pause, or set `{"planApproval":"auto"}` in `.copilot-concierge/config.json`. Copilot's tool permissions still apply. [Approval settings →](references/approval-preference.md)
+Concierge asks you to approve a short plan by default, with separate Plan, Scope, Steps, Checks and optional Watch-outs sections. Choose Approve, Change something or Cancel; a revised plan needs a new approval. Say “go ahead without asking” to skip that pause, or set `{"planApproval":"auto"}` in `.copilot-concierge/config.json`. Copilot's tool permissions still apply. [Approval settings →](references/approval-preference.md)
 
 **Ship it is optional.** After verified implementation, Concierge can offer to prepare a draft GitHub pull request or GitLab merge request. Accepting starts read-only preflight. Creating the draft requires a separate confirmation of the exact destination, commits, title and body. Ship it uses an existing authorized integration or CLI; it stops if the destination, access or draft capability is unclear. It does not commit, push or merge. Ship it runs through Concierge's orchestrator, not as a standalone skill. [Shipping details →](references/handoff.md#optional-ship-it-decisions)
 
@@ -67,7 +67,7 @@ Roles use one explicitly configured model with Copilot's required-model policy; 
 
 ## Verification and limits
 
-Source checks, installation checks and live model sessions are different kinds of evidence. [Runtime verification](references/runtime-verification.md) records their scope, including historical sessions under the old Zilot name. The [capability matrix](references/capability-matrix.md) covers host differences. The published 0.5.0 app smoke tests exercised the earlier local project-note creation and refresh, plus a Ship it preflight that stopped safely on a repository without a remote or commits. Those sessions do not verify the unreleased memory/knowledge behavior. Live draft creation on GitHub and GitLab, and Windows/Linux model workflows, remain unverified.
+Source checks, installation checks and live model sessions are different kinds of evidence. [Runtime verification](references/runtime-verification.md) records their scope, including historical sessions under the old Zilot name. The [capability matrix](references/capability-matrix.md) covers host differences. The published 0.5.0 app smoke tests exercised the earlier local project-note creation and refresh, plus a Ship it preflight that stopped safely on a repository without a remote or commits. Those sessions do not verify the current memory/knowledge behavior or structured approval display. Source-contract checks cover the approval decisions and fallback; see runtime verification for host evidence. Live draft creation on GitHub and GitLab, and Windows/Linux model workflows, remain unverified.
 
 The plugin is available through its own marketplace above. An Awesome Copilot listing requires separate maintainer approval and publication.
 
