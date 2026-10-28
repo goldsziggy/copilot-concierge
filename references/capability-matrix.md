@@ -1,6 +1,6 @@
 # Capability matrix: Copilot CLI and the GitHub Copilot app
 
-## Concierge 0.7.0 candidate scope
+## Concierge 0.7.0 scope
 
 Concierge remains the control-only conversation and objective-routing layer. Sol is the working objective lead: it can read sources, load skills, plan, implement and verify within approved scope and Copilot permissions, while following applicable project instructions. Task tracking does not require agent creation. A cohesive feature and its tests can stay with one owner across stack layers.
 
@@ -8,7 +8,7 @@ Delegation is selective: independent investigation, substantial context isolatio
 
 Sol can perform focused context retrieval using the Scout skill and bundled helper. Scout remains available for substantial discovery. Both preserve the existing private-memory and repository-knowledge stores, provenance, path/revision checks and write restrictions. Skills do not expand authority. Leaf workers still do not recruit; reviewer roles remain non-implementing.
 
-These are candidate instruction contracts, not observed model behavior. No live 0.7.0 Copilot CLI/app comparison or cost/latency improvement is claimed. Static checks, filesystem tests, host catalog checks and live model trials have separate evidence scopes; see [runtime verification](runtime-verification.md). Existing model pins, custom routing and ten-turn objective rollover remain unchanged.
+These are instruction contracts, not observed model behavior. No live 0.7.0 Copilot CLI/app comparison or cost/latency improvement is claimed. Static checks, filesystem tests, host catalog checks and live model trials have separate evidence scopes; see [runtime verification](runtime-verification.md). Existing model pins, custom routing and ten-turn objective rollover remain unchanged.
 
 Two on-demand skills add systematic `debugging` and evidence-based `task-evaluation`, without new agents or automatic live model trials. Static tests validate their contracts and fixtures; comparisons require explicit scope and a live-trial budget.
 

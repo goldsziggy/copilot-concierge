@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.0 — candidate, 2026-10-28
+## 0.7.0 — 2026-10-28
 
 - Make Sol a working objective lead that investigates, plans, implements and verifies directly within approval and host permissions. Keep Concierge as the conversation and concurrent-objective layer. Load applicable repository instructions.
 - Delegate for independent investigation, context reduction, coherent implementation ownership, independent verification or explicit custom routing/model requirements. Preserve configured routes and single required models.

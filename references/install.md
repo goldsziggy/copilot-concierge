@@ -2,9 +2,9 @@
 
 You need GitHub Copilot CLI 1.0.93 or later and/or the GitHub Copilot app, signed in to an account that offers `gpt-6-luna` and `gpt-6.1-sol`. Concierge adds no services, hooks or credentials. The account must allow both named models; Free/Student plans limited to Auto are not supported by Concierge's required-model policy. Organization model policies can also restrict availability.
 
-## 0.7.0 candidate
+## 0.7.0
 
-The source candidate allows Sol to work directly and delegate selectively. Use the versioned candidate ZIP or a deliberately selected source checkout for review; a version field alone does not mean a release/tag has been published. Start a fresh session after updating because existing sessions keep their loaded profiles. See [runtime verification](runtime-verification.md#concierge-070-candidate--2026-10-28) for checks and remaining acceptance limits. The published 0.6.1 pin below remains the rollback reference until a new release is published.
+Version 0.7.0 allows Sol to work directly and delegate selectively. Start a fresh session after updating because existing sessions keep their loaded profiles. See [runtime verification](runtime-verification.md#concierge-070-direct-capable-objective-ownership--2026-10-28) for checks and remaining acceptance limits. To return to the earlier coordination-only orchestrator, pin `goldsziggy/copilot-concierge#v0.6.1`.
 
 ## Windows prerequisites
 
@@ -32,11 +32,11 @@ copilot plugin install copilot-concierge@copilot-concierge
 
 App: open **Customize → Plugins**, use the marketplace control beside the marketplace dropdown, and add `goldsziggy/copilot-concierge`. Find **copilot-concierge** and select **Install**. Restart the app after a CLI installation if the plugin does not appear. See [GitHub’s app instructions](https://docs.github.com/en/copilot/how-tos/github-copilot-app/customize-github-copilot-app#adding-plugins).
 
-`goldsziggy/copilot-concierge` is the canonical, maintained plugin repository. Its marketplace follows `main`; use `goldsziggy/copilot-concierge#v0.6.1` to pin the 0.6.1 release. No access to the former private development repository is needed.
+`goldsziggy/copilot-concierge` is the canonical, maintained plugin repository. Its marketplace follows `main`; use `goldsziggy/copilot-concierge#v0.7.0` to pin the 0.7.0 release. No access to the former private development repository is needed.
 
 ### From a local copy
 
-Unzip `copilot-concierge-0.6.1.zip` (it contains a `copilot-concierge` folder) or clone the repository. On macOS, choose a location the app can read: historical app trials encountered privacy restrictions under `~/Documents` and external drives. Then point Copilot at the extracted or cloned `copilot-concierge` folder:
+Unzip `copilot-concierge-0.7.0.zip` (it contains a `copilot-concierge` folder) or clone the repository. On macOS, choose a location the app can read: historical app trials encountered privacy restrictions under `~/Documents` and external drives. Then point Copilot at the extracted or cloned `copilot-concierge` folder:
 
 ```sh
 copilot plugin marketplace add /path/to/copilot-concierge
