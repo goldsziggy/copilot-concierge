@@ -1,8 +1,8 @@
-# Skills for Concierge workers
+# Skills for Sol and Concierge workers
 
-A skill is a folder with a `SKILL.md` file of reusable guidance: your review rules, design-system conventions or service patterns. Concierge's workers load skills that their profile or handoff names. A skill adds instructions only; it does not add tools, permissions or approvals.
+A skill is a folder with a `SKILL.md` file of reusable guidance: your review rules, design-system conventions or service patterns. Sol and Concierge's workers load relevant skills that their profile, current task or handoff names. Procedures describe how to do the work; profiles define identity, tools, reporting and delegation boundaries. A skill adds instructions only; it does not add tools, permissions or approvals.
 
-Skills are the lightest customization. To apply team conventions to a Concierge role, you often need just one skill and one [routing row](routing-charters.md) that keeps Concierge's own agent. Create a [custom agent](custom-agents.md) only when you need a different model, tool boundary or charter.
+Skills are the lightest customization. For Sol to use guidance directly, name the discovered skill in the task or applicable project instructions rather than adding a delegation row. To apply team conventions to a Concierge role, you often need just one skill and one [routing row](routing-charters.md) that keeps Concierge's own agent. Create a [custom agent](custom-agents.md) only when you need a different model, tool boundary or charter.
 
 ## Where to put a skill
 
@@ -46,7 +46,7 @@ description: Review changes using the assigned repository's existing conventions
    never copy private preferences, conversations or secrets into shared docs.
 ```
 
-Replace the numbered rules with your own. Keep them to what a worker needs to do the job.
+Replace the numbered rules with your own. Keep them focused on how to do the job; put identity and reporting restrictions in the agent profile. The starter remains a worker-oriented example, while ordinary procedural guidance can also be used directly by Sol.
 
 ## Format
 
@@ -55,13 +55,15 @@ Replace the numbered rules with your own. Keep them to what a worker needs to do
 - `description` is required: say what the skill covers and when to load it. Quote it if it contains `: ` or ` #`.
 - The body holds the instructions. Copilot makes the other files in the skill's folder available with it, so you can add examples or scripts and refer to them by relative path.
 
-Keep a skill self-contained. Links to files outside its folder make workers read outside the user's project. Avoid `allowed-tools`: GitHub warns that pre-approving shell tools removes the confirmation step, and Concierge does not need it. A script in a skill runs only when a worker with an execution tool decides to run it, subject to Copilot's permissions.
+Keep a skill self-contained. Links to files outside its folder make workers read outside the user's project. Avoid `allowed-tools`: GitHub warns that pre-approving shell tools removes the confirmation step, and Concierge does not need it. A script in a skill runs only when the execution owner has the required tool and authority, subject to Copilot's permissions.
 
-## How Concierge workers get a skill
+## How Sol and workers get a skill
 
-There are two supported paths:
+Sol can load relevant procedural skills directly for unrouted work within approved scope. This does not turn Sol into a leaf worker or remove its objective ownership. A specialist remains bound by its profile, including non-implementation for reviewers and no recruitment by leaf workers. Learning still requires the built-in Scout helper and its safeguards.
 
-1. **A routing row.** Skills in the row's **Skills** column go into the worker's handoff under `skills to load`, whichever agent does the work. This is the most explicit path:
+For explicit worker assignments there are two supported paths:
+
+1. **A routing row.** Skills in the row's **Skills** column go into the worker's handoff under `skills to load`, whichever agent does the work. This is an explicit delegation instruction, even when the row names a shipped agent:
 
    ```markdown
    | node-backend | copilot-concierge:node-backend | team-review-rules | Node.js implementation and self-checks |
@@ -69,7 +71,7 @@ There are two supported paths:
 
 2. **An agent's `skills` list.** A [custom agent](custom-agents.md#frontmatter-concierge-relies-on) can list skills to preload. Concierge's own profiles use this field, but GitHub's public reference does not document it, so also name important skills in the routing row.
 
-The worker needs the `skill` tool in its tool list to load a named skill. Concierge's shipped specialists have it. Copilot may also choose a skill by its description during other work; do not rely on that for required rules.
+The execution owner needs the `skill` tool in its tool list to load a named skill. Concierge's shipped specialists have it. Copilot may also choose a skill by its description during other work; do not rely on that for required rules.
 
 ## Verify it
 

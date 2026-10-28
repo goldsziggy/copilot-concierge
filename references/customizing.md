@@ -186,6 +186,12 @@ copilot plugin list
 
 Then open a fresh Concierge session in the target project and repeat the check from step 4. GitHub documents that a plugin installed from a local folder marketplace loads from that folder, so changes apply in a fresh session; a plugin installed directly from a path or from a remote marketplace may be cached, so reinstall or run `copilot plugin update` after changing it. For teammates, host the reviewed plugin and catalog in your own repository and use `OWNER/REPOSITORY` instead of the local path. Registration uses the catalog's `name`; agent IDs use `plugin.json`'s `name`. [Native plugin commands](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference)
 
+## Direct work and explicit routes
+
+Sol can use relevant skills directly for focused work within approved scope. The skill supplies a procedure, not a separate identity or permission. Keep cohesive features and their tests with one execution owner where their contracts must evolve together.
+
+A matching routing row is still a delegation instruction, including a row that keeps a shipped agent and adds skills. Sol honors it rather than silently substituting direct work. Use a skill named in the task or applicable project instructions when guidance alone is sufficient; use a route when a separate agent or model is intentional. Each delegated assignment records a short useful reason, such as independent review or an explicit custom route.
+
 ## Keep custom roles within Concierge's contract
 
 Custom agents are leaf workers. They receive the same [handoff](handoff.md), assigned scope, approval state and reporting duties as Concierge's specialists. A skill or route does not turn a worker into another orchestrator or give it learning writes.
@@ -198,7 +204,7 @@ Routed Ship it agents keep the built-in `ship-it` skill: read-only preflight, se
 
 ## Remove a customization
 
-Remove only the files you own and their matching routing rows, then start a fresh session. Removing a route returns that role to Concierge's own agent for future objectives; it does not stop a worker that is already running. For the team-plugin example, uninstall the plugin before removing its catalog:
+Remove only the files you own and their matching routing rows, then start a fresh session. Removing a route returns that work to Sol's normal direct-or-delegated decision for future objectives; it does not stop a worker that is already running. For the team-plugin example, uninstall the plugin before removing its catalog:
 
 ```sh
 copilot plugin uninstall team-concierge-tools@team-concierge-marketplace

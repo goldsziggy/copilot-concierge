@@ -59,7 +59,7 @@ test('Change something keeps work unapproved and a revision requires fresh appro
 
 test('Cancel is relayed through PLAN DECISION and stops the objective', () => {
   assert.match(approval, /"Cancel" cancels that objective without authorizing work/);
-  assert.match(orchestrator, /`PLAN DECISION: Cancel` cancels the objective: stop dispatching, send `STOP` to running workers and report `cancelled`/);
+  assert.match(orchestrator, /`PLAN DECISION: Cancel` cancels the objective: stop direct work and dispatching, send `STOP` to running workers and report `cancelled`/);
 });
 
 test('without ask_user the same multiline plan, exact question and choices wait for a reply', () => {

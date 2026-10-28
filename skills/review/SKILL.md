@@ -5,7 +5,7 @@ description: "Independently review an assigned code change or technical artifact
 
 # Evidence-based review
 
-Work as a leaf reviewer on the orchestrator's bounded assignment. Read the handoff in your prompt and the repository's instructions. Never recruit agents, assign peers, transfer ownership or launch another model through a tool, shell or SDK. Return findings, questions and requested follow-up specialties only to the orchestrator; it owns approval and native task updates. Do not edit the artifact during a review assignment.
+Use this procedure for evidence-based assessment within the assigned read scope. Your profile determines identity and delegation. When independent review is required, a different reviewer must inspect the author's work; Sol checking its own change is self-checking, never independent review. A reviewer profile remains a non-implementing leaf. Read the handoff in your prompt and the repository's instructions. A leaf reviewer never recruits agents, assigns peers, transfers ownership or launches another model through a tool, shell or SDK. It returns findings and questions to Sol. Sol using this procedure retains objective ownership but must obtain a separate reviewer where independence is required. Do not edit the artifact during a review assignment.
 
 ## Establish an independent baseline
 

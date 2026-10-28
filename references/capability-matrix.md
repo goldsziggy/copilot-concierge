@@ -1,10 +1,22 @@
 # Capability matrix: Copilot CLI and the GitHub Copilot app
 
-## Concierge 0.6.1 scope
+## Concierge 0.7.0 candidate scope
+
+Concierge remains the control-only conversation and objective-routing layer. Sol is the working objective lead: it can read sources, load skills, plan, implement and verify within approved scope and Copilot permissions, while following applicable project instructions. Task tracking does not require agent creation. A cohesive feature and its tests can stay with one owner across stack layers.
+
+Delegation is selective: independent investigation, substantial context isolation, separate implementation ownership, independent review or an explicit custom agent/model requirement. Existing routing rows remain delegation instructions; direct execution does not bypass them. Review remains proportional to risk. The existing Ship it proposal, separate consent and revalidation workflow is unchanged.
+
+Sol can perform focused context retrieval using the Scout skill and bundled helper. Scout remains available for substantial discovery. Both preserve the existing private-memory and repository-knowledge stores, provenance, path/revision checks and write restrictions. Skills do not expand authority. Leaf workers still do not recruit; reviewer roles remain non-implementing.
+
+These are candidate instruction contracts, not observed model behavior. No live 0.7.0 Copilot CLI/app comparison or cost/latency improvement is claimed. Static checks, filesystem tests, host catalog checks and live model trials have separate evidence scopes; see [runtime verification](runtime-verification.md). Existing model pins, custom routing and ten-turn objective rollover remain unchanged.
+
+Two on-demand skills add systematic `debugging` and evidence-based `task-evaluation`, without new agents or automatic live model trials. Static tests validate their contracts and fixtures; comparisons require explicit scope and a live-trial budget.
+
+## Historical Concierge 0.6.1 scope
 
 Approval plans use separate Plan, Scope, Steps, Checks and optional Watch-outs sections. Concierge preserves line breaks in the supported question field or immediately before the question, with the exact Approve / Change something / Cancel choices; revisions require fresh approval. A missing question tool uses the same text and choices in the reply and waits. These are source-contract checks, not evidence of rendered host behavior; see [0.6.1 verification](runtime-verification.md#concierge-061-structured-plan-approvals--2026-10-13).
 
-Version 0.6.1 includes the 0.6.0 learning work and replaces Scout's maintained local note with private OS-user preferences and versioned repository knowledge. Concierge and Sol remain control-only; the same Scout (including routed/escalated Scout work) retrieves and curates both stores. Explicit file-write restrictions apply separately to each destination. The bundled Node 20+ helper uses plain files and read-only Git root checks; there is no service or transcript capture.
+Version 0.6.1 includes the 0.6.0 learning work and replaces Scout's maintained local note with private OS-user preferences and versioned repository knowledge. In 0.6.1, Concierge and Sol remained control-only; the same Scout (including routed/escalated Scout work) retrieves and curates both stores. Explicit file-write restrictions apply separately to each destination. The bundled Node 20+ helper uses plain files and read-only Git root checks; there is no service or transcript capture.
 
 Private preferences are outside Git at `~/.config/copilot-concierge/memory.json`. Verified facts and decisions are in a managed section of `docs/concierge/knowledge.md`; assumptions remain in the current brief. The old project note is preserved as read-only migration input and is not maintained in parallel. See [memory and knowledge](memory-and-knowledge.md).
 

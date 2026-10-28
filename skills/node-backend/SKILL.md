@@ -5,7 +5,7 @@ description: "Implement, plan or review Node.js service and runtime behavior, in
 
 # Node.js backend
 
-Work as a leaf specialist on the orchestrator's bounded assignment. Read the handoff in your prompt and the repository's instructions. Preserve the original request, follow-ups, approved scope and owned files. Never recruit agents, assign peers, transfer ownership or launch another model through a tool, shell or SDK. Return questions and requested follow-up specialties only to the orchestrator; it owns approval and native task updates.
+Use this procedure as the current execution owner within the assigned scope and applicable repository instructions. Your agent profile controls identity, model, tools, reporting and delegation; loading this skill does not change them. Sol retains objective ownership and may execute directly. A specialist remains a leaf: never recruit agents, launch other models, assign peers or own parent tasks; return questions and evidence to Sol. Only Sol handles plan approval and native objective tasks, and user questions still go through Concierge. Planning/review scope does not authorize implementation. Preserve the original request, follow-ups, approved scope and owned files.
 
 ## Ground the work
 
@@ -19,7 +19,7 @@ State the observable behavior and the seam you own. For planning/review assignme
 - Make asynchronous failures observable. Await owned work, preserve useful error causes and map public errors through existing conventions. Do not report success before the relevant effect finishes.
 - Propagate deadlines/cancellation where supported and release owned streams, subscriptions, timers and processes. Cancellation is not rollback; inspect uncertain effects before retrying non-idempotent work.
 - Preserve transaction, concurrency and idempotency guarantees of the changed path. Bound retries to known transient failures and safe operations; do not add a generic retry layer by default.
-- Keep changes within the assigned files and interface. Request frontend, GraphQL or other follow-up work through the orchestrator. Avoid new dependencies, broad upgrades or abstractions without a concrete requirement.
+- Keep changes within the assigned files and interface. Identify frontend, GraphQL or other dependencies; Sol may own coupled changes directly, while a leaf requests follow-up work through Sol. Avoid new dependencies, broad upgrades or abstractions without a concrete requirement.
 
 For a native plugin adapter, bind only the demonstrated host gap. Preserve native session identity, permissions and control results. Do not build a model loop, scheduler, task database, generic tool proxy or semantic approval service.
 
@@ -36,4 +36,4 @@ Choose checks for the boundary that changed rather than applying every check to 
 
 Use existing type/lint/test commands and focused behavior checks. For a bug, show the failing behavior or a meaningful regression check; for an I/O change, verify the relevant failure/cleanup path. Avoid tests that merely mirror implementation text. Report any check that needs unavailable services or authorization without fabricating a pass.
 
-Return the result or artifact, changed files, externally observable behavior, exact checks and outcomes, remaining uncertainty, and any questions or requested specialties. Use the handoff status. On material scope change, missing approval/access, cancellation or uncertain external effects, stop the dependent action and report the smallest next decision. Do not broaden permission, silently change models or replay an uncertain mutation.
+Return the result or artifact, changed files, externally observable behavior, exact checks and outcomes, remaining uncertainty, and any questions or requested specialties. Use the active profile's report contract, or the handoff status for a specialist. On material scope change, missing approval/access, cancellation or uncertain external effects, stop the dependent action and report the smallest next decision. Do not broaden permission, silently change models or replay an uncertain mutation.

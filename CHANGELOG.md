@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 — candidate, 2026-10-28
+
+- Make Sol a working objective lead that investigates, plans, implements and verifies directly within approval and host permissions. Keep Concierge as the conversation and concurrent-objective layer. Load applicable repository instructions.
+- Delegate for independent investigation, context reduction, coherent implementation ownership, independent verification or explicit custom routing/model requirements. Preserve configured routes and single required models.
+- Reuse role-neutral procedures without changing agent identity. Keep cohesive cross-stack behavior and tests with one owner, proportional review, helper-only learning and private-data boundaries.
+- Preserve plan approval, exact Ship it consent, cancellation, recovery and ten-turn rollover. Capture decisive artifact, repository-state, check and uncertainty evidence in returns.
+- Add on-demand, role-neutral debugging and task-evaluation skills without new agents, background trials or paid-call defaults.
+- Add twelve comparative task scenarios and unexecuted measurement templates. No performance, cost or live Copilot acceptance claim is made; see runtime verification and comparative evaluation.
+
 ## 0.6.1 — 2026-10-13
 
 - Present approval plans as plain-text Plan, Scope, Steps, Checks and optional Watch-outs sections, with blank lines and short numbered steps. Keep material scope, risks and consequential actions visible; resolve blocking questions before approval.

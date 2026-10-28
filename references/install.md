@@ -2,6 +2,10 @@
 
 You need GitHub Copilot CLI 1.0.93 or later and/or the GitHub Copilot app, signed in to an account that offers `gpt-6-luna` and `gpt-6.1-sol`. Concierge adds no services, hooks or credentials. The account must allow both named models; Free/Student plans limited to Auto are not supported by Concierge's required-model policy. Organization model policies can also restrict availability.
 
+## 0.7.0 candidate
+
+The source candidate allows Sol to work directly and delegate selectively. Use the versioned candidate ZIP or a deliberately selected source checkout for review; a version field alone does not mean a release/tag has been published. Start a fresh session after updating because existing sessions keep their loaded profiles. See [runtime verification](runtime-verification.md#concierge-070-candidate--2026-10-28) for checks and remaining acceptance limits. The published 0.6.1 pin below remains the rollback reference until a new release is published.
+
 ## Windows prerequisites
 
 Use PowerShell 6 or later and the native Copilot installation:

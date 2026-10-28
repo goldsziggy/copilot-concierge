@@ -10,7 +10,7 @@
     {
       "name": "copilot-concierge",
       "source": "./",
-      "version": "0.6.1",
+      "version": "0.7.0",
       "description": "Concierge: plan, challenge and execute work with native specialists, explicit model choices and an enterprise design-system-first workflow.",
       "repository": "https://github.com/goldsziggy/copilot-concierge",
       "strict": true

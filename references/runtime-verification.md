@@ -1,5 +1,15 @@
 # Runtime verification
 
+## Concierge 0.7.0 candidate — 2026-10-28
+
+Based on `c937c801e4125f44666349a13f8620e5b3714a32` (0.6.1), this candidate changes Sol from coordination-only to a working objective lead. It preserves the Concierge conversation layer, required model pins, leaf roles, explicit custom routes, learning helper and approval/publication contracts. Project instructions are enabled for Sol. Direct execution, selective delegation, role-neutral skills and material evidence are instruction contracts, not security enforcement or observed model behavior.
+
+Cloud Linux, Node 24.22.1: `npm test` ran 128 tests: **108 passed, 7 failed, 13 native Windows checks skipped**. The seven failures are private-memory persistence fixtures: this host has a pre-existing `/tmp/.git`, so synthetic homes under `/tmp` correctly fail the helper's no-Git-ancestor rule. An unchanged clone of baseline `c937c80` reproduced the same seven failures (118 tests: 98 passed, 7 failed, 13 skipped). The storage helper was not changed and no safeguard or test was disabled to obtain a pass. This is not a full green suite; rerun on an ordinary host with a temporary directory outside Git before release acceptance.
+
+`npm run validate`, `npm run catalog:check`, `npm run package` and `git diff --check` passed for the candidate. The architecture SVG was rendered and visually inspected. New source-contract tests, debugging and task-evaluation skill checks, and evaluation fixtures pass. The candidate contains 12 skills and 11 agents. No new Node 20/22, native Windows, offline Copilot catalog, installed-plugin or live model trial is claimed. No tag, publication or remote CI is established by these local checks.
+
+The twelve-scenario [comparative evaluation](comparative-evaluation.md) includes repeated paired baseline/candidate runs, matched-model analysis where available, acceptance and regression gates, human approval wait, failed attempts and actual usage. Its run template is explicitly unexecuted. No speed, cost, quality improvement or rendered approval behavior is claimed until those measurements exist. Historical sessions below retain their original version and scope.
+
 ## Concierge 0.6.1 structured plan approvals — 2026-10-13
 
 The release candidate is based on main `dc08552d6405e88cdc5e2bb6cbfd6c176804ccfb`. It adds structured approval plans to the orchestrator and preserves them through Concierge's existing `ask_user` flow. It also ships the memory, knowledge and customization work from the previously unpublished 0.6.0 candidate; historical evidence below retains its original scope.

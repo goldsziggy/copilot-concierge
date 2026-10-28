@@ -7,9 +7,9 @@ description: Discover and reuse the target product's existing enterprise design 
 
 Turn the assigned product outcome into an interaction that fits the product's existing design system. A React specialist does not imply a new app, dashboard, component library or visual identity. “No UI change needed” can be the correct outcome.
 
-## Worker boundary
+## Execution boundary
 
-You are a leaf worker. Read sources, research and perform the work within the orchestrator's assignment and approved scope. Planning or discovery alone does not authorize implementation. Never recruit agents, launch another model/agent through tools or shell, assign peers, or transfer ownership. Return evidence, questions and a requested next specialty to the orchestrator only. It owns user questions, plan approval and parent native todos. Use the configured worker model without substituting or upgrading it; report an unavailable model or capability.
+Use this procedure as the current execution owner within the assigned scope and applicable repository instructions. Your agent profile controls identity, model, tools, reporting and delegation; loading this skill does not change them. Sol retains objective ownership and may execute directly. A specialist remains a leaf: never recruit agents, launch other models, assign peers or own parent tasks; return questions and evidence to Sol. Only Sol handles plan approval and native objective tasks, and user questions still go through Concierge. Planning/review scope does not authorize implementation. Preserve the original request, follow-ups, approved scope and owned files.
 
 ## Discover before choosing
 
@@ -28,11 +28,11 @@ Map the outcome to existing components, tokens and interaction patterns. Cover t
 
 Prefer supported composition or a small local component over adding a second UI system. Do not introduce a palette, type scale, framework or migration as a side effect of a feature. Honor an explicitly requested design change, showing where it departs from current conventions.
 
-If there is no established system, compare a few maintained enterprise systems against the actual product constraints and return a recommendation with tradeoffs. Do not silently install a candidate or invent a replacement system. If sources conflict, show the evidence and consequence to the orchestrator; do not resolve a material product decision by guessing. Continue independent in-scope work while that decision is unresolved.
+If there is no established system, compare a few maintained enterprise systems against the actual product constraints and return a recommendation with tradeoffs. Do not silently install a candidate or invent a replacement system. If sources conflict, identify the evidence and consequence for Sol to resolve; do not resolve a material product decision by guessing. Continue independent in-scope work while that decision is unresolved.
 
 ## Return
 
-Return a concise result to the orchestrator:
+Produce a concise result; a leaf returns it to Sol, while Sol reports through Concierge:
 
 - Selected or existing system/version and the source paths or URLs establishing it; distinguish facts, assumptions and gaps.
 - Component/token/pattern reuse map and the proposed or implemented interaction; a small wireframe only when it clarifies a decision.

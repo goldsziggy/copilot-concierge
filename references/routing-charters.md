@@ -2,6 +2,8 @@
 
 A routing charter tells Concierge's orchestrator which agent and skills to use for each kind of work. It is an ordinary Copilot skill named `copilot-concierge-routing` that contains one table. The orchestrator loads it at the start of each objective.
 
+In 0.7.0, an explicit matching routing row remains a delegation instruction, even if it names a shipped agent. Sol does not bypass that route to work directly. Unrouted work may be done directly or delegated when a separate context is useful.
+
 A routing row only selects among agents and skills Copilot has already discovered. It does not create, install or register an agent, add tools, change permissions or approve anything. Create the [agent](custom-agents.md) and [skills](custom-skills.md) first.
 
 ## Where to put it
@@ -40,7 +42,7 @@ If a route is unavailable or unverified, report the gap and use the suitable
 shipped role; a new role without a suitable shipped default stays blocked.
 ```
 
-The first row replaces Concierge's reviewer with `team-reviewer`. The second keeps Concierge's Node.js agent and adds your skill. The second pattern is the lightest way to apply team conventions.
+The first row replaces Concierge's reviewer with `team-reviewer`. The second keeps Concierge's Node.js agent and adds your skill. The second pattern adds team conventions to an explicitly delegated Node.js assignment. For direct Sol work, name the relevant skill in the task or applicable project instructions without adding a routing row.
 
 ## Write the table
 
@@ -67,9 +69,9 @@ These rules come from the [orchestrator profile](../com.github.copilot/agents/or
 
 1. At the start of each objective, it loads `copilot-concierge-routing` and any `copilot-concierge-routing-<suffix>` skills its skill tool lists. After changing a charter, start a new objective, preferably in a fresh session.
 2. When rows conflict, `copilot-concierge-routing` wins over a suffixed charter. Conflicts between two suffixed charters have no defined order, so avoid them.
-3. A route is eligible only when its exact agent ID is in the orchestrator's available-agent list and the profile pins one model with `model-policy: required`. The orchestrator checks this with host metadata or by asking Scout to inspect the profile. It does not guess from a description or a matching file name.
+3. A route is eligible only when its exact agent ID is in the orchestrator's available-agent list and the profile pins one model with `model-policy: required`. The orchestrator checks this with host metadata or a focused profile inspection, directly or through Scout when useful. It does not guess from a description or a matching file name.
 4. If the routed agent is missing, unverified or unpinned, it uses the role's shipped Concierge agent, keeps the row's skills and reports the gap. A new role with no shipped equivalent is reported as blocked.
-5. Routed workers receive the normal handoff and report to the orchestrator. Plan approval, delegation and the user's write restrictions work as usual.
+5. Each delegated assignment carries a brief reason for its separate context; an explicit route is a valid reason. Routed workers receive the normal handoff and report to the orchestrator. Plan approval, delegation and the user's write restrictions work as usual.
 
 Routing `scout` or `ship-it` keeps the built-in `scout` and `ship-it` skills in the handoff, with their private-memory, repository-knowledge and publication rules. A route never authorizes commits, pushes, merges or a non-draft pull request.
 

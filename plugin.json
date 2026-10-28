@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "copilot-concierge",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Concierge: plan, challenge and execute work with native specialists, explicit model choices and an enterprise design-system-first workflow.",
   "author": {
     "name": "goldsziggy"

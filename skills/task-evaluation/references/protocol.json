@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "status": "not-run",
+  "purpose": "Manual comparative evaluation protocol, not runtime enforcement or claimed model results.",
+  "baseline": {
+    "revision": "c937c801e4125f44666349a13f8620e5b3714a32",
+    "version": "0.6.1",
+    "topology": "Concierge to coordination-only Sol to specialists"
+  },
+  "candidate": {
+    "revision": null,
+    "version": "0.7.0",
+    "topology": "Concierge to working Sol with selective specialists"
+  },
+  "scenarioIds": [
+    "one-file-question",
+    "clear-change",
+    "coupled-ui-api",
+    "independent-investigations",
+    "shared-file-tasks",
+    "vague-request",
+    "followup",
+    "revised-plan-cancel",
+    "cancel-resume",
+    "seeded-defect-review",
+    "preference-isolation",
+    "changed-publication"
+  ],
+  "additionalRegressionIds": [
+    "bare-jira",
+    "unavailable-model",
+    "custom-scout-route"
+  ],
+  "repetitionsPerScenarioPerArm": 3,
+  "modelComparison": "production-pins; optional separately reported matched-model arm",
+  "controls": [
+    "fixture revision and starting files",
+    "original request and ordered follow-ups",
+    "approval decisions and cancellation checkpoints",
+    "host version and tools",
+    "permissions and private learning state",
+    "verification criteria and observation window"
+  ],
+  "requiredMetrics": [
+    "acceptedCompletion",
+    "unsupportedCompletionClaims",
+    "lostConstraints",
+    "unintendedWrites",
+    "humanCorrections",
+    "actualModels",
+    "delegations",
+    "retries",
+    "repeatedDiscovery",
+    "executionSeconds",
+    "approvalWaitSeconds",
+    "usage"
+  ],
+  "runs": []
+}

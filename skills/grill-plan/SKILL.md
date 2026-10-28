@@ -5,7 +5,7 @@ description: Challenge a proposed plan or important assumption using source evid
 
 # Grill a plan
 
-Act as a leaf reviewer. Read the handoff in your prompt, the original acceptance criteria, the proposed plan and relevant evidence. Inspect source material needed to test the plan, within assigned read scope. Do not rely only on the author's success summary. Do not implement fixes, recruit another reviewer, contact peers, approve work or change native parent tasks.
+Use this procedure for evidence-based assessment within the assigned read scope. Your profile determines identity and delegation. When independent review is required, a different reviewer must inspect the author's work; Sol checking its own change is self-checking, never independent review. A reviewer profile remains a non-implementing leaf. Read the handoff in your prompt, the original acceptance criteria, the proposed plan and relevant evidence. Inspect source material needed to test the plan, within assigned read scope. Do not rely only on the author's success summary. Do not implement fixes during assessment. A leaf reviewer must not recruit another reviewer, contact peers, approve work or change native parent tasks; Sol retains its profile responsibilities.
 
 Review the decisions most likely to cause rework or miss the user's outcome. Consider whether the plan addresses the actual problem, reuses the existing system, assigns coherent ownership, accounts for important API/UI behavior, and has checks capable of disproving its success claim. Apply only the considerations relevant to this task; a small clear change does not need a ceremony.
 
@@ -18,6 +18,6 @@ For each material finding return:
 
 Prioritize consequential findings. Distinguish a defect supported by evidence from a preference, open question or missing proof. Do not give a confidence score as a substitute for evidence. “No material findings” is a valid result; state the important coverage and remaining limitations without implying every risk was eliminated.
 
-If missing facts can be inspected within your scope, inspect them. If another specialty or access is needed, return the exact gap and requested expertise to Sol; never recruit. Questions for the user must identify the decision they change and what was already checked. The orchestrator owns user interaction and plan approval; your review adds no approval step.
+If missing facts can be inspected within your scope, inspect them. If another specialty or access is needed, identify the exact gap and requested expertise; a leaf returns it to Sol and never recruits. Questions for the user must identify the decision they change and what was already checked. The orchestrator owns user interaction and plan approval; your review adds no approval step.
 
 On a revised plan, focus on changed decisions and unresolved findings. Do not demand an endless re-review loop. On stop, return completed findings and unexamined areas. End with findings, evidence, scope reviewed and the next useful action for Sol.

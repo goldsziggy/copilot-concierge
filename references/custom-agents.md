@@ -1,6 +1,6 @@
 # Custom agents for Concierge
 
-A custom agent is a specialist profile: one Markdown file with a model, tools and a charter. Concierge's orchestrator can hand work to it, but only after a [routing charter](routing-charters.md) names it and the orchestrator verifies its model pin. Without a routing row, Concierge keeps using its own specialists.
+A custom agent is a specialist profile: one Markdown file with a model, tools and a charter. Concierge's orchestrator can hand work to it, but only after a [routing charter](routing-charters.md) names it and the orchestrator verifies its model pin. Without a matching routing row, Sol can execute focused work directly or choose a suitable shipped specialist when a separate context is useful. An explicit custom route stays authoritative and is not bypassed by direct execution.
 
 Use a custom agent when your team needs a different identity, model or tool boundary for a role, such as a reviewer that applies your rules or an implementer for your framework. If you only need extra guidance, add a [skill](custom-skills.md) to an existing Concierge role instead.
 
@@ -72,7 +72,7 @@ Replace `gpt-6-luna` with a model your Copilot account can use. This reviewer ca
 
 Never set `disable-model-invocation: true` on a worker: in Concierge's host probes it removed the agent from dispatch entirely. Concierge's profiles list exact tool names, such as `view` and `rg`, because earlier probes found that some documented aliases mapped to nothing. Check the tool names your host exposes. [GitHub frontmatter reference](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
 
-A worker cannot use a tool that the session does not provide: Copilot gives a nested agent only the tools its parent also has. Concierge's orchestrator passes tools through rather than adding any. Copilot's tool and path permissions still apply.
+A worker cannot use a tool that the session does not provide: Copilot gives a nested agent only the tools its parent also has. Concierge's orchestrator inherits available tools for its own authorized work and for nested workers rather than adding any. Copilot's tool and path permissions still apply.
 
 ## Write the charter
 

@@ -25,8 +25,9 @@ async function profiles() {
 test('orchestrator passes specialist tools through instead of narrowing them', async () => {
   const { orchestrator } = await profiles();
   assert.equal(orchestrator.tools, undefined);
-  assert.match(orchestrator.body, /The only tools you call are `task`, `read_agent`, `write_agent`, `list_agents`, `update_todo` and `skill`/);
-  assert.match(orchestrator.body, /does not apply to you/);
+  assert.match(orchestrator.header, /^include-custom-instructions: true$/m);
+  assert.match(orchestrator.body, /may investigate, plan, implement and verify directly within the approved scope/);
+  assert.doesNotMatch(orchestrator.body, /Delegate everything substantive|Never do the work yourself|The only tools you call/);
 });
 
 // Written routing/authority contracts only; persistence behavior is exercised in
@@ -297,4 +298,33 @@ test('creation revalidates state, renews changed consent and reconciles uncertai
   assert.match(orchestrator.body, /Routed workers get the same `ship-it` skill and gates/);
   assert.match(orchestration, /Pass the `ship-it` skill even to a routed agent/);
   assert.match(shipSkill, /Static instruction checks do not establish live GitHub or GitLab behavior/);
+});
+
+// Instruction contracts, not live model acceptance or a permission boundary.
+test('direct execution preserves route, evidence, approval and recovery boundaries', async () => {
+  const { orchestrator } = await profiles();
+  for (const pattern of [
+    /Follow applicable repository instructions/,
+    /Direct work follows the same scope, plan approval/,
+    /A tracked task does not require a worker/,
+    /Direct execution must not bypass a matching custom route/,
+    /Give a cohesive feature and its tests one execution owner/,
+    /delegation reason:/,
+    /self-checking is not independent review/,
+    /Inspect decisive artifacts/,
+    /stop direct work and dispatching/,
+    /inspect directly or have a scout check what already exists/,
+    /never directly edit a store or bypass a helper refusal/,
+  ]) assert.match(orchestrator.body, pattern);
+});
+
+test('reusable skills preserve profile identity rather than forcing Sol into a leaf role', async () => {
+  for (const name of ['plan', 'node-backend', 'graphql', 'react-frontend', 'enterprise-ux', 'scout', 'review', 'grill-plan']) {
+    const text = await readFile(new URL(`../skills/${name}/SKILL.md`, import.meta.url), 'utf8');
+    assert.match(text, /(?:agent profile|Your profile)/, name);
+    assert.doesNotMatch(text, /^(?:Work as a leaf|Act as a leaf|You are a leaf)/m, name);
+  }
+  const text = await readFile(new URL('../skills/orchestrate/SKILL.md', import.meta.url), 'utf8');
+  assert.match(text, /If you are a specialist, finish your assignment/);
+  assert.match(text, /Do not require Scout startup for every objective/);
 });

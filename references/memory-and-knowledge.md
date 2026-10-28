@@ -1,8 +1,8 @@
 # Memory and repository knowledge
 
-This describes the learning features developed for the 0.6.0 candidate and included in **Concierge 0.6.1**. Version 0.5.0 used the earlier local project notes. No live Copilot session has verified this new separation yet; source checks and persistence fixtures are separate evidence.
+This describes the learning features developed for the 0.6.0 candidate and included in **Concierge 0.6.1**, retained in **0.7.0**. Version 0.5.0 used the earlier local project notes. No live Copilot session has verified this new separation yet; source checks and persistence fixtures are separate evidence.
 
-Concierge learns in two places, both through Scout. It does not add another assistant, database, background service or transcript recorder.
+Concierge learns in two places, both through the Scout procedure and bundled helper. In 0.7.0 Sol can load that procedure for focused retrieval and scoped learning without creating a Scout session; substantial discovery can still go to Scout. An explicit Scout routing row remains a delegation instruction. Wherever this guide says Scout, the same safeguards apply to Sol executing the Scout procedure. Concierge itself remains control-only. It does not add another assistant, database, background service or transcript recorder.
 
 | | Private memory | Repository knowledge |
 | --- | --- | --- |
@@ -10,7 +10,7 @@ Concierge learns in two places, both through Scout. It does not add another assi
 | Example | “Give me a short summary before the details.” | “Prices use integer cents,” with the source that implements the rule |
 | Location | `~/.config/copilot-concierge/memory.json`, outside Git worktrees | `docs/concierge/knowledge.md` in the assigned Git worktree |
 | Scope | Your operating-system account on this computer, across projects | This repository only |
-| Who changes it | Scout, through its bundled helper | Scout, through the same helper; an implementer reviews any intended commit |
+| Who changes it | Sol or Scout following the Scout skill, only through its bundled helper | The same scoped execution owner and helper; an implementer reviews any intended commit |
 | Publication | Never included in repository docs, commits or release artifacts | Normal reviewed documentation, included deliberately in relevant authorized commits |
 
 ## Personalization in plain language
@@ -58,7 +58,7 @@ If the destination already exists without valid ownership markers, or the manage
 
 ### Review and commit deliberately
 
-Verified knowledge maintenance is normal Scout work within the assigned scope. Scout does not stage, commit, push, change ignore rules or rewrite history. It returns the knowledge diff for review. When committing is already authorized for an implementation task, the implementer includes the relevant knowledge update deliberately with the code it explains. An unrelated knowledge change stays separate and is reported. A learning write alone never authorizes a commit or publication.
+Verified knowledge maintenance is normal Scout work within the assigned scope. The Scout learning procedure does not stage, commit, push, change ignore rules or rewrite history. Sol using that procedure does not gain publication authority from a learning write. It returns the knowledge diff for review. When committing is already authorized for an implementation task, the implementer includes the relevant knowledge update deliberately with the code it explains. An unrelated knowledge change stays separate and is reported. A learning write alone never authorizes a commit or publication.
 
 Knowledge is expected to travel with the repository. Removing a current entry does not remove older copies from Git history, releases or other clones. Never place private memory in the knowledge document with the intent to remove it later.
 
