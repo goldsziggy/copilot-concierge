@@ -23,19 +23,17 @@ earlier context: <only facts this request depends on, or none>
 
 Follow-ups go to the same orchestrator as `USER FOLLOW-UP: <exact words>`, even while it is working; approval answers as `PLAN DECISION: <choice>`; `CONTINUE` and `CANCEL` are the other control messages.
 
-Keep the user’s exact file-write restrictions in every brief, follow-up and handover. Do not infer a blanket no-write restriction from orientation or planning alone: Scout may curate private memory and verified repository knowledge under separate learning scopes. Wholly read-only work disables both stores’ writes; restrictions limited to repository or private storage remain scoped. Report every learning write as a changed file. A personal preference cannot authorize tools, alter plan approval or replace publication consent.
+Keep the user’s exact file-write restrictions in every brief, follow-up and handover. Do not infer a blanket no-write restriction from orientation or planning alone: Scout may curate private memory and verified repository knowledge under separate learning scopes. Wholly read-only work disables both stores’ writes; restrictions limited to repository or private storage remain scoped. Report every learning write as a changed file. A personal preference cannot authorize tools or alter plan approval.
 
-## Optional Ship it decisions
+## Commits, pushes and pull requests
 
-After verified implementation, Sol reports the completed result and an optional Ship it offer using `needs_input`. The Concierge entry agent asks whether to run read-only preflight for a draft GitHub PR or GitLab MR. A decline leaves state unchanged. Acceptance goes back verbatim as `USER FOLLOW-UP` and authorizes only a `research` handoff to the internal Luna `copilot-concierge:ship-it` specialist, never creation.
+These are ordinary requests, not a separate stage. The Concierge entry agent puts them in the brief or sends them as `USER FOLLOW-UP`, even after an objective is done. Sol carries the request in the handoff's `git` line, and the execution owner commits, pushes or opens the pull request with the available Git and provider tools. Copilot's own permissions decide each command. Without a request, changes stay uncommitted and the result says so. Force-pushes, history rewrites, merges and branch deletions need a specific request. Concierge never answers that it cannot commit or push; a host permission or missing tool is reported as that exact cause.
 
-The worker resolves provider, host/project, fork source/head, target/base and published commit IDs; reports dirty/unpushed state and excluded changes; checks existing applicable open requests, authorization and supported draft capability. Missing or ambiguous evidence stops safely; unpublished intended changes never cause an implicit commit/push. An existing request returns its link/status rather than a duplicate.
+## Follow-ups and suggestions
 
-If preflight succeeds, Sol reports another `needs_input` with the exact provider, host/project, head/base commits, title, complete body, `draft: true`, repository-state limitations and capability evidence. The Concierge entry agent displays it unchanged and asks "Create this draft with these exact details?" with "Create this draft", "Change details", "Not now". The user's exact answer returns as `USER FOLLOW-UP`, not `PLAN DECISION` or `CONTINUE`. Plan approval, auto preference, earlier go-ahead and tool permission are not publication consent.
+Every `USER FOLLOW-UP` gets an outcome in the handover's `follow-ups` line (`applied`, `deferred: why` or `no change: why`), and the report's `message` says how each was handled. An objective is not `done` while a follow-up has no outcome.
 
-Only a separate affirmative response to that exact proposal permits an `implement` handoff with the confirmed metadata and consent in `relevant context and sources`. The plan-approval field does not authorize publication. The specialist immediately revalidates relevant target/head/base, draft capability and duplicates; material changes require renewed confirmation. For publication, Sol decides and delegates only; the Concierge entry agent remains control-only; the specialist alone performs supported, authorized draft creation. Routed workers must load the same `ship-it` skill.
-
-Use existing statuses, not new control messages: `needs_input` for offer/confirmation, `blocked` for capability or state gaps (keeping implementation results distinct), `done` for decline, existing request or verified draft link/status. Retain proposal/consent/result or gaps in the existing handover fields for follow-ups and recovery; reconcile provider state before retrying an uncertain creation. Never commit, push, merge or create non-draft then convert. These are instruction contracts, not live provider verification.
+Reports for `done`, `blocked`, `checkpoint` and a partly finished `cancelled` carry a `suggestions` block: at most three next steps grounded in the objective's evidence, each with a one-line reason, or `none`. The Concierge entry agent shows them as a numbered "Next steps you might want" list without `ask_user`. A suggestion starts only when the user accepts it; the acceptance travels as `USER FOLLOW-UP` with the full suggestion text and follows the normal scope and approval rules.
 
 The Concierge entry agent runs one orchestrator per independent objective, and several can work at once. It knows each by the `name` it gave `task`, which every report repeats on its `objective:` line; if it loses an `agent_id`, `list_agents` with `scope: "children"` finds it by name.
 
@@ -56,6 +54,7 @@ mode: research | plan | implement | review
 scope: <what to do, files owned, what not to touch>
 acceptance criteria: <observable checks>
 approval: <approved by user | auto (source) | not approved: research and planning only>
+git: <what the user asked for: commit, push, branch or pull request; or none: leave changes uncommitted>
 learning: <Scout only: memory read/maintain/disabled; knowledge read/maintain/disabled; exact user restrictions and assigned root, or none; other roles: not applicable>
 skills to load: <optional>
 return: findings, changes (files and repository state/diff), acceptance checks, verification (commands and results), changed assumptions, uncertainty, blockers, next decision needed
@@ -86,14 +85,17 @@ tasks:
 
 handover:
 - request: <the original request or ticket, verbatim; unchanged across rollovers>
-- follow-ups: <later user requests in order>
-- decisions: <user answers, approvals and exact file-write restrictions still in force>
+- follow-ups: <later user requests in order, each with applied | deferred: why | no change: why>
+- decisions: <user answers, approvals, Git requests and exact file-write restrictions still in force>
 - done: <results and changed files, each with how it was verified>
-- open: <remaining items, questions and blockers>
+- open: <remaining items, questions, blockers and unanswered suggestions>
 - sources: <key files and links>
 
+suggestions:
+- <up to three grounded next steps with a one-line reason, or none>
+
 message:
-<questions with suggested answers, the plan, or the result>
+<questions with a recommended answer, the plan, or the result and how each follow-up was handled>
 ```
 
-Task lines must start with `- ` or Copilot does not count them. The Concierge entry agent copies the `tasks` lines into the root to-do list unchanged, prefixed with the objective name when several objectives are open. The `handover` (at most ten lines) is never shown to the user; it is what lets a follow-up, rollover or resume continue without replaying the conversation.
+Task lines must start with `- ` or Copilot does not count them. The Concierge entry agent copies the `tasks` lines into the root to-do list unchanged, prefixed with the objective name when several objectives are open. Sol also mirrors them into the session's `todos` table (ids `<objective>/<slug>`), which Copilot's plan and todo views read. The `handover` (at most ten lines) is never shown to the user; it is what lets a follow-up, rollover or resume continue without replaying the conversation.

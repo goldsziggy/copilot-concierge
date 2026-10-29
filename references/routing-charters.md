@@ -36,8 +36,8 @@ description: Route Concierge reviews to the team's specialist and add the team's
 
 Use only a discovered exact agent ID with one explicit required model.
 Preserve Concierge's handoff, approval state, delegation and reporting rules.
-Custom routes never grant access, permission, new memory stores or publication
-consent. Keep the built-in Scout and Ship it skills when routing those roles.
+Custom routes never grant access, permission or new memory stores. Keep the
+built-in Scout skill when routing Scout.
 If a route is unavailable or unverified, report the gap and use the suitable
 shipped role; a new role without a suitable shipped default stays blocked.
 ```
@@ -50,7 +50,7 @@ Each table row is one route with four columns:
 
 | Column | What to put there |
 | --- | --- |
-| Role | A Concierge role to replace or extend: `scout`, `product-manager`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `reviewer`, `ship-it` or `escalation`. Any other name adds a new specialist. |
+| Role | A Concierge role to replace or extend: `scout`, `product-manager`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `reviewer` or `escalation`. Any other name adds a new specialist. |
 | Agent | The exact discovered agent ID. Use `copilot-concierge:<role>` to keep Concierge's agent. Plugin agents use `<plugin>:<name>`; see [agent IDs](custom-agents.md#where-to-put-the-file). |
 | Skills | Skill names to put in the worker's handoff, separated by commas. Leave empty when none are needed. |
 | Use when | The work the row covers. Required for a new role, because the orchestrator chooses new specialists by it. |
@@ -73,7 +73,7 @@ These rules come from the [orchestrator profile](../com.github.copilot/agents/or
 4. If the routed agent is missing, unverified or unpinned, it uses the role's shipped Concierge agent, keeps the row's skills and reports the gap. A new role with no shipped equivalent is reported as blocked.
 5. Each delegated assignment carries a brief reason for its separate context; an explicit route is a valid reason. Routed workers receive the normal handoff and report to the orchestrator. Plan approval, delegation and the user's write restrictions work as usual.
 
-Routing `scout` or `ship-it` keeps the built-in `scout` and `ship-it` skills in the handoff, with their private-memory, repository-knowledge and publication rules. A route never authorizes commits, pushes, merges or a non-draft pull request.
+Routing `scout` keeps the built-in `scout` skill in the handoff, with its private-memory and repository-knowledge rules. A routed implementer commits, pushes or opens a pull request only when the handoff's `git` line says the user asked for it.
 
 ## Verify it
 
@@ -101,7 +101,7 @@ Routing `scout` or `ship-it` keeps the built-in `scout` and `ship-it` skills in 
 ## Not supported
 
 - Routing the Concierge entry agent or the orchestrator itself.
-- Using a route to grant tools, permissions, approvals, new memory stores or publication consent.
+- Using a route to grant tools, permissions, approvals or new memory stores.
 - Choosing an unpinned or `Auto` agent, or a general-purpose fallback.
 - A defined precedence between two suffixed charters.
 - Live acceptance of these example routes in the CLI or app.

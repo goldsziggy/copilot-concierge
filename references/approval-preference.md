@@ -66,6 +66,6 @@ Scout may save an explicitly stated personal preference or maintain verified rep
 
 Memory does not store plan approval, tool permissions, security preferences or model permissions. Existing conversation/configuration precedence above remains authoritative. Saving a preference cannot grant approval, and `auto` never overrides an explicit no-write instruction. Private memory may be inspected when permitted even if writes are disabled; “do not use saved memories” also disables reading and applying them for the request.
 
-Verified knowledge updates are reported and reviewed like other documentation changes. They may be included deliberately in a relevant commit only when committing is authorized. Scout does not stage, commit, push or alter ignore rules.
+Verified knowledge updates are reported and reviewed like other documentation changes. They are included deliberately in a relevant commit when you ask for one. The Scout procedure itself does not stage, commit, push or alter ignore rules.
 
-Ship it has a separate decision. Accepting its offer permits read-only preflight only; creating a draft PR/MR needs explicit confirmation of the exact publication proposal. Plan approval, `auto`, an earlier go-ahead and Copilot tool permission do not supply that confirmation. See [Ship it decisions](handoff.md#optional-ship-it-decisions).
+Commits, pushes and pull requests need no separate Concierge decision. Ask for them in the request, a follow-up or a plan step; an approved plan that lists them covers them. Copilot's tool permissions still decide each command. See [commits and pull requests](handoff.md#commits-pushes-and-pull-requests).

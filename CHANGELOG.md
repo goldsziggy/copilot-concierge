@@ -1,13 +1,16 @@
 # Changelog
 
-## 0.7.0 — candidate, 2026-10-28
+## 0.7.0 — 2026-10-29
 
 - Make Sol a working objective lead that investigates, plans, implements and verifies directly within approval and host permissions. Keep Concierge as the conversation and concurrent-objective layer. Load applicable repository instructions.
 - Delegate for independent investigation, context reduction, coherent implementation ownership, independent verification or explicit custom routing/model requirements. Preserve configured routes and single required models.
 - Reuse role-neutral procedures without changing agent identity. Keep cohesive cross-stack behavior and tests with one owner, proportional review, helper-only learning and private-data boundaries.
-- Preserve plan approval, exact Ship it consent, cancellation, recovery and ten-turn rollover. Capture decisive artifact, repository-state, check and uncertainty evidence in returns.
+- Preserve plan approval, cancellation, recovery and ten-turn rollover. Capture decisive artifact, repository-state, check and uncertainty evidence in returns.
+- **Breaking:** remove the Ship it specialist, its `ship-it` skill and its two-step draft PR/MR offer. Commits, pushes, branches and pull requests are ordinary requests: Sol carries them in the handoff's new `git` line and the execution owner runs them under Copilot's permissions, with no separate Concierge consent step. Concierge no longer answers that it cannot commit or push; Scout's no-commit rule now applies only to the Scout procedure. A leftover `ship-it` routing row is reported as a missing agent.
+- Add helpful follow-ups. Reports carry up to three evidence-grounded `suggestions`, which Concierge relays as a numbered list and starts only when the user accepts one. Every user follow-up gets an `applied`, `deferred` or `no change` outcome, and long or multi-phase work stops for a go-ahead between phases.
+- Mirror each objective's checklist into the session's `todos` and `todo_deps` tables, which Copilot's plan and todo views read, under `<objective>/<slug>` ids. The Markdown `update_todo` mirror is unchanged.
 - Add on-demand, role-neutral debugging and task-evaluation skills without new agents, background trials or paid-call defaults.
-- Add twelve comparative task scenarios and unexecuted measurement templates. No performance, cost or live Copilot acceptance claim is made; see runtime verification and comparative evaluation.
+- Add twelve comparative task scenarios, including a commit-on-request scenario, and unexecuted measurement templates. No performance, cost or live Copilot acceptance claim is made; see runtime verification and comparative evaluation.
 
 ## 0.6.1 — 2026-10-13
 

@@ -78,13 +78,6 @@ try {
         const tools = hasTools ? field(text, 'tools') : null;
         const controls = /\b(task|list_agents|read_agent|write_agent|update_todo|exit_plan_mode|ask_user)\b/;
         if (name === 'orchestrator' && hasTools) fail(`${relative}: orchestrator must not restrict tools; specialists inherit through it`);
-        if (name === 'ship-it' && hasTools) fail(`${relative}: ship-it must not restrict tools; authorized provider integrations are inherited`);
-        if (name === 'ship-it') {
-          if (model !== 'gpt-6-luna') fail(`${relative}: ship-it must pin gpt-6-luna`);
-          if (field(text, 'user-invocable') !== 'false') fail(`${relative}: ship-it must be internal`);
-          if (/^disable-model-invocation: true$/m.test(text.split('\n---')[0])) fail(`${relative}: ship-it must remain dispatchable`);
-          if (field(text, 'skills') !== '[ship-it]') fail(`${relative}: ship-it skill required`);
-        }
         if (name === 'concierge') {
           if (!hasTools || /\b(view|rg|grep|glob|bash|powershell|apply_patch|edit|create|web_fetch)\b/.test(tools)) fail(`${relative}: Concierge entry must list only control tools`);
           for (const control of ['task', 'read_agent', 'write_agent', 'ask_user', 'update_todo']) if (!new RegExp(`\\b${control}\\b`).test(tools)) fail(`${relative}: Concierge entry needs ${control}`);
@@ -99,7 +92,7 @@ try {
       catch { fail(`${relative}: missing local link ${target}`); }
     }
   }
-  if (skills !== 12 || agents !== 11) fail(`Expected 12 skills and 11 agents; found ${skills} and ${agents}`);
+  if (skills !== 11 || agents !== 10) fail(`Expected 11 skills and 10 agents; found ${skills} and ${agents}`);
   if (entryAgents !== 1) fail(`Expected one Concierge entry agent; found ${entryAgents}`);
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`Package checks passed: ${skills} skills, ${agents} agents, ${files.length} files. These are static checks, not runtime acceptance.`);
