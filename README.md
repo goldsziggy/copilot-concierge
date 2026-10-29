@@ -51,13 +51,17 @@ These are skills the execution owner loads when useful, not additional agents or
 
 Concierge asks you to approve a short plan by default, with separate Plan, Scope, Steps, Checks and optional Watch-outs sections. Choose Approve, Change something or Cancel; a revised plan needs a new approval. Say “go ahead without asking” to skip that pause, or set `{"planApproval":"auto"}` in `.copilot-concierge/config.json`. Copilot's tool permissions still apply. [Approval settings →](references/approval-preference.md)
 
-**Ship it is optional.** After verified implementation, Concierge can offer to prepare a draft GitHub pull request or GitLab merge request. Accepting starts read-only preflight. Creating the draft requires a separate confirmation of the exact destination, commits, title and body. Ship it uses an existing authorized integration or CLI; it stops if the destination, access or draft capability is unclear. It does not commit, push or merge. Ship it runs through Concierge's orchestrator, not as a standalone skill. [Shipping details →](references/handoff.md#optional-ship-it-decisions)
+**Commits and pull requests are just requests.** Ask Concierge to commit, push or open a pull request, in the original request, as a follow-up or as a plan step, and it does it with your existing Git and GitHub tools. Copilot's tool permissions decide each command. Without such a request, Concierge leaves changes uncommitted and tells you so.
+
+**Concierge suggests next steps.** Results end with up to three follow-ups grounded in the work, such as a check that didn't run, a related bug it noticed but left alone, or committing the changes. Reply "yes" or a number to accept one; nothing starts until you do. Every follow-up you send is reported back as applied, deferred or unchanged, with the reason.
+
+**Tasks show in Copilot's todo view.** Each objective's checklist is also written to the session's todo tables, so the app's built-in plan and todo views show Concierge's progress.
 
 ## What Concierge learns
 
 **Memories are about how you like to work.** Say “Remember that I prefer a short summary, then details.” Concierge can use that preference in your other projects on the same computer. It keeps a small private file outside Git repositories, rather than saving conversations or a history of your tasks. It asks before saving a preference inferred from a pattern in your usage.
 
-**Knowledge is about the project.** Sol or Scout uses the same learning procedure to record verified tech stacks, conventions, business rules, findings and code decisions in `docs/concierge/knowledge.md`, with source references and dates. For example: “Document why we use integer cents for prices.” Knowledge stays with the repository and can be reviewed and included deliberately in a relevant commit when you've authorized committing. Existing documentation is preserved; Concierge changes only its own clearly marked section.
+**Knowledge is about the project.** Sol or Scout uses the same learning procedure to record verified tech stacks, conventions, business rules, findings and code decisions in `docs/concierge/knowledge.md`, with source references and dates. For example: “Document why we use integer cents for prices.” Knowledge stays with the repository and can be reviewed and included deliberately in a relevant commit when you ask for one. Existing documentation is preserved; Concierge changes only its own clearly marked section.
 
 You can say “What do you remember about me?”, “Forget my preference for short answers”, “Stop remembering my preferences” or “Correct that project rule.” Current instructions and current source evidence always take precedence. Private preferences, personal information and secrets do not belong in repository knowledge. Approval and security settings stay in their existing controls, separate from memory.
 

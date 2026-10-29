@@ -24,7 +24,7 @@
     "cancel-resume",
     "seeded-defect-review",
     "preference-isolation",
-    "changed-publication"
+    "commit-on-request"
   ],
   "additionalRegressionIds": [
     "bare-jira",

@@ -57,7 +57,7 @@
   <text x="784" y="570" class="small">Concrete acceptance criteria</text>
   <text x="784" y="598" class="small">Findings grounded in the diff</text>
   <text x="560" y="658" text-anchor="middle" class="body">Specialists report to Sol. A tracked task does not require another agent.</text>
-  <text x="560" y="689" text-anchor="middle" class="small">Copilot permissions, configured models and separate publication consent still apply.</text>
+  <text x="560" y="689" text-anchor="middle" class="small">Copilot permissions and configured models still apply.</text>
   <rect x="40" y="720" width="1040" height="108" rx="18" fill="#062342"/>
   <text x="64" y="761" fill="white" font-size="28" font-weight="700">Talk to your Concierge.</text>
   <text x="64" y="798" fill="#d9eff1" font-size="22">It keeps the conversation moving while Sol gets the objective done.</text>

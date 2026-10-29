@@ -78,9 +78,19 @@ Scout checks the code, tests and existing design records. If the reason is suppo
 
 Corrections must agree with current repository evidence. Removing a managed entry preserves other entries and user-written text. If committing is already part of the task, the implementer reviews the knowledge diff and includes the relevant update deliberately; Scout never commits it itself. See [memory and knowledge](../references/memory-and-knowledge.md).
 
-## Preparing a draft PR or MR
+## Committing and opening a pull request
 
-After verified implementation, accept Concierge's offer to run read-only preflight if you want a draft request. It checks the destination, published commits, duplicate requests and existing authorized tools. You then see the exact proposal and decide whether to create it. You can decline either step. It does not commit, push or merge, and plan approval does not approve publication. Live provider draft creation remains unverified.
+> Fix the date parsing bug, commit it on a new branch and open a draft PR.
+
+> Commit what you just changed and push it.
+
+Concierge treats these as ordinary work. The plan lists the push and pull request under Watch-outs, and Copilot's tool permissions decide each command. Without such a request, changes stay uncommitted and the result says so.
+
+## Next steps
+
+> yes, do 2
+
+Results end with up to three suggested follow-ups, such as a check that didn't run or committing the changes. Reply with "yes" or a number to accept one; nothing starts until you do.
 
 ## Approval preferences
 

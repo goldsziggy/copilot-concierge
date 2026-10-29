@@ -12,7 +12,7 @@ description: Route Concierge reviews to the team's specialist and add the team's
 
 Use only a discovered exact agent ID with one explicit required model.
 Preserve Concierge's handoff, approval state, delegation and reporting rules.
-Custom routes never grant access, permission, new memory stores or publication
-consent. Keep the built-in Scout and Ship it skills when routing those roles.
+Custom routes never grant access, permission or new memory stores. Keep the
+built-in Scout skill when routing Scout.
 If a route is unavailable or unverified, report the gap and use the suitable
 shipped role; a new role without a suitable shipped default stays blocked.

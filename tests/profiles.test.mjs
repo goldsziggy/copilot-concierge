@@ -78,8 +78,8 @@ test('learning access and privacy survive routing, escalation and rollover', asy
 test('knowledge commits stay deliberate and memories cannot grant authority', async () => {
   const { concierge, orchestrator, scout } = await profiles();
   const skill = await readFile(new URL('../skills/scout/SKILL.md', import.meta.url), 'utf8');
-  assert.match(concierge.body, /Private memory never changes plan approval, models, tool permissions, security or publication consent/);
-  assert.match(orchestrator.body, /When the user authorizes commits/);
+  assert.match(concierge.body, /Private memory never changes plan approval, models, tool permissions or security/);
+  assert.match(orchestrator.body, /When the user asked for a commit/);
   assert.match(orchestrator.body, /include the relevant knowledge file deliberately/);
   assert.match(orchestrator.body, /absence of private data/);
   assert.match(scout.body, /Scout never stages, commits, pushes or changes ignore rules/);
@@ -105,7 +105,7 @@ test('Concierge entry is control-only; the root list does not restrict its child
 
 test('every role pins exactly one required model; no silent fallback list', async () => {
   const all = await profiles();
-  assert.equal(Object.keys(all).length, 11);
+  assert.equal(Object.keys(all).length, 10);
   for (const [name, profile] of Object.entries(all)) {
     assert.equal(profile.policy, 'required', name);
     assert.doesNotMatch(profile.model, /^\[|,|auto/i, `${name} must not list fallback models`);
@@ -113,7 +113,7 @@ test('every role pins exactly one required model; no silent fallback list', asyn
   assert.equal(all.concierge.model, DEFAULTS.models.concierge);
   assert.equal(all.orchestrator.model, DEFAULTS.models.orchestrator);
   assert.equal(all.escalation.model, DEFAULTS.models.escalation);
-  for (const leaf of ['scout', 'product-manager', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer', 'ship-it']) {
+  for (const leaf of ['scout', 'product-manager', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer']) {
     assert.equal(all[leaf].model, DEFAULTS.models.specialist, leaf);
   }
 });
@@ -175,129 +175,80 @@ test('orchestrator follows a customer copilot-concierge-routing skill without ch
   assert.match(orchestrator.body, /Routing changes who does the work, never the rules/);
 });
 
-// Instruction contracts only: these checks never call a provider or a model.
-async function shipItContract() {
-  return {
-    ...await profiles(),
-    shipSkill: await readFile(new URL('../skills/ship-it/SKILL.md', import.meta.url), 'utf8'),
-    orchestration: await readFile(new URL('../skills/orchestrate/SKILL.md', import.meta.url), 'utf8'),
-  };
-}
+const orchestrationSkill = () => readFile(new URL('../skills/orchestrate/SKILL.md', import.meta.url), 'utf8');
 
-test('Ship it is an internal inherited-tool Luna specialist reporting only to Sol', async () => {
-  const { 'ship-it': worker, shipSkill } = await shipItContract();
-  assert.equal(worker.tools, undefined);
-  assert.match(worker.header, /^skills: \[ship-it\]$/m);
-  assert.match(worker.header, /^user-invocable: false$/m);
-  assert.doesNotMatch(worker.header, /^disable-model-invocation: true$/m);
-  assert.match(worker.header, /dispatched only by copilot-concierge:orchestrator/);
-  assert.match(worker.body, /You report only to the orchestrator/);
-  assert.match(worker.body, /Do not ask the user directly, dispatch or launch other agents or models/);
-  assert.match(shipSkill, /Never recruit agents, ask the user directly, approve plans or own the task list/);
-  assert.doesNotMatch(shipSkill, /\]\((?:\.\.\/|\/)/);
-  assert.match(shipSkill, /orchestrator-only, not a standalone shipping command/);
-  assert.match(shipSkill, /Without a bounded handoff.*do not run preflight or create anything/);
-});
-
-test('Ship it offer is optional after verification and preserves existing control messages', async () => {
-  const { orchestrator, concierge, orchestration, shipSkill } = await shipItContract();
-  for (const text of [orchestrator.body, orchestration]) {
-    assert.match(text, /After verified implementation/);
-    assert.match(text, /needs_input/);
-    assert.match(text, /research/);
-    assert.match(text, /implement/);
-    assert.match(text, /declin(?:e|ing) leaves state unchanged/i);
+// Instruction contracts only: these checks never call a provider, Git remote or model.
+test('Ship it is gone: no agent, skill, route role or publication-consent stage remains', async () => {
+  const all = await profiles();
+  assert.equal(all['ship-it'], undefined);
+  assert.ok(!(await readdir(new URL('../skills/', import.meta.url))).includes('ship-it'));
+  const orchestration = await orchestrationSkill();
+  for (const text of [all.concierge.body, all.orchestrator.body, all.escalation.body, orchestration]) {
+    assert.doesNotMatch(text, /ship-it|Ship it|publication consent|read-only preflight/);
   }
-  assert.match(concierge.body, /"Run read-only preflight" and "Not now"/);
-  assert.match(concierge.body, /Do not run preflight or publish yourself/);
-  assert.match(concierge.body, /`USER FOLLOW-UP`, never `PLAN DECISION` or `CONTINUE`/);
-  assert.match(orchestration, /Sol delegates all preflight and creation/);
-  assert.match(shipSkill, /Accepting the offer authorizes read-only preflight, not publication/);
-  assert.match(shipSkill, /Keep completed implementation distinct from shipping blockers/);
 });
 
-test('draft publication needs separate affirmative consent to complete exact metadata', async () => {
-  const { orchestrator, concierge, shipSkill, orchestration } = await shipItContract();
-  for (const text of [orchestrator.body, concierge.body, shipSkill, orchestration]) {
-    assert.match(text, /not publication consent/);
-    assert.match(text, /earlier go-ahead/);
-    assert.match(text, /tool permission/);
+test('commits, pushes and pull requests are ordinary requests, never refused as a Concierge rule', async () => {
+  const { concierge, orchestrator, escalation } = await profiles();
+  const orchestration = await orchestrationSkill();
+  const scoutSkill = await readFile(new URL('../skills/scout/SKILL.md', import.meta.url), 'utf8');
+  for (const pattern of [
+    /Commits, pushes, branches and pull requests are ordinary repository work/,
+    /Concierge adds no extra consent step and has no rule against committing or pushing/,
+    /Never tell the user that Concierge cannot commit, push or open a pull request/,
+    /report that exact cause and how to fix it/,
+    /Without such a request, leave changes uncommitted and say so/,
+    /Do not force-push, rewrite published history, merge or delete branches unless the user asks/,
+    /^git: <what the user asked for/m,
+  ]) assert.match(orchestrator.body, pattern);
+  assert.match(concierge.body, /Never tell the user that Concierge cannot commit, push or open a pull request/);
+  assert.match(orchestration, /Never answer that the Concierge workflow cannot commit or push/);
+  assert.match(escalation.body, /when the handoff's `git` line says the user asked for it/);
+  assert.match(scoutSkill, /This limits the Scout procedure only: it never stops Sol or an implementer from committing/);
+  for (const text of [orchestrator.body, orchestration, escalation.body]) {
+    assert.doesNotMatch(text, /Do not authorize commits|no-commit\/push|never merge or push|When the user authorizes commits/);
   }
-  assert.match(concierge.body, /"Create this draft with these exact details\?"/);
-  assert.match(concierge.body, /"Create this draft", "Change details", "Not now"/);
-  assert.match(concierge.body, /complete body/);
-  assert.match(concierge.body, /ambiguous replies are clarification, not consent/);
-  assert.match(shipSkill, /user's exact affirmative publication response/);
-  assert.match(shipSkill, /handoff's plan-approval field alone never authorizes publication/);
-  for (const field of ['provider', 'host/project', 'head', 'base', 'title', 'body', 'draft', 'repository state', 'existing request', 'capability']) {
-    assert.ok(shipSkill.includes(`\n${field}: `), field);
-  }
-  assert.match(orchestration, /Do not use `needs_approval` or auto-continuing `checkpoint` for publication/);
 });
 
-test('preflight resolves GitHub and GitLab targets without guessing remote or provider', async () => {
-  const { shipSkill } = await shipItContract();
+test("Sol mirrors its checklist into the session todos that Copilot's todo view reads", async () => {
+  const { concierge, orchestrator } = await profiles();
   for (const pattern of [
-    /provider \(GitHub or GitLab\), host and project/,
-    /source\/head project and branch/,
-    /target\/base project and branch/,
-    /Do not infer provider from an arbitrary hostname/,
-    /assume the default branch, choose the first remote or assume `origin` is the target/,
-    /Forks, multiple remotes and self-hosted instances/,
-    /Sanitize credentials/,
-    /authorization for the exact host\/project/,
-    /target, authorization, read\/query capability or draft capability is missing, stop safely/,
-    /do not invent tool\/API names, probe unsupported tools or bypass host restrictions/,
-  ]) assert.match(shipSkill, pattern);
+    /read the session's `todos` and `todo_deps` tables/,
+    /`id` is `<objective>\/<short-slug>`/,
+    /`pending` for `- \[ \]`, `in_progress` for `- \[\/\]`, `done` for `- \[x\]` and `blocked` for `- \[-\]`/,
+    /ON CONFLICT\(id\) DO UPDATE/,
+    /Never create, alter or drop the tables/,
+    /never edit another objective's rows/,
+    /keep the earlier ids/,
+    /Workers never write todos/,
+    /continue with the checklist alone/,
+  ]) assert.match(orchestrator.body, pattern);
+  assert.match(concierge.body, /you do not write those/);
+  // Mirroring is Sol's job; the entry agent stays control-only with no SQL tool.
+  assert.doesNotMatch(concierge.tools, /\bsql\b/);
 });
 
-test('unpublished, dirty, duplicate and empty states cannot silently publish or mutate', async () => {
-  const { shipSkill } = await shipItContract();
+test('suggestions are grounded offers and every follow-up gets an outcome', async () => {
+  const { concierge, orchestrator } = await profiles();
+  const orchestration = await orchestrationSkill();
+  assert.match(orchestrator.body, /^suggestions:\n- <a follow-up worth offering, with its one-line reason; or none>$/m);
+  assert.match(orchestrator.body, /each with its outcome: applied \| deferred: why \| no change: why/);
+  assert.match(orchestrator.body, /do not report `done` while a follow-up has no outcome/);
   for (const pattern of [
-    /Report dirty tree and unpushed commits explicitly/,
-    /if any intended change is absent from remote head, stop without implicit commit\/push/,
-    /Unrelated dirty files are not automatically part of the draft/,
-    /If scope cannot be distinguished, stop for clarification/,
-    /applicable existing request returns its link and status rather than a duplicate/,
-    /do not modify it, convert it to draft or create another/,
-    /If the query is unavailable or incomplete, stop instead of assuming none exist/,
-    /No changes means no request/,
-    /Do not commit, push, fetch, edit files, change repository settings or credentials/,
-  ]) assert.match(shipSkill, pattern);
-});
-
-test('provider creation is capability-gated and draft from the initial mutation', async () => {
-  const { shipSkill } = await shipItContract();
-  for (const pattern of [
-    /supported draft creation before proposing creation/,
-    /native `create_pull_request` tool where supported and required by the host, with `draft: true`/,
-    /current-session repository\/head restrictions are authoritative/,
-    /Do not switch to `gh` or another API to bypass restrictions or a generic failure/,
-    /failure explicitly permits it/,
-    /\*\*GitLab:\*\* use an existing authorized integration or CLI/,
-    /not an assumed API name or a title prefix alone/,
-    /Never create a non-draft then convert it/,
-    /Never merge, enable auto-merge, mark ready, push or commit/,
-    /This skill bundles no connector, credentials or server/,
-  ]) assert.match(shipSkill, pattern);
-  assert.match(shipSkill, /Do not use creation commands to probe capability, including `gh pr create --dry-run`, which may push/);
-  assert.match(shipSkill, /If the native GitHub creation tool is absent, an already available and authorized `gh`/);
-  assert.match(shipSkill, /No creation command runs until the separate exact publication consent/);
-});
-
-test('creation revalidates state, renews changed consent and reconciles uncertain outcomes', async () => {
-  const { shipSkill, orchestrator, orchestration } = await shipItContract();
-  assert.match(shipSkill, /Immediately before mutation, revalidate authorization, draft capability, relevant target\/head\/base state, intended diff and duplicate state/);
-  assert.match(shipSkill, /If an applicable request appeared, return its link\/status without creating/);
-  assert.match(shipSkill, /any material proposal field, commit, scope, repository state or capability changed/);
-  assert.match(shipSkill, /renewed confirmation through Sol; do not reuse stale consent/);
-  assert.match(shipSkill, /lost session or uncertain create result/);
-  assert.match(shipSkill, /do not reconstruct consent from a summary or plan approval/);
-  assert.match(shipSkill, /Confirm the returned link, target\/head and draft status/);
-  assert.match(shipSkill, /without blind retries or corrective mutations/);
-  assert.match(orchestrator.body, /Routed workers get the same `ship-it` skill and gates/);
-  assert.match(orchestration, /Pass the `ship-it` skill even to a routed agent/);
-  assert.match(shipSkill, /Static instruction checks do not establish live GitHub or GitLab behavior/);
+    /at most three follow-ups/,
+    /grounded in this objective's evidence/,
+    /Write `none` when nothing material applies/,
+    /a related defect or risk you noticed outside the approved scope, which you reported instead of fixing/,
+    /Do not pad with generic advice/,
+    /repeat a suggestion the user declined/,
+    /Never start one until the user accepts it/,
+    /Long or multi-phase requests get checkpoints/,
+    /The objective is not `done` while a follow-up has no outcome/,
+  ]) assert.match(orchestration, pattern);
+  assert.match(concierge.body, /"Next steps you might want:"/);
+  assert.match(concierge.body, /do not ask them with `ask_user`/);
+  assert.match(concierge.body, /never start one yourself/);
+  assert.match(concierge.body, /\(accepted suggestion: <the full suggestion text>\)/);
 });
 
 // Instruction contracts, not live model acceptance or a permission boundary.

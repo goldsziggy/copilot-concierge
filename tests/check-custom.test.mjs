@@ -49,15 +49,14 @@ test('skill names must match their folder', async t => {
   assert.match((await checkRoots([root])).errors.join('\n'), /name must match its folder/);
 });
 
-test('Ship it routing recognizes the built-in role, agent and skill', async t => {
+test('a leftover ship-it route is reported, not treated as a built-in role', async t => {
   const root = await project(t, {
     '.github/skills/copilot-concierge-routing/SKILL.md': `${skill('copilot-concierge-routing')}\n| Role | Agent | Skills | Use when |\n|---|---|---|---|\n| ship-it | copilot-concierge:ship-it | ship-it | |\n`,
   });
   const result = await checkRoots([root]);
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.warnings, []);
+  assert.match(result.warnings.join('\n'), /agent "copilot-concierge:ship-it" was not found/);
 });
-
 test('plugin routing uses the manifest namespace, never a matching agent basename alone', async t => {
   const root = await project(t, {
     'plugin.json': JSON.stringify({ name: 'copilot-concierge' }),

@@ -44,8 +44,8 @@ description: Route Concierge reviews to the team's specialist and add the team's
 
 Use only a discovered exact agent ID with one explicit required model.
 Preserve Concierge's handoff, approval state, delegation and reporting rules.
-Custom routes never grant access, permission, new memory stores or publication
-consent. Keep the built-in Scout and Ship it skills when routing those roles.
+Custom routes never grant access, permission or new memory stores. Keep the
+built-in Scout skill when routing Scout.
 If a route is unavailable or unverified, report the gap and use the suitable
 shipped role; a new role without a suitable shipped default stays blocked.
 ```
@@ -62,7 +62,7 @@ If a routed agent is missing, unverified or unpinned, the orchestrator reports t
 
 For multiple charters, the unsuffixed `copilot-concierge-routing` wins over suffixed charters when rows conflict. There is no defined order between conflicting suffixed charters. Copilot also keeps only one loaded skill per name, so give team and personal charters distinct suffixes when they should combine with project routing. See [sharing beyond one repository](#share-beyond-one-repository).
 
-Routes select leaf workers, not a replacement Concierge entry agent or orchestrator. They preserve the user's scope, approval state and write restrictions. They do not grant tools, permissions or publication consent. Routed Scout and Ship it roles retain their built-in skills and the [role-specific contracts below](#keep-custom-roles-within-concierges-contract).
+Routes select leaf workers, not a replacement Concierge entry agent or orchestrator. They preserve the user's scope, approval state and write restrictions. They do not grant tools or permissions. Routed Scout and Ship it roles retain their built-in skills and the [role-specific contracts below](#keep-custom-roles-within-concierges-contract).
 
 After adding or editing routing, use a fresh session and the quick-start checks below: run `check-custom.mjs`, inspect `/skills info copilot-concierge-routing`, and confirm the actual agent and model in the result and `/tasks`. The source checker is not a live routing test; current example and app-verification limits remain as documented in [runtime verification](runtime-verification.md).
 
@@ -200,7 +200,7 @@ Routed Scout agents, and escalations doing Scout work, also receive the built-in
 
 Private preferences can guide presentation and workflow style. They never supply repository facts, override current user instructions or model pins, grant approvals, or justify copying personal data into shared docs. Workers receive only a relevant preference, without its personal provenance or the private file.
 
-Routed Ship it agents keep the built-in `ship-it` skill: read-only preflight, separate consent to the exact proposal, draft-only creation and immediate revalidation. A route cannot authorize an implicit commit, push, merge or non-draft request.
+Routed implementers follow the handoff's `git` line: they commit, push or open a pull request only when the user asked for it.
 
 ## Remove a customization
 

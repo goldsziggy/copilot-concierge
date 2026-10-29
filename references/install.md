@@ -4,7 +4,7 @@ You need GitHub Copilot CLI 1.0.93 or later and/or the GitHub Copilot app, signe
 
 ## 0.7.0
 
-Version 0.7.0 allows Sol to work directly and delegate selectively. Start a fresh session after updating because existing sessions keep their loaded profiles. See [runtime verification](runtime-verification.md#concierge-070-direct-capable-objective-ownership--2026-10-28) for checks and remaining acceptance limits. To return to the earlier coordination-only orchestrator, pin `goldsziggy/copilot-concierge#v0.6.1`.
+Version 0.7.0 allows Sol to work directly and delegate selectively, removes the Ship it step (ask for commits, pushes and pull requests directly), suggests grounded next steps and mirrors tasks into Copilot's todo view. See [migrating from 0.6.1](migration.md#from-concierge-061). Start a fresh session after updating because existing sessions keep their loaded profiles. See [runtime verification](runtime-verification.md#concierge-070-direct-capable-objective-ownership--2026-10-28) for checks and remaining acceptance limits. To return to the earlier coordination-only orchestrator, pin `goldsziggy/copilot-concierge#v0.6.1`.
 
 ## Windows prerequisites
 

@@ -8,7 +8,8 @@ Read README.md, references/capability-matrix.md, references/runtime-verification
 - Pin exactly one model per role with `model-policy: required`. Never list fallback models or use Auto.
 - Quote frontmatter values that contain `: `; Copilot silently drops an agent whose frontmatter is not valid YAML.
 - Keep skills self-contained: links to files outside a skill's directory make workers read outside the user's project.
-- Task lists use `- [ ]`, `- [/]`, `- [x]`, `- [-]` lines; Copilot ignores lines without the leading dash.
+- Task lists use `- [ ]`, `- [/]`, `- [x]`, `- [-]` lines; Copilot ignores lines without the leading dash. Sol mirrors them into the session `todos` table under its own `<objective>/` ids; never create or alter those tables.
+- Commits, pushes and pull requests are ordinary user requests handled by the execution owner under Copilot's permissions. Do not reintroduce a separate publication stage or a blanket no-commit/no-push rule; keep Scout's no-commit rule scoped to the Scout procedure.
 - Keep live evidence, fixtures and static checks separate, and never claim host behavior that was not observed.
 - Run `npm test` and `npm run validate` for any change, and `npm run package` for a release candidate. Live model trials use account credits; keep them bounded and out of CI.
 - Do not push, publish, create accounts, change credentials or submit to marketplaces without explicit instruction.

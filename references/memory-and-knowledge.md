@@ -11,7 +11,7 @@ Concierge learns in two places, both through the Scout procedure and bundled hel
 | Location | `~/.config/copilot-concierge/memory.json`, outside Git worktrees | `docs/concierge/knowledge.md` in the assigned Git worktree |
 | Scope | Your operating-system account on this computer, across projects | This repository only |
 | Who changes it | Sol or Scout following the Scout skill, only through its bundled helper | The same scoped execution owner and helper; an implementer reviews any intended commit |
-| Publication | Never included in repository docs, commits or release artifacts | Normal reviewed documentation, included deliberately in relevant authorized commits |
+| Publication | Never included in repository docs, commits or release artifacts | Normal reviewed documentation, included deliberately in relevant commits the user asked for |
 
 ## Personalization in plain language
 
@@ -58,7 +58,7 @@ If the destination already exists without valid ownership markers, or the manage
 
 ### Review and commit deliberately
 
-Verified knowledge maintenance is normal Scout work within the assigned scope. The Scout learning procedure does not stage, commit, push, change ignore rules or rewrite history. Sol using that procedure does not gain publication authority from a learning write. It returns the knowledge diff for review. When committing is already authorized for an implementation task, the implementer includes the relevant knowledge update deliberately with the code it explains. An unrelated knowledge change stays separate and is reported. A learning write alone never authorizes a commit or publication.
+Verified knowledge maintenance is normal Scout work within the assigned scope. The Scout learning procedure does not stage, commit, push, change ignore rules or rewrite history. This limits the procedure, not Sol or an implementer: when the user asked for a commit, the implementer includes the relevant knowledge update deliberately with the code it explains. The procedure returns the knowledge diff for review. An unrelated knowledge change stays separate and is reported. A learning write alone never calls for a commit.
 
 Knowledge is expected to travel with the repository. Removing a current entry does not remove older copies from Git history, releases or other clones. Never place private memory in the knowledge document with the intent to remove it later.
 

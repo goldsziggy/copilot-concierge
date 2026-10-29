@@ -23,7 +23,7 @@ Copilot finds agents in these places, in this documented order. The first agent 
 
 The ID comes from the file path, not the `name` field: `team-reviewer.agent.md` is `team-reviewer`, and `security/auditor.agent.md` is `security--auditor`. [GitHub agent IDs](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-custom-agents-for-cli). Concierge's own agents appear as `copilot-concierge:<name>`, and its checker assumes other plugins use the same `<plugin.json name>:<file ID>` form. GitHub's public reference does not describe that plugin prefix, so route to the exact ID your host reports.
 
-Choose an ID that does not reuse a Concierge agent name: `concierge`, `orchestrator`, `scout`, `product-manager`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `reviewer`, `ship-it` or `escalation`. Copilot keeps one agent per ID and loads plugin agents after personal and project agents. A prefix such as `team-` avoids any collision; the checker reports these names as errors.
+Choose an ID that does not reuse a Concierge agent name: `concierge`, `orchestrator`, `scout`, `product-manager`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `reviewer` or `escalation`. Copilot keeps one agent per ID and loads plugin agents after personal and project agents. A prefix such as `team-` avoids any collision; the checker reports these names as errors.
 
 Agent and routing behavior has been exercised in Copilot CLI only, in historical Zilot 0.3.0 sessions. Custom agents and routing have not been exercised in the GitHub Copilot app, and Concierge has not tested routing to organization or enterprise agents. See [runtime verification](runtime-verification.md).
 
@@ -128,6 +128,6 @@ Outside Concierge, Copilot may also choose an agent by its description. Start th
 
 - Routing a custom agent as the Concierge entry or orchestrator. Custom agents are leaf workers.
 - Using `Auto`, a model list or an inherited session model for a routed agent.
-- Granting tools, permissions, approvals or publication consent through an agent profile or route.
+- Granting tools, permissions or approvals through an agent profile or route.
 - Checking parent-folder, organization or enterprise agents with `check-custom.mjs`; verify them in the host.
 - Live acceptance of this starter agent. It passes source checks only.

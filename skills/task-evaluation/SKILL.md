@@ -51,7 +51,7 @@ Before trials:
 2. Prepare pinned disposable fixture repositories and isolated synthetic learning state. Declare acceptance commands and expected results in advance; use an independent reviewer to check the fixture/criteria when warranted. Never copy the user's real memory into a comparison.
 3. Match original requests and follow-ups, fixture revisions, tool permissions, host version, plan decisions and observation windows. Deliver cancellation or changed-plan input at comparable semantic checkpoints rather than racing a fixed sleep. Use fresh objective sessions per repetition, except deliberate follow-up/resume within that repetition.
 4. Alternate baseline/candidate ordering, record actual models and any uncontrolled differences. Production-pin results may conflate topology with model capability; a separately budgeted matched-model comparison can help isolate that effect. Never silently change required product model pins.
-5. Do not alter installed caches or disturb active sessions. Use an already-authorized isolated loading method. A dry-run provider fixture tests publication decisions; real draft creation still needs the existing exact-proposal consent and authorized capability.
+5. Do not alter installed caches or disturb active sessions. Use an already-authorized isolated loading method. Test Git requests against a fixture repository with a bare local remote, never a real provider.
 
 Run only the approved matrix. Record all attempts, including failures, cancellations, blocked and unverified runs. Stop at the budget, cancellation or a consequential regression; report partial coverage rather than filling gaps with estimates.
 

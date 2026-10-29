@@ -2,6 +2,12 @@
 
 Concierge is the maintained native Copilot plugin. Its canonical public repository is `goldsziggy/copilot-concierge`; its package, plugin and marketplace IDs are `copilot-concierge`. The former private development repository remains separate and unchanged. The historical public `v0.3.1` tag and release keep their Zilot source, IDs and uploaded assets.
 
+## From Concierge 0.6.1
+
+Version 0.7.0 removes the Ship it specialist and its two-step draft PR/MR offer. Ask for commits, pushes or pull requests directly instead ("commit this on a new branch and open a draft PR"), in a request, a follow-up or a plan step. Copilot's tool permissions decide each command; there is no separate Concierge consent step. If a `copilot-concierge-routing` table routes the `ship-it` role, remove that row: `node scripts/check-custom.mjs` reports it as an agent that was not found.
+
+Results now end with up to three suggested next steps, and each follow-up you send is reported as applied, deferred or unchanged. Each objective's checklist is also mirrored into the session's todo tables for Copilot's plan and todo views. Start a fresh session after updating.
+
 ## From 0.5.0 project notes to memory and knowledge
 
 Version 0.6.1 introduces this migration. Update the marketplace and plugin using the [installation guide](install.md#update), then start a fresh session; existing sessions retain their loaded profiles. Scout reverifies selected facts from the old local note and preserves the original file.
@@ -12,7 +18,7 @@ The original note file stays unchanged; Scout no longer maintains it alongside t
 
 Private preferences start separately at `~/.config/copilot-concierge/memory.json`, outside all Git worktrees. Only direct user preferences or user-confirmed inferences may be saved; repository files, old notes and transcripts cannot seed that file. You can inspect, correct, forget or disable memory in ordinary conversation. See [memory and knowledge](memory-and-knowledge.md).
 
-After reviewing migrated knowledge, an implementer may include the documentation diff in an authorized relevant commit. Scout never stages or commits, changes ignore rules, deletes the old notes or rewrites history. The old local notes should remain untracked. Removing a fact from today's knowledge document does not erase it from earlier commits.
+After reviewing migrated knowledge, an implementer may include the documentation diff in a relevant commit you asked for. Scout never stages or commits, changes ignore rules, deletes the old notes or rewrites history. The old local notes should remain untracked. Removing a fact from today's knowledge document does not erase it from earlier commits.
 
 ## From Concierge 0.4.x
 

@@ -72,8 +72,8 @@ test('without ask_user the same multiline plan, exact question and choices wait 
   assert.match(fallback, /never assume approval or send `CONTINUE` while waiting/);
 });
 
-test('formatting keeps auto preference and separate publication consent boundaries', () => {
+test('formatting keeps the auto preference and lists pushes and pull requests as watch-outs', () => {
   assert.match(orchestrator, /With `auto`, report a `checkpoint` that shows the plan and source, and continue on `CONTINUE`/);
-  assert.match(concierge, /plan approval, `auto`, earlier go-ahead, `CONTINUE` and tool permission are not publication consent/);
-  assert.match(orchestrator, /Use `needs_input`, not `needs_approval` or an auto-continuing `checkpoint`, for that decision/);
+  assert.match(orchestrator, /List pushes and pull requests in a plan's `Watch-outs`/);
+  assert.doesNotMatch(concierge, /publication consent/);
 });

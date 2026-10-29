@@ -21,7 +21,7 @@ Copilot loads skills from these places, in this documented order. It keeps the f
 
 Historical Zilot 0.3.0 CLI sessions also loaded a skill from `<folder>/.github/skills/` when that folder was added with `--add-dir`. GitHub's current loading-order list names `--add-dir` for agents but not skills, so confirm the source with `/skills info`. The checker scans such a folder when you pass it. Concierge has not exercised custom skills or routing in the GitHub Copilot app. [GitHub skills guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills)
 
-**Do not reuse a Concierge skill name.** Concierge's skills are `orchestrate`, `plan`, `grill-plan`, `scout`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `review` and `ship-it`. Project and personal skills load before plugin skills, so a team skill named `review` would replace Concierge's `review` for every worker that loads it. Replacing `scout` or `ship-it` would also drop their learning and publication safeguards. The checker reports this as an error. Use a prefix such as `team-`.
+**Do not reuse a Concierge skill name.** Concierge's skills are `orchestrate`, `plan`, `grill-plan`, `scout`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `review`, `debugging` and `task-evaluation`. Project and personal skills load before plugin skills, so a team skill named `review` would replace Concierge's `review` for every worker that loads it. Replacing `scout` or `ship-it` would also drop their learning and publication safeguards. The checker reports this as an error. Use a prefix such as `team-`.
 
 ## A minimal skill
 
@@ -97,7 +97,7 @@ The execution owner needs the `skill` tool in its tool list to load a named skil
 
 ## Not supported
 
-- Granting tools, permissions, approvals, memory writes or publication consent through a skill.
+- Granting tools, permissions, approvals or memory writes through a skill.
 - Replacing Concierge's own skills with same-named team skills.
 - Checking parent-folder, `~/.agents/skills`, `COPILOT_SKILLS_DIRS` or `/skills add` locations with `check-custom.mjs`; verify them with `/skills info`.
 - Live acceptance of this starter skill. It passes source checks only.
