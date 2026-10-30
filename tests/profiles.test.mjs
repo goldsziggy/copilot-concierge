@@ -279,3 +279,86 @@ test('reusable skills preserve profile identity rather than forcing Sol into a l
   assert.match(text, /If you are a specialist, finish your assignment/);
   assert.match(text, /Do not require Scout startup for every objective/);
 });
+
+// Source-contract regressions, not a simulated transport or live model trial.
+async function returnContracts() {
+  const { concierge, orchestrator } = await profiles();
+  const handoff = await readFile(new URL('../references/handoff.md', import.meta.url), 'utf8');
+  return { concierge: concierge.body, orchestrator: orchestrator.body, handoff, skill: await orchestrationSkill() };
+}
+
+test('handoff correlation and return fields agree across the profile and reference', async () => {
+  const { concierge, orchestrator, handoff } = await returnContracts();
+  const template = text => text.match(/CONCIERGE-HANDOFF\r?\n([\s\S]*?)\r?\n```/)[1];
+  for (const field of ['objective-id', 'handoff-id', 'owner', 'collector', 'return route', 'session', 'return']) {
+    const line = text => template(text).match(new RegExp(`^${field}: .+$`, 'm'))?.[0];
+    assert.ok(line(orchestrator), field);
+    assert.equal(line(orchestrator), line(handoff), field);
+  }
+  assert.equal((concierge.match(/^objective-id:/gm) ?? []).length, 2, 'new and rollover briefs preserve identity');
+  assert.match(concierge, /objective-id: <the original stable objective-id, unchanged>/);
+  assert.match(concierge, /Never reuse an objective-id for independent work/);
+  assert.match(concierge, /send its actual returned `agent_id` and stable objective-id back to it with `write_agent` as an owner binding/);
+  assert.match(orchestrator, /If it has not arrived, request that binding in a checkpoint/);
+  assert.match(concierge, /instead of a bare `CONTINUE`/);
+  for (const text of [orchestrator, handoff]) {
+    assert.match(text, /^objective-id: <stable ID, unchanged across rollover\/resume>/m);
+    assert.match(text, /^- returns: .*actual session ID or pending.*result reference and owner receipt/m);
+  }
+});
+
+test('root collection is conditional on actual capabilities and leaves acceptance with the owner', async () => {
+  const contracts = await returnContracts();
+  for (const [name, text] of Object.entries(contracts)) {
+    assert.match(text, /[Nn]ative (?:specialists|workers|worker).*direct/, name);
+    assert.match(text, /collector/, name);
+    assert.match(text, /capabilit/, name);
+    assert.match(text, /[Ii]f only (?:the root|Concierge)|accessible only to you/, name);
+    assert.match(text, /blocked/, name);
+    assert.match(text, /missing capability/, name);
+    assert.match(text, /(?:wait|waiting) forever|indefinite waiting/, name);
+    assert.doesNotMatch(text, /cloud_threads|send_message_to_thread|wait_threads/, 'no foreign host API names');
+  }
+  assert.match(contracts.concierge, /never read repository files, implement, review or declare the worker's task complete yourself/);
+  assert.match(contracts.orchestrator, /Concierge collects and relays; you own evidence acceptance and completion/);
+  assert.match(contracts.concierge, /Native orchestrator reports notify you; do not poll those reports/);
+  assert.match(contracts.concierge, /bounded status\/result checks with a stated timeout or check limit/);
+});
+
+test('launch, activity, collection, relay and owner acceptance are distinct receipts', async () => {
+  for (const [name, text] of Object.entries(await returnContracts())) {
+    for (const state of ['launch accepted', 'running', 'idle', 'result collected', 'relayed', 'owner accepted']) {
+      assert.ok(text.includes(state), `${name}: ${state}`);
+    }
+    assert.match(text, /[Ii]dle never means completed/, name);
+    assert.match(text, /(?:actual host session ID|actual session ID)/, name);
+    assert.match(text, /(?:acknowledgement|acknowledgement is only|send to the verified current owner)/, name);
+  }
+});
+
+test('return recovery reconciles original sessions and deduplicates before repeating work', async () => {
+  for (const [name, text] of Object.entries(await returnContracts())) {
+    assert.match(text, /[Rr]econcile.*original session|original session.*reconcil/s, name);
+    assert.match(text, /[Dd]eduplicate|duplicate delivery/, name);
+    assert.match(text, /handoff-id and result reference/, name);
+    assert.match(text, /[Qq]uarantine/, name);
+    assert.match(text, /stale attempts?|stale attempt/, name);
+    assert.match(text, /wrong-owner|[Ww]rong owner/, name);
+  }
+  const { concierge, skill } = await returnContracts();
+  assert.match(concierge, /Never start a replacement worker merely because its return is missing/);
+  assert.match(skill, /never duplicate implementation to repair delivery/);
+});
+
+test('owner rollover and cancellation preserve pending mappings and late evidence', async () => {
+  const contracts = await returnContracts();
+  for (const [name, text] of Object.entries(contracts)) {
+    assert.match(text, /successor/, name);
+    assert.match(text, /cancellation state/, name);
+    assert.match(text, /late results|late evidence/i, name);
+    assert.match(text, /(?:without|not|do not).*reopen.*cancelled/, name);
+    assert.match(text, /(?:without relaunching|Do not relaunch|do not launch the work again)/, name);
+  }
+  assert.match(contracts.concierge, /Preserve newer collector receipts when an older owner report arrives/);
+  assert.match(contracts.orchestrator, /Add `returns` entries as needed rather than omit unresolved mappings/);
+});

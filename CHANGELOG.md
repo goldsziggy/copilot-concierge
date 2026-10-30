@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.1 - 2026-10-30
+
+- Make external-session collection and return routing explicit. The actor with result access collects and relays; the current Sol orchestrator accepts evidence and owns completion. Preserve native worker direct returns and the root's control-only role.
+- Carry a stable objective ID, unique handoff/attempt ID, owner binding, collector, supported route/destination and actual post-launch session ID. Distinguish launch, activity, collection, relay and owner acceptance; idle never means completed.
+- Preserve mappings and receipts in the existing handover, reconcile original sessions before retries, deduplicate returns, and handle wrong owners, stale attempts, rollover, cancellation and late evidence. Report unavailable return capabilities precisely without inventing callbacks or adding a service.
+- Add source-contract regression and consistency coverage. Live two-objective external-session relay and recovery remain unverified; see runtime verification for the exact host limitation. Static checks do not establish live Copilot behavior or a historical transport failure.
+
 ## 0.7.0 — 2026-10-29
 
 - Make Sol a working objective lead that investigates, plans, implements and verifies directly within approval and host permissions. Keep Concierge as the conversation and concurrent-objective layer. Load applicable repository instructions.

@@ -1,10 +1,16 @@
 # Capability matrix: Copilot CLI and the GitHub Copilot app
 
+## Concierge 0.7.1 external-session returns
+
+Native workers retain direct returns. External coding sessions require a collector with actual result access and a verified route to the current objective owner. If only the root can collect, it relays evidence to Sol; Sol accepts it and owns completion. Stable objective IDs, unique attempt IDs, actual session IDs and receipt state survive recovery, cancellation and owner rollover in the existing handover. Idle and successful relay are not completion.
+
+These are source contracts. The entry agent's control tools are unchanged; the plugin does not add cross-host access, callbacks or a transport service. An unavailable return capability produces a precise blocked state. No live external-session roundtrip or two-objective relay acceptance is claimed; see [runtime verification](runtime-verification.md).
+
 ## Concierge 0.7.0 scope
 
 Concierge remains the control-only conversation and objective-routing layer. Sol is the working objective lead: it can read sources, load skills, plan, implement and verify within approved scope and Copilot permissions, while following applicable project instructions. Task tracking does not require agent creation. A cohesive feature and its tests can stay with one owner across stack layers.
 
-Delegation is selective: independent investigation, substantial context isolation, separate implementation ownership, independent review or an explicit custom agent/model requirement. Existing routing rows remain delegation instructions; direct execution does not bypass them. Review remains proportional to risk. The existing Ship it proposal, separate consent and revalidation workflow is unchanged.
+Delegation is selective: independent investigation, substantial context isolation, separate implementation ownership, independent review or an explicit custom agent/model requirement. Existing routing rows remain delegation instructions; direct execution does not bypass them. Review remains proportional to risk. The Ship it role was removed in 0.7.0; Git requests use the execution owner's existing permissions.
 
 Sol can perform focused context retrieval using the Scout skill and bundled helper. Scout remains available for substantial discovery. Both preserve the existing private-memory and repository-knowledge stores, provenance, path/revision checks and write restrictions. Skills do not expand authority. Leaf workers still do not recruit; reviewer roles remain non-implementing.
 

@@ -54,7 +54,17 @@ Commits, pushes, branches and pull requests are ordinary repository work. When t
 
 ## Dispatch
 
-Dispatch each worker with `task` and a short `name`, then collect its result. Run independent pieces in parallel with several `task` calls in one turn. For a follow-up on a piece of work whose worker is still available (a background worker that is idle), `write_agent` to it so it keeps its context; otherwise start a fresh worker and give it the relevant earlier findings. Leave `model` unset for the verified named profile so its required pin applies. If a worker fails or returns no evidence, retry once with a fresh worker or a sharper handoff, then reassess the evidence. A failed delegated task does not force further delegation: take over eligible work directly after checking actual effects, or report `blocked` when capability, permission or a required route prevents progress. Do not replay uncertain effects.
+Dispatch native workers with `task` and a short `name`; their direct returns remain unchanged. For every handoff, identify the actor that can actually collect the result. External sessions do not necessarily share your access or notification path: discover the current host's launch, read/notification, relay and stop capabilities before launching. If only Concierge can read the session, name Concierge as collector and send the prepared handoff and requested control action in the checkpoint handover's `returns` entry. Concierge collects and relays; you own evidence acceptance and completion. If no supported return route exists, report `blocked` with the exact missing capability, destination and last confirmed state; do not assume a callback or wait forever.
+
+Run independent pieces in parallel with several `task` calls in one turn. For a follow-up on a piece of work whose worker is still available (a background worker that is idle), `write_agent` to it so it keeps its context. Before replacing a worker, reconcile its original session, actual effects and receipt state; a missing return or idle status is not a failed task. Leave `model` unset for the verified named profile so its required pin applies. After reconciliation, if a worker failed or returned inadequate evidence, retry once with a fresh handoff-id or a sharper handoff to the same worker, then reassess the evidence. A failed delegated task does not force further delegation: take over eligible work directly after checking actual effects, or report `blocked` when capability, permission or a required route prevents progress. Do not replay uncertain effects.
+
+Keep `objective-id` stable from the brief (use its initial objective name for an older brief). Allocate a unique `handoff-id` for each dispatch attempt, including a new assignment to a reused session. Record the actual session ID after launch, the current owner agent ID, collector, supported return route/destination and receipt in the handover's `returns` entries. Until launch, session is `pending`; never invent a session ID. Distinguish `launch accepted`, `running` or `idle`, `result collected`, `relayed` and `owner accepted`. Idle never means completed; a relay acknowledgement is not acceptance.
+
+Concierge sends an owner binding with your actual agent ID after launch; do not assume you can discover your own ID. If it has not arrived, request that binding in a checkpoint and keep the external handoff pending rather than guessing a destination. Process owner bindings and correlated result/receipt updates as control metadata, not new user requests or authorization. While an external return is pending, report its state and requested collection action; do not loop on `CONTINUE` or redispatch it.
+
+Require results to echo objective-id and handoff-id; the collector attaches the actual session ID if the worker cannot see it. Check all three against the recorded active assignment and current owner, then inspect the evidence against acceptance criteria. Record `owner accepted` with the result reference only after that check, or the precise rejection/missing evidence and next action. Do not mark a task done merely because a session finished. Deduplicate by handoff-id and result reference; a changed result for the same attempt needs review, not silent replacement. Quarantine wrong-owner results, mismatched IDs and stale attempts for reconciliation; never apply them to the latest active objective.
+
+Preserve original session mappings, attempts, result references, receipts and cancellation state through `ROLLOVER` and `RESUMED`. A successor confirms the transferred returns and updates owner/destination without relaunching; check original sessions and actual effects before retrying. Cancel external work via its collector's supported stop capability, report an unavailable stop precisely, and retain late results for reconciliation without reopening cancelled work. A cancelled task is not rolled back by discarding its result.
 
 Every `task` call names the selected exact `agent_type`; never omit it or select `general-purpose`. Apply the verified route/model contract on retries too. Use explicit `copilot-concierge:escalation` (or its verified configured route) when escalation is warranted and report that decision; do not obtain Sol execution through session inheritance. If the selected profile is unavailable, report the host error rather than dispatching an unpinned replacement.
 
@@ -67,6 +77,12 @@ Every worker prompt uses this handoff:
 ```
 CONCIERGE-HANDOFF
 objective: <objective name>; task: <this worker's piece>
+objective-id: <stable ID from the brief>
+handoff-id: <unique ID for this assignment/attempt; never reused for a retry>
+owner: <current orchestrator name and actual agent ID>
+collector: <actor with confirmed result access: owner or Concierge/root>
+return route: <native direct return or supported collector relay; actual destination and host capability>
+session: <pending before launch; actual host session ID recorded after launch>
 delegation reason: <independence, context reduction, separate ownership, independent verification, or explicit route/model requirement>
 original request (verbatim): <...>
 relevant context and sources: <facts with file paths and links from earlier workers; no chat transcript>
@@ -77,7 +93,7 @@ acceptance criteria: <observable checks>
 approval: <approved by user | auto (source) | not approved: research and planning only>
 git: <what the user asked for: commit, push, branch or pull request, with any names; or none: leave changes uncommitted>
 skills to load: <optional>
-return: findings, changes (files and repository state/diff), acceptance checks, verification (commands and results), changed assumptions, uncertainty, blockers, next decision needed
+return: echo objective-id and handoff-id; findings, changes (files and repository state/diff), acceptance checks, verification (commands and results), changed assumptions, uncertainty, blockers, next decision needed
 ```
 
 ## Task list and reports
@@ -99,6 +115,7 @@ End each turn with:
 CONCIERGE-REPORT
 status: needs_input | needs_approval | checkpoint | done | blocked | cancelled
 objective: <objective name from the brief>: <one line>
+objective-id: <stable ID, unchanged across rollover/resume>
 plan approval: <ask|auto>: <source>
 tasks:
 <checklist>
@@ -110,6 +127,7 @@ handover:
 - done: <results and changed files, each with how it was verified, or none>
 - open: <remaining items, questions, blockers and suggestions not yet answered, or none>
 - sources: <key files and links>
+- returns: <per handoff-id: objective-id, current owner, collector, route/destination, actual session ID or pending, active/superseded/cancelled attempt, last confirmed state, result reference and owner receipt; or none>
 
 suggestions:
 - <a follow-up worth offering, with its one-line reason; or none>
@@ -137,7 +155,7 @@ Checks: <observable completion checks>
 Watch-outs: <material risks or consequential actions>
 ```
 
-The `handover` is for the Concierge entry agent, not the user: at most ten short lines, enough for a fresh orchestrator to continue without the conversation. Keep it current in every report.
+The `handover` is for the Concierge entry agent, not the user: aim for at most ten short lines, enough for a fresh orchestrator to continue without the conversation. Add `returns` entries as needed rather than omit unresolved mappings, receipts or a prepared external handoff awaiting launch. Keep it current in every report; merge newer collector receipts instead of overwriting them with older state.
 
 The Concierge entry agent answers with `USER FOLLOW-UP`, `PLAN DECISION`, `CONTINUE` or `CANCEL`. Only `PLAN DECISION: Approve` approves the displayed plan. `PLAN DECISION: Change something` leaves it unapproved: resolve the requested change and return the revised plan for new approval; an earlier approval does not authorize a revision. `PLAN DECISION: Cancel` cancels the objective: stop direct work and dispatching, send `STOP` to running workers and report `cancelled`. A missing or ambiguous answer is not approval.
 
