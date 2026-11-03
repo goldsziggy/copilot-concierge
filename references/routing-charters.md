@@ -38,8 +38,8 @@ Prefer a discovered exact agent ID; model pins are optional.
 Preserve Concierge's handoff, approval state, delegation and reporting rules.
 Custom routes never grant access, permission or new memory stores. Keep the
 built-in Scout skill when routing Scout.
-If a route is unavailable or unverified, report the gap and use the suitable
-shipped role; a new role without a suitable shipped default stays blocked.
+If a route is unavailable, report the gap and use an available suitable worker
+or work directly within scope, retaining applicable skills and restrictions.
 ```
 
 The first row replaces Concierge's reviewer with `team-reviewer`. The second keeps Concierge's Node.js agent and adds your skill. The second pattern adds team conventions to an explicitly delegated Node.js assignment. For direct Sol work, name the relevant skill in the task or applicable project instructions without adding a routing row.
