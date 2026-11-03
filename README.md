@@ -49,7 +49,7 @@ These are skills the execution owner loads when useful, not additional agents or
 
 ## You're in control
 
-Concierge asks you to approve a short plan by default, with separate Plan, Scope, Steps, Checks and optional Watch-outs sections. Choose Approve, Change something or Cancel; a revised plan needs a new approval. Say “go ahead without asking” to skip that pause, or set `{"planApproval":"auto"}` in `.copilot-concierge/config.json`. Copilot's tool permissions still apply. [Approval settings →](references/approval-preference.md)
+Concierge proceeds with ordinary work within your requested scope by default. Set `{"planApproval":"ask"}` or request a plan-only review if you want to approve the plan first. Copilot's tool permissions and explicit restrictions still apply. [Approval settings →](references/approval-preference.md)
 
 **Commits and pull requests are just requests.** Ask Concierge to commit, push or open a pull request, in the original request, as a follow-up or as a plan step, and it does it with your existing Git and GitHub tools. Copilot's tool permissions decide each command. Without such a request, Concierge leaves changes uncommitted and tells you so.
 
@@ -72,11 +72,11 @@ Say “Do not write any files” to keep both kinds of learning in the current s
 Add your organization's agents, skills and routing rules without changing Concierge. Each guide covers file locations, a copyable example, discovery, verification, troubleshooting and what is not supported:
 
 - [Customization quick start](references/customizing.md): add a team reviewer and rules in four steps, then share them as a team plugin.
-- [Custom agents](references/custom-agents.md): specialist profiles with one required model, tools and a charter.
+- [Custom agents](references/custom-agents.md): specialist profiles with a preferred model, tools and a charter.
 - [Routing charters](references/routing-charters.md): tell Concierge which agent and skills handle each role.
 - [Skills](references/custom-skills.md): reusable guidance for Sol, Concierge's workers or your own.
 
-Roles use one explicitly configured model with Copilot's required-model policy; an unavailable model is reported. The app's root session model still needs attention in its model picker. [Model configuration →](references/install.md#session-local-launcher)
+Roles specify a preferred model. When the host supports an alternative, an unavailable model need not block work; actual fallback behavior depends on the host and is not guaranteed. The app's root session model may need attention in its model picker. [Model configuration →](references/install.md#session-local-launcher)
 
 ## Verification and limits
 

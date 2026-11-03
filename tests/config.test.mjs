@@ -16,7 +16,7 @@ test('narrow ask defeats broad auto, missing values inherit independently', () =
   assert.equal(result.source.planApproval, 'project');
   assert.deepEqual(result.value.models, { concierge: 'gpt-6-luna', orchestrator: 'chosen-sol', specialist: 'chosen-leaf', escalation: 'gpt-6.1-sol' });
   assert.equal(resolveConfig(layers.slice(0, 1)).value.planApproval, 'auto');
-  assert.equal(resolveConfig().value.planApproval, 'ask');
+  assert.equal(resolveConfig().value.planApproval, 'auto');
 });
 
 test('invalid config cannot silently enable auto approval or model fallback', () => {
@@ -82,7 +82,7 @@ test('the renamed project configuration is explicit and legacy configuration is 
   await writeFile(userConfig, '{}');
   await mkdir(path.join(dir, '.zilot'));
   await writeFile(path.join(dir, '.zilot/config.json'), JSON.stringify({ planApproval: 'auto' }));
-  assert.equal((await loadConfig({ project: dir, userConfig })).value.planApproval, 'ask');
+  assert.equal((await loadConfig({ project: dir, userConfig })).value.planApproval, 'auto');
   await mkdir(path.join(dir, '.copilot-concierge'));
   await writeFile(path.join(dir, '.copilot-concierge/config.json'), JSON.stringify({ planApproval: 'auto' }));
   const migrated = await loadConfig({ project: dir, userConfig });

@@ -2,7 +2,6 @@
 name: react-frontend
 description: "Internal to Concierge: dispatched only by copilot-concierge:orchestrator, not for direct use. Concierge React specialist. Implements front-end changes with the existing design system, repository conventions, accessibility and focused tests."
 model: gpt-6-luna
-model-policy: required
 reasoning-effort: low
 tools: [view, rg, grep, glob, web_fetch, apply_patch, edit, create, str_replace_editor, bash, read_bash, stop_bash, list_bash, powershell, read_powershell, stop_powershell, list_powershell, skill]
 skills: [react-frontend, enterprise-ux]

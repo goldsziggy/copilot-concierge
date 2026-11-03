@@ -1,6 +1,6 @@
 # Install, start and remove Concierge
 
-You need GitHub Copilot CLI 1.0.93 or later and/or the GitHub Copilot app, signed in to an account that offers `gpt-6-luna` and `gpt-6.1-sol`. Concierge adds no services, hooks or credentials. The account must allow both named models; Free/Student plans limited to Auto are not supported by Concierge's required-model policy. Organization model policies can also restrict availability.
+You need GitHub Copilot CLI 1.0.93 or later and/or the GitHub Copilot app, signed in to an account that offers `gpt-6-luna` and `gpt-6.1-sol`. Concierge adds no services, hooks or credentials. Availability and fallback behavior depend on the host and account; organization model policies can restrict availability. A fallback has not been verified for every host.
 
 ## 0.7.0
 
@@ -86,7 +86,7 @@ Concierge reads two optional files; nothing creates them for you:
 { "planApproval": "auto" }
 ```
 
-`ask` (the default) shows the plan and waits for your answer; `auto` shows the plan and continues. Saying "go ahead without asking" or "ask me first" in the conversation overrides the files for that request or session. The project file wins over the user file. Reading the user file may trigger one Copilot path prompt.
+`ask` shows the plan and waits for your answer; `auto` (the default) shows the plan and continues. Saying "go ahead without asking" or "ask me first" in the conversation overrides the files for that request or session. The project file wins over the user file. Reading the user file may trigger one Copilot path prompt.
 
 ### Your own agents and skills
 

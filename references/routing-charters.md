@@ -34,12 +34,12 @@ description: Route Concierge reviews to the team's specialist and add the team's
 | reviewer | team-reviewer | team-review-rules | Reviews of plans and code changes |
 | node-backend | copilot-concierge:node-backend | team-review-rules | Node.js implementation and self-checks |
 
-Use only a discovered exact agent ID with one explicit required model.
+Prefer a discovered exact agent ID; model pins are optional.
 Preserve Concierge's handoff, approval state, delegation and reporting rules.
 Custom routes never grant access, permission or new memory stores. Keep the
 built-in Scout skill when routing Scout.
-If a route is unavailable or unverified, report the gap and use the suitable
-shipped role; a new role without a suitable shipped default stays blocked.
+If a route is unavailable, report the gap and use an available suitable worker
+or work directly within scope, retaining applicable skills and restrictions.
 ```
 
 The first row replaces Concierge's reviewer with `team-reviewer`. The second keeps Concierge's Node.js agent and adds your skill. The second pattern adds team conventions to an explicitly delegated Node.js assignment. For direct Sol work, name the relevant skill in the task or applicable project instructions without adding a routing row.
@@ -69,7 +69,7 @@ These rules come from the [orchestrator profile](../com.github.copilot/agents/or
 
 1. At the start of each objective, it loads `copilot-concierge-routing` and any `copilot-concierge-routing-<suffix>` skills its skill tool lists. After changing a charter, start a new objective, preferably in a fresh session.
 2. When rows conflict, `copilot-concierge-routing` wins over a suffixed charter. Conflicts between two suffixed charters have no defined order, so avoid them.
-3. A route is eligible only when its exact agent ID is in the orchestrator's available-agent list and the profile pins one model with `model-policy: required`. The orchestrator checks this with host metadata or a focused profile inspection, directly or through Scout when useful. It does not guess from a description or a matching file name.
+3. Prefer the named agent when available. If the route or preferred model is unavailable, report the gap and use a suitable available worker or work directly within scope; retain the applicable skills and restrictions.
 4. If the routed agent is missing, unverified or unpinned, it uses the role's shipped Concierge agent, keeps the row's skills and reports the gap. A new role with no shipped equivalent is reported as blocked.
 5. Each delegated assignment carries a brief reason for its separate context; an explicit route is a valid reason. Routed workers receive the normal handoff and report to the orchestrator. Plan approval, delegation and the user's write restrictions work as usual.
 
@@ -92,7 +92,7 @@ Routing `scout` keeps the built-in `scout` skill in the handoff, with its privat
 | What you see | What to check |
 | --- | --- |
 | Concierge ignores the charter | `/skills info` shows which file loaded, if any. Check the folder name, `name` field, uppercase `SKILL.md`, and that a higher-priority skill with the same name is not hiding it. Old `zilot-routing` skills are not read. |
-| A row uses Concierge's own agent | The routed agent was not found or not verified. Check its exact ID and its single `model-policy: required` pin. |
+| A row uses Concierge's own agent | The route or preferred model was unavailable. Check the reported gap and fallback. |
 | A new role is blocked | Its agent could not be verified and no shipped role fits. Fix the agent; Concierge will not invent a substitute. |
 | The worker does not apply the team skill | The skill name in the row, whether the agent's tools include `skill`, and whether the skill itself loads. |
 | Two charters disagree | Keep overrides in the unsuffixed charter and avoid conflicting suffixed charters. |

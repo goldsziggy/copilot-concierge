@@ -2,7 +2,6 @@
 name: product-manager
 description: "Internal to Concierge: dispatched only by copilot-concierge:orchestrator, not for direct use. Concierge product manager. Focused requirements gathering, short reviewable plans and acceptance criteria; returns questions and plans to the orchestrator."
 model: gpt-6-luna
-model-policy: required
 reasoning-effort: low
 skills: [plan]
 user-invocable: false

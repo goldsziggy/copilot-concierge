@@ -92,7 +92,7 @@ export async function checkRoots(roots) {
         if (!parsed) { errors.push(`${where}: missing frontmatter`); continue; }
         for (const problem of parsed.problems) errors.push(`${where}: ${problem}`);
         if (!parsed.fields.description) errors.push(`${where}: add a description; the orchestrator chooses agents by it`);
-        if (!parsed.fields.model) warnings.push(`${where}: no model; pin one, with model-policy: required, so the agent never runs on an unexpected model`);
+        if (!parsed.fields.model) warnings.push(`${where}: no preferred model; the host may choose one`);
         else if (parsed.fields.model.startsWith('[')) warnings.push(`${where}: a model list falls back silently when the first model is unavailable`);
         if (/\b(task|write_agent|ask_user|update_todo)\b/.test(parsed.fields.tools ?? '')) warnings.push(`${where}: workers should report to the orchestrator, not dispatch agents, ask the user or own the task list`);
         const localId = agentId(agentsDir, file);

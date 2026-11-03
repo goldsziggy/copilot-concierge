@@ -4,7 +4,7 @@ import path from 'node:path';
 import os from 'node:os';
 
 export const DEFAULTS = Object.freeze({
-  planApproval: 'ask',
+  planApproval: 'auto',
   models: Object.freeze({ concierge: 'gpt-6-luna', orchestrator: 'gpt-6.1-sol', specialist: 'gpt-6-luna', escalation: 'gpt-6.1-sol' }),
   extraDirectories: Object.freeze([]),
 });

@@ -2,7 +2,6 @@
 name: enterprise-ux
 description: "Internal to Concierge: dispatched only by copilot-concierge:orchestrator, not for direct use. Concierge enterprise UX specialist. Finds the organization's existing design system and designs accessible flows from its components, tokens and patterns."
 model: gpt-6-luna
-model-policy: required
 reasoning-effort: low
 skills: [enterprise-ux]
 user-invocable: false
