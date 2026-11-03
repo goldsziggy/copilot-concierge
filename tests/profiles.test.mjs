@@ -82,19 +82,18 @@ test('knowledge commits stay deliberate and memories cannot grant authority', as
   assert.match(orchestrator.body, /When the user asked for a commit/);
   assert.match(orchestrator.body, /include the relevant knowledge file deliberately/);
   assert.match(orchestrator.body, /absence of private data/);
-  assert.match(scout.body, /Scout never stages, commits, pushes or changes ignore rules/);
+  assert.match(scout.body, /Scout may perform specifically requested Git actions/);
   assert.match(skill, /A question or a learning write alone does not authorize a Git commit/);
   assert.match(skill, /repository-only restriction disables knowledge writes/);
   assert.match(skill, /an inference: return a short suggested question/);
 });
 
-test('dispatch never substitutes an inherited-model general-purpose worker', async () => {
+test('routing and model gaps permit scoped host-supported fallback', async () => {
   const { orchestrator } = await profiles();
-  assert.match(orchestrator.body, /effective profile pins one explicit model with `model-policy: required`/);
-  assert.match(orchestrator.body, /Never use a built-in `general-purpose` or other unpinned agent/);
-  assert.match(orchestrator.body, /Every `task` call names the selected exact `agent_type`/);
-  assert.match(orchestrator.body, /Apply the verified route\/model contract on retries too/);
-  assert.match(orchestrator.body, /If the selected profile is unavailable, report the host error/);
+  assert.match(orchestrator.body, /model pin is a preference, not an eligibility requirement/);
+  assert.match(orchestrator.body, /execute directly within scope/);
+  assert.match(orchestrator.body, /Never bypass host permissions or a user restriction/);
+  assert.match(orchestrator.body, /reconcile any uncertain effects/);
 });
 
 test('Concierge entry is control-only; the root list does not restrict its children', async () => {
@@ -103,11 +102,11 @@ test('Concierge entry is control-only; the root list does not restrict its child
   assert.deepEqual(tools.sort(), ['ask_user', 'list_agents', 'read_agent', 'task', 'update_todo', 'write_agent']);
 });
 
-test('every role pins exactly one required model; no silent fallback list', async () => {
+test('every role has one preferred model without required policy', async () => {
   const all = await profiles();
   assert.equal(Object.keys(all).length, 10);
   for (const [name, profile] of Object.entries(all)) {
-    assert.equal(profile.policy, 'required', name);
+    assert.equal(profile.policy, undefined, name);
     assert.doesNotMatch(profile.model, /^\[|,|auto/i, `${name} must not list fallback models`);
   }
   assert.equal(all.concierge.model, DEFAULTS.models.concierge);
@@ -161,18 +160,17 @@ test('Concierge entry tracks several orchestrators and rolls long ones over', as
   assert.match(concierge.body, /never erases another objective's items|so one report never erases another objective's items/);
 });
 
-// Regression: the Concierge entry once wrote "go ahead (implementation explicitly
-// requested)" for an ordinary change request, and Sol skipped plan approval.
-test('plan approval is never inferred from an ordinary request', async () => {
+test('ordinary scoped work proceeds by default while explicit approval remains available', async () => {
   const { concierge, orchestrator } = await profiles();
-  assert.match(concierge.body, /is not a statement about plan approval; never infer one/);
-  assert.match(orchestrator.body, /only words that clearly waive or require approval count/);
+  assert.match(concierge.body, /request to make a change authorizes the ordinary work/);
+  assert.match(orchestrator.body, /default `auto`/);
+  assert.match(orchestrator.body, /With `ask`, report `needs_approval` and wait/);
 });
 
 test('orchestrator follows a customer copilot-concierge-routing skill without changing its rules', async () => {
   const { orchestrator } = await profiles();
   assert.match(orchestrator.body, /lists `copilot-concierge-routing` or skills named `copilot-concierge-routing-<something>`, load them before choosing specialists/);
-  assert.match(orchestrator.body, /Routing changes who does the work, never the rules/);
+  assert.match(orchestrator.body, /Never bypass host permissions or a user restriction/);
 });
 
 const orchestrationSkill = () => readFile(new URL('../skills/orchestrate/SKILL.md', import.meta.url), 'utf8');
@@ -204,7 +202,7 @@ test('commits, pushes and pull requests are ordinary requests, never refused as 
   assert.match(concierge.body, /Never tell the user that Concierge cannot commit, push or open a pull request/);
   assert.match(orchestration, /Never answer that the Concierge workflow cannot commit or push/);
   assert.match(escalation.body, /when the handoff's `git` line says the user asked for it/);
-  assert.match(scoutSkill, /This limits the Scout procedure only: it never stops Sol or an implementer from committing/);
+  assert.match(scoutSkill, /Scout may perform specifically requested Git actions/);
   for (const text of [orchestrator.body, orchestration, escalation.body]) {
     assert.doesNotMatch(text, /Do not authorize commits|no-commit\/push|never merge or push|When the user authorizes commits/);
   }
@@ -258,7 +256,7 @@ test('direct execution preserves route, evidence, approval and recovery boundari
     /Follow applicable repository instructions/,
     /Direct work follows the same scope, plan approval/,
     /A tracked task does not require a worker/,
-    /Direct execution must not bypass a matching custom route/,
+    /execute directly within scope/,
     /Give a cohesive feature and its tests one execution owner/,
     /delegation reason:/,
     /self-checking is not independent review/,

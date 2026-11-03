@@ -2,7 +2,6 @@
 name: node-backend
 description: "Internal to Concierge: dispatched only by copilot-concierge:orchestrator, not for direct use. Concierge Node.js specialist. Implements back-end changes within existing service boundaries, with validation, error handling and focused tests."
 model: gpt-6-luna
-model-policy: required
 reasoning-effort: low
 tools: [view, rg, grep, glob, web_fetch, apply_patch, edit, create, str_replace_editor, bash, read_bash, stop_bash, list_bash, powershell, read_powershell, stop_powershell, list_powershell, skill]
 skills: [node-backend]

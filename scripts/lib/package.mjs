@@ -53,7 +53,6 @@ export function configureProfile(content, filename, config) {
   const header = content.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
   if (!header) throw new Error(`${filename}: missing profile frontmatter`);
   if ((header[1].match(/^model:.*$/gm) ?? []).length !== 1) throw new Error(`${filename}: expected one authored model`);
-  if (!/^(modelPolicy|model-policy):\s*["']?required["']?\s*$/m.test(header[1])) throw new Error(`${filename}: required model policy is missing`);
   const rewritten = header[0].replace(/^model:.*$/m, `model: ${JSON.stringify(config.value.models[role])}`) + content.slice(header[0].length);
   const policy = {
     planApproval: config.value.planApproval,
@@ -61,7 +60,7 @@ export function configureProfile(content, filename, config) {
     roleModel: config.value.models[role],
     roleModelSource: config.source.models[role],
   };
-  return `${rewritten.trimEnd()}\n\n${begin}\n## Effective session configuration\n\n${JSON.stringify(policy, null, 2)}\n\nThis launch resolved the plan-approval preference from the user, project and session files and any task flag. The user's own words in this conversation still take precedence. Automatic plan approval never changes Copilot's tool permissions. Use the exact configured model; never substitute or use Auto.\n${end}\n`;
+  return `${rewritten.trimEnd()}\n\n${begin}\n## Effective session configuration\n\n${JSON.stringify(policy, null, 2)}\n\nThis launch resolved the plan-approval preference from the user, project and session files and any task flag. The user's own words in this conversation still take precedence. Automatic plan approval never changes Copilot's tool permissions. The configured model is preferred. If unavailable, use a supported host fallback and report the actual model when known; never bypass host permissions.\n${end}\n`;
 }
 
 export async function configureProfiles(destination, config) {

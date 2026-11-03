@@ -2,7 +2,6 @@
 name: reviewer
 description: "Internal to Concierge: dispatched only by copilot-concierge:orchestrator, not for direct use. Concierge reviewer. Grills plans before implementation and reviews changes against acceptance criteria with concrete evidence."
 model: gpt-6-luna
-model-policy: required
 reasoning-effort: low
 tools: [view, rg, grep, glob, web_fetch, bash, read_bash, stop_bash, list_bash, powershell, read_powershell, stop_powershell, list_powershell, skill]
 skills: [grill-plan, review]

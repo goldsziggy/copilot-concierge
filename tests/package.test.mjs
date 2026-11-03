@@ -17,7 +17,7 @@ test('configuration pins each native tier and preserves role tool boundary', () 
     assert.ok(output.includes('"planApprovalSource": "session"'));
     assert.ok(output.includes("Automatic plan approval never changes Copilot's tool permissions"));
   }
-  assert.throws(() => configureProfile(profile.replace('required', 'preferred'), 'concierge.agent.md', config), /required model policy/);
+  assert.ok(configureProfile(profile.replace('model-policy: required\n', ''), 'concierge.agent.md', config));
   assert.throws(() => configureProfile(profile.replace('model: authored-model', 'model: a\nmodel: b'), 'concierge.agent.md', config), /one authored model/);
   const once = configureProfile(profile, 'concierge.agent.md', config);
   assert.equal(configureProfile(once, 'concierge.agent.md', config), once);

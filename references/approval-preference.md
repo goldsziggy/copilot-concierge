@@ -4,7 +4,7 @@ Plan approval is the pause between Concierge's short plan and the work. It is a 
 
 | Value | Behavior |
 | --- | --- |
-| `ask` (default) | Show the plan and ask "Approve this plan?" with Approve / Change something / Cancel. Only Approve authorizes the displayed plan. |
+| `ask` | Show the plan and ask "Approve this plan?" with Approve / Change something / Cancel. Only Approve authorizes the displayed plan. |
 | `auto` | Show the plan, say where `auto` came from, and continue within the requested scope. |
 
 The nearest setting wins:
@@ -13,7 +13,7 @@ The nearest setting wins:
 2. The user's words earlier in this session, or a launcher `--session-config` file.
 3. The project file `.copilot-concierge/config.json`.
 4. The user file `~/.config/copilot-concierge/config.json`.
-5. The default, `ask`.
+5. The default, `auto`.
 
 The scout reads the project file during context gathering, and the user file only if the project file sets nothing. When `scripts/launch.mjs` starts the session, it resolves the files and any `--plan-approval` flag in advance and writes the result into the profiles.
 

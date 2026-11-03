@@ -64,7 +64,7 @@ Replace `gpt-6-luna` with a model your Copilot account can use. This reviewer ca
 | --- | --- | --- |
 | `description` | Required. Say it is an internal Concierge worker and what it does. Quote it if it contains `: ` or ` #`; Copilot silently drops an agent whose frontmatter is not valid YAML. | GitHub reference; Concierge observation |
 | `model` | Exactly one model ID. No `Auto` and no list. | Concierge routing rule |
-| `model-policy: required` | Required for Concierge to route to the agent. It makes Copilot refuse a per-call model override. | Observed in Copilot CLI; not in GitHub's public reference |
+| `model-policy: required` | Optional strict policy. It makes Copilot refuse a per-call model override; use it only when that restriction is intended. | Observed in Copilot CLI; not in GitHub's public reference |
 | `tools` | Only what the role needs. Omit `task`, `write_agent`, `read_agent`, `ask_user` and `update_todo`: workers report to the orchestrator. Omit the list only for roles that must inherit connected integrations. | GitHub reference; Concierge charter |
 | `skills` | Skills to preload. Also name them in the routing row so they travel in the handoff. | Used by Concierge's profiles; not in GitHub's public reference |
 | `user-invocable: false` | Hides an internal worker from the user's agent picker while keeping it dispatchable. | GitHub reference; observed in Copilot CLI |
@@ -94,7 +94,7 @@ Add a row to a [routing charter](routing-charters.md):
 | reviewer | team-reviewer | team-review-rules | Reviews of plans and code changes |
 ```
 
-At the start of each objective, the orchestrator checks that `team-reviewer` is in its list of available agents and that the profile pins one model with `model-policy: required`. If it cannot verify that, it reports the gap and uses its own reviewer. It never substitutes an unpinned general-purpose agent.
+The orchestrator prefers the named available reviewer. If it cannot use the route, it reports the gap and uses an available suitable worker or reviews directly within scope. Host permissions remain authoritative.
 
 Outside Concierge, Copilot may also choose an agent by its description. Start the description with "Internal Concierge worker" so other sessions are less likely to pick it.
 
@@ -118,7 +118,7 @@ Outside Concierge, Copilot may also choose an agent by its description. Start th
 | What you see | What to check |
 | --- | --- |
 | Concierge says the agent is unknown | The exact file-derived ID and plugin prefix, a fresh session, and whether a higher-priority file with the same ID exists. The checker reports duplicate IDs. |
-| Concierge uses its own role instead | The orchestrator could not verify one `model` and `model-policy: required`. Its report names the gap. |
+| Concierge uses its own role instead | The route or its preferred model was unavailable. The report names the gap and substitution. |
 | The host refuses the model | The model is unavailable to your account. Choose an available model; Concierge does not fall back. |
 | The agent is ignored after editing | Invalid YAML (often an unquoted `: `) or a stale session. Run the checker and start a fresh session. |
 | The agent asks the user or dispatches others | Its charter or tool list includes orchestration duties. Remove them. |

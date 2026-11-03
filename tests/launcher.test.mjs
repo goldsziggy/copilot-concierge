@@ -148,7 +148,7 @@ test('launcher preserves invocation cwd without --project and explicitly selects
   assert.equal(calls[0].cwd, paths.cwd);
   const options = nativeOptions(calls[0].argv);
   assert.equal(options.get('--model'), 'gpt-6-luna', 'Default must remain explicit rather than native Auto');
-  assert.match(result.stdout, /Plan approval: ask/);
+  assert.match(result.stdout, /Plan approval: auto/);
 });
 
 test('extra agent directories load natively: plugins by --plugin-dir, others by --add-dir', posixOnly, async t => {

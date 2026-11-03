@@ -71,7 +71,6 @@ try {
         }
         const model = field(text, 'model');
         if (model.toLowerCase() === 'auto' || !model) fail(`${relative}: exact model required`);
-        if (field(text, 'model-policy') !== 'required') fail(`${relative}: required policy missing`);
         // Copilot gives a nested agent only tools its parent agent also has
         // (verified in CLI 1.0.93), so the orchestrator must not narrow its list.
         const hasTools = /^tools:/m.test(text.split('\n---')[0]);

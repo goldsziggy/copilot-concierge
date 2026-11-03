@@ -42,7 +42,7 @@ description: Route Concierge reviews to the team's specialist and add the team's
 | reviewer | team-reviewer | team-review-rules | Reviews of plans and code changes |
 | node-backend | copilot-concierge:node-backend | team-review-rules | Node.js implementation and self-checks |
 
-Use only a discovered exact agent ID with one explicit required model.
+Prefer a discovered exact agent ID and name any desired model preference.
 Preserve Concierge's handoff, approval state, delegation and reporting rules.
 Custom routes never grant access, permission or new memory stores. Keep the
 built-in Scout skill when routing Scout.
@@ -56,9 +56,9 @@ A Role matching a shipped role replaces or extends that role. Any other Role add
 
 ### Resolution, fallback and verification
 
-Before dispatch, the orchestrator verifies that the exact agent ID is available and its effective profile pins one explicit model with `model-policy: required`. It uses host metadata or delegates profile inspection to Scout; a matching filename or description alone is not verification.
+Before dispatch, the orchestrator checks that the named agent is available to the host. A model pin is optional rather than an eligibility gate.
 
-If a routed agent is missing, unverified or unpinned, the orchestrator reports the gap and uses that role's suitable shipped default, preserving applicable extra skills and role restrictions. A new role without a suitable default stays blocked. A required model that is unavailable is also a blocker, not permission to substitute another model. The built-in unpinned `general-purpose` agent is not a fallback.
+If a route or preferred model is unavailable, the orchestrator reports the gap and uses a suitable available worker or executes directly within scope, preserving skills and restrictions. If no host-supported capability can complete the work, it reports the blocker.
 
 For multiple charters, the unsuffixed `copilot-concierge-routing` wins over suffixed charters when rows conflict. There is no defined order between conflicting suffixed charters. Copilot also keeps only one loaded skill per name, so give team and personal charters distinct suffixes when they should combine with project routing. See [sharing beyond one repository](#share-beyond-one-repository).
 
@@ -85,7 +85,7 @@ If your project already has a `copilot-concierge-routing` skill, add the starter
 
 ### 2. Make it yours
 
-- In `team-reviewer.agent.md`, keep one `model` that your Copilot account can use, with `model-policy: required`.
+- In `team-reviewer.agent.md`, choose an available preferred `model` if useful; a strict required policy is optional.
 - In `team-review-rules/SKILL.md`, replace the numbered rules with your own.
 - Keep the `team-` names, or choose others that do not reuse Concierge's agent or skill names.
 

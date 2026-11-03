@@ -41,13 +41,10 @@ for (const [name, eol] of [['LF', '\n'], ['CRLF', '\r\n']]) {
   });
 }
 
-test('CRLF frontmatter still enforces the required model policy', async t => {
+test('CRLF frontmatter accepts a preferred model without a required policy', async t => {
   const directory = await fixture(t, '\r\n');
-  const file = path.join(directory, 'com.github.copilot/agents/concierge.agent.md');
-  await writeFile(file, (await readFile(file, 'utf8')).replace('model-policy: required', 'model-policy: preferred'));
   const result = validate(directory);
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /concierge\.agent\.md: required policy missing/);
+  assert.equal(result.status, 0, result.stderr);
 });
 
 test('validator rejects a missing renamed entry or a second visible agent', async t => {

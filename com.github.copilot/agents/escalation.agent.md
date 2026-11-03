@@ -2,7 +2,6 @@
 name: escalation
 description: "Internal to Concierge: dispatched only by copilot-concierge:orchestrator, not for direct use. Concierge escalation specialist. Performs any Concierge specialist role on the stronger Sol 6.1 model when the orchestrator explicitly escalates a hard or high-risk task."
 model: gpt-6.1-sol
-model-policy: required
 reasoning-effort: medium
 user-invocable: false
 include-custom-instructions: true

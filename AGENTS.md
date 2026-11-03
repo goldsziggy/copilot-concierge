@@ -5,7 +5,7 @@ Read README.md, references/capability-matrix.md, references/runtime-verification
 - Concierge is native skills and agent profiles plus small configuration scripts. Do not add an application, server, scheduler, database, dashboard, permission layer, content filter or request-policy engine.
 - Keep the roles: Luna Concierge entry agent → Sol orchestrator → Luna specialists, with Sol 6.1 escalation. Sol owns each objective and may investigate, plan, implement and verify directly within approved scope, delegating only when a useful boundary exists. Specialists report only to Sol and never recruit. Copilot's permissions stay authoritative; plan approval is a workflow preference.
 - Copilot gives a nested agent only the tools its parent agent also has. The orchestrator must not narrow its tool list; the Concierge entry agent stays control-only. `npm test` guards this.
-- Pin exactly one model per role with `model-policy: required`. Never list fallback models or use Auto.
+- Keep a preferred model per role; permit supported host fallback when it is unavailable and report substitutions. Host permissions remain authoritative.
 - Quote frontmatter values that contain `: `; Copilot silently drops an agent whose frontmatter is not valid YAML.
 - Keep skills self-contained: links to files outside a skill's directory make workers read outside the user's project.
 - Task lists use `- [ ]`, `- [/]`, `- [x]`, `- [-]` lines; Copilot ignores lines without the leading dash. Sol mirrors them into the session `todos` table under its own `<objective>/` ids; never create or alter those tables.
