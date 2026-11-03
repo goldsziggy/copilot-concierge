@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0 - 2026-11-03
+
+- Make Concierge more conversational: preserve the user's exact request and derive observable acceptance criteria, while proceeding with ordinary in-scope work by default. Users can still require plan approval.
+- Allow Scout to perform assigned, authorized edits, checks and requested Git actions while respecting host permissions, explicit read-only restrictions and destructive-action safeguards.
+- Prefer available routes and models, and allow a suitable host-supported fallback or direct execution when available. Report substitutions; host fallback behavior, including entry-agent startup, remains unverified in live Copilot sessions.
+- Update documentation and source-contract tests. PR #7 CI passed on Linux and Windows with Node 20 and 22; static checks do not prove live model behavior.
+
 ## 0.7.1 - 2026-10-30
 
 - Make external-session collection and return routing explicit. The actor with result access collects and relays; the current Sol orchestrator accepts evidence and owns completion. Preserve native worker direct returns and the root's control-only role.
