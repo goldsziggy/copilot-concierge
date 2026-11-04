@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="860" viewBox="0 0 1120 860" role="img" aria-labelledby="title description">
   <title id="title">Concierge and its working objective lead</title>
-  <desc id="description">You talk to Concierge. Concierge routes each objective to Sol, which plans, executes, integrates and verifies using relevant skills and authorized tools. Sol delegates only when a separate context helps or an explicit custom route requires it. Independent review is proportional to risk. Specialists return evidence to Sol. Questions, approval and results return through Concierge. Copilot permissions, required models and learning safeguards remain authoritative.</desc>
+  <desc id="description">You talk to Concierge. Concierge relays questions and updates, with plan approval when requested or required. Sol owns each objective, working directly or delegating to workers who load relevant React, Node and GraphQL skills. Planning records the outcome and acceptance criteria. Grill challenges material assumptions proportionally, with independent review when warranted. Workers return evidence to Sol. Copilot permissions, user restrictions and learning safeguards remain authoritative.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M1 1 L9 5 L1 9" fill="none" stroke="#007e87" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -19,8 +19,8 @@
   <rect x="358" y="145" width="316" height="136" rx="18" fill="#062342"/>
   <text x="383" y="184" fill="#55e1db" font-size="14" font-weight="700" letter-spacing="1.4">YOUR CONVERSATION</text>
   <text x="383" y="219" fill="white" font-size="27" font-weight="700">Concierge</text>
-  <text x="383" y="246" fill="#d9eff1" font-size="20">Questions &amp; plan approval</text>
-  <text x="383" y="269" fill="#d9eff1" font-size="18">Objective routing &amp; results</text>
+  <text x="383" y="246" fill="#d9eff1" font-size="20">Questions &amp; updates</text>
+  <text x="383" y="269" fill="#d9eff1" font-size="17">Approval when requested or required</text>
   <path d="M690 213 H726" class="line" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
   <rect x="742" y="145" width="338" height="136" rx="18" fill="white" stroke="#007e87" stroke-width="2"/>
   <text x="767" y="184" class="label">WORKING OBJECTIVE LEAD</text>
@@ -42,22 +42,22 @@
   <text x="64" y="598" class="small">Same Scout helper &amp; safeguards</text>
   <rect x="400" y="382" width="320" height="238" rx="18" fill="white" stroke="#c7d9de"/>
   <text x="424" y="417" class="label">SELECTIVE DELEGATION</text>
-  <text x="424" y="452" class="heading">Specialists</text>
-  <text x="424" y="488" class="body">Independent investigations</text>
-  <text x="424" y="519" class="body">Large context or owned work</text>
+  <text x="424" y="452" class="heading">Workers + skills</text>
+  <text x="424" y="488" class="body">React · Node · GraphQL</text>
+  <text x="424" y="519" class="body">Load skills for the assignment</text>
   <path d="M424 539 H696" stroke="#dce8eb"/>
-  <text x="424" y="570" class="small">Honor explicit custom routes</text>
-  <text x="424" y="598" class="small">Return artifacts &amp; evidence</text>
+  <text x="424" y="570" class="small">Independent or owned work</text>
+  <text x="424" y="598" class="small">Respect routes &amp; return evidence</text>
   <rect x="760" y="382" width="320" height="238" rx="18" fill="white" stroke="#c7d9de"/>
-  <text x="784" y="417" class="label">PROPORTIONAL VERIFICATION</text>
-  <text x="784" y="452" class="heading">Independent review</text>
-  <text x="784" y="488" class="body">Meaningful behavior changes</text>
-  <text x="784" y="519" class="body">Risky assumptions or requests</text>
+  <text x="784" y="417" class="label">PLANNING &amp; REVIEW</text>
+  <text x="784" y="452" class="heading">Plan + grill</text>
+  <text x="784" y="488" class="body">Outcome &amp; acceptance</text>
+  <text x="784" y="519" class="body">Challenge material assumptions</text>
   <path d="M784 539 H1056" stroke="#dce8eb"/>
-  <text x="784" y="570" class="small">Concrete acceptance criteria</text>
-  <text x="784" y="598" class="small">Findings grounded in the diff</text>
-  <text x="560" y="658" text-anchor="middle" class="body">Specialists report to Sol. A tracked task does not require another agent.</text>
-  <text x="560" y="689" text-anchor="middle" class="small">Copilot permissions and configured models still apply.</text>
+  <text x="784" y="570" class="small">Proportional independent review</text>
+  <text x="784" y="598" class="small">Evidence · resolution · checks</text>
+  <text x="560" y="658" text-anchor="middle" class="body">Workers report to Sol. A tracked task does not require another agent.</text>
+  <text x="560" y="689" text-anchor="middle" class="small">Copilot permissions, user restrictions and configured models still apply.</text>
   <rect x="40" y="720" width="1040" height="108" rx="18" fill="#062342"/>
   <text x="64" y="761" fill="white" font-size="28" font-weight="700">Talk to your Concierge.</text>
   <text x="64" y="798" fill="#d9eff1" font-size="22">It keeps the conversation moving while Sol gets the objective done.</text>

@@ -6,7 +6,7 @@ Tell Concierge what you want to get done. Its objective lead plans, does focused
 
 Concierge is a native plugin for **GitHub Copilot CLI and the GitHub Copilot app**. It uses Copilot's agents, skills and permissions. You need a signed-in Copilot account with access to the configured models; the defaults are GPT-6 Luna and GPT-6.1 Sol.
 
-**0.7.1** makes external-session returns explicit: the actor with result access collects and relays evidence to the objective's current Sol orchestrator, which accepts it and owns completion. Handoffs retain correlation and receipt state through retries and recovery. Native worker returns, structured approvals and learning safeguards remain in place.
+The main branch tracks **0.9.0**, which consolidates implementation into a worker with task-specific skills and formalizes the plan and proportional grill. For a published build, see the [latest GitHub release](https://github.com/goldsziggy/copilot-concierge/releases/latest); main may contain changes not yet included there.
 
 ## Get started
 
