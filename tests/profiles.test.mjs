@@ -104,7 +104,7 @@ test('Concierge entry is control-only; the root list does not restrict its child
 
 test('every role has one preferred model without required policy', async () => {
   const all = await profiles();
-  assert.equal(Object.keys(all).length, 10);
+  assert.equal(Object.keys(all).length, 7);
   for (const [name, profile] of Object.entries(all)) {
     assert.equal(profile.policy, undefined, name);
     assert.doesNotMatch(profile.model, /^\[|,|auto/i, `${name} must not list fallback models`);
@@ -112,7 +112,7 @@ test('every role has one preferred model without required policy', async () => {
   assert.equal(all.concierge.model, DEFAULTS.models.concierge);
   assert.equal(all.orchestrator.model, DEFAULTS.models.orchestrator);
   assert.equal(all.escalation.model, DEFAULTS.models.escalation);
-  for (const leaf of ['scout', 'product-manager', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer']) {
+  for (const leaf of ['scout', 'product-manager', 'worker', 'reviewer']) {
     assert.equal(all[leaf].model, DEFAULTS.models.specialist, leaf);
   }
 });
@@ -268,7 +268,7 @@ test('direct execution preserves route, evidence, approval and recovery boundari
 });
 
 test('reusable skills preserve profile identity rather than forcing Sol into a leaf role', async () => {
-  for (const name of ['plan', 'node-backend', 'graphql', 'react-frontend', 'enterprise-ux', 'scout', 'review', 'grill-plan']) {
+  for (const name of ['plan', 'node-backend', 'graphql', 'react-frontend', 'scout', 'review', 'grill-plan']) {
     const text = await readFile(new URL(`../skills/${name}/SKILL.md`, import.meta.url), 'utf8');
     assert.match(text, /(?:agent profile|Your profile)/, name);
     assert.doesNotMatch(text, /^(?:Work as a leaf|Act as a leaf|You are a leaf)/m, name);
@@ -359,4 +359,19 @@ test('owner rollover and cancellation preserve pending mappings and late evidenc
   }
   assert.match(contracts.concierge, /Preserve newer collector receipts when an older owner report arrives/);
   assert.match(contracts.orchestrator, /Add `returns` entries as needed rather than omit unresolved mappings/);
+});
+
+// Static profile contracts; they do not prove live host tool or routing behavior.
+test('generic worker loads assigned domain skills and preserves explicit route migration', async () => {
+  const all = await profiles();
+  for (const name of ['enterprise-ux', 'react-frontend', 'node-backend', 'graphql']) assert.equal(all[name], undefined);
+  assert.match(all.worker.body, /Explicitly load each available skill named in `skills to load`/);
+  assert.match(all.worker.body, /Skills provide procedures; they do not grant tools, access or authority/);
+  assert.equal(all.worker.tools, undefined);
+  assert.match(all.worker.body, /planning-only or not-approved handoff does not authorize implementation/);
+  assert.match(all.worker.body, /if the user did not request commit, push or a pull request, leave changes uncommitted/);
+  assert.match(all.orchestrator.body, /available custom agent named by a row still wins/);
+  assert.match(all.orchestrator.body, /add the corresponding domain skill alongside all row skills/);
+  assert.match(all.orchestrator.body, /Never rewrite the user's routing files silently/);
+  assert.ok(!((await readdir(new URL('../skills/', import.meta.url))).includes('enterprise-ux')));
 });

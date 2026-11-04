@@ -21,7 +21,9 @@ Copilot loads skills from these places, in this documented order. It keeps the f
 
 Historical Zilot 0.3.0 CLI sessions also loaded a skill from `<folder>/.github/skills/` when that folder was added with `--add-dir`. GitHub's current loading-order list names `--add-dir` for agents but not skills, so confirm the source with `/skills info`. The checker scans such a folder when you pass it. Concierge has not exercised custom skills or routing in the GitHub Copilot app. [GitHub skills guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills)
 
-**Do not reuse a Concierge skill name.** Concierge's skills are `orchestrate`, `plan`, `grill-plan`, `scout`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `review`, `debugging` and `task-evaluation`. Project and personal skills load before plugin skills, so a team skill named `review` would replace Concierge's `review` for every worker that loads it. Replacing `scout` or `ship-it` would also drop their learning and publication safeguards. The checker reports this as an error. Use a prefix such as `team-`.
+**Do not reuse a Concierge skill name.** Concierge's skills are `orchestrate`, `plan`, `grill-plan`, `scout`, `react-frontend`, `node-backend`, `graphql`, `review`, `debugging` and `task-evaluation`. Project and personal skills load before plugin skills, so a team skill named `review` would replace Concierge's `review` for every worker that loads it. Replacing `scout` would also drop its learning safeguards. The checker reports this as an error. Use a prefix such as `team-`.
+
+React, Node.js and GraphQL remain distinct procedures used by the same implementation worker. The former `enterprise-ux` skill is no longer shipped: design discovery and planning live in `plan`, with implementation-specific design guidance in domain skills. Existing custom design-system skills remain valid. See [routing migration](routing-charters.md#domain-roles-and-old-built-in-ids).
 
 ## A minimal skill
 
@@ -66,7 +68,7 @@ For explicit worker assignments there are two supported paths:
 1. **A routing row.** Skills in the row's **Skills** column go into the worker's handoff under `skills to load`, whichever agent does the work. This is an explicit delegation instruction, even when the row names a shipped agent:
 
    ```markdown
-   | node-backend | copilot-concierge:node-backend | team-review-rules | Node.js implementation and self-checks |
+   | node-backend | copilot-concierge:worker | node-backend, team-review-rules | Node.js implementation and self-checks |
    ```
 
 2. **An agent's `skills` list.** A [custom agent](custom-agents.md#frontmatter-concierge-relies-on) can list skills to preload. Concierge's own profiles use this field, but GitHub's public reference does not document it, so also name important skills in the routing row.

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { checkRoots, agentId, routingRows } from '../scripts/check-custom.mjs';
+import { checkRoots, agentId, routingRows, CONCIERGE_ROLES, CONCIERGE_WORKERS, CONCIERGE_SKILLS } from '../scripts/check-custom.mjs';
 
 async function project(t, files) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'copilot-concierge-custom-'));
@@ -33,12 +33,12 @@ test('routing rows resolve against discovered agents, Concierge roles and skills
   const root = await project(t, {
     '.github/agents/acme-react.agent.md': agent('"Acme React."'),
     '.github/skills/acme-ui/SKILL.md': skill('acme-ui'),
-    '.github/skills/copilot-concierge-routing/SKILL.md': `${skill('copilot-concierge-routing')}\n| Role | Agent | Skills | Use when |\n| --- | --- | --- | --- |\n| react-frontend | acme-react | acme-ui | UI |\n| graphql | copilot-concierge:graphql | missing-skill | APIs |\n| payments | acme-payments | | |\n`,
+    '.github/skills/copilot-concierge-routing/SKILL.md': `${skill('copilot-concierge-routing')}\n| Role | Agent | Skills | Use when |\n| --- | --- | --- | --- |\n| react-frontend | acme-react | acme-ui | UI |\n| graphql | copilot-concierge:worker | graphql, missing-skill | APIs |\n| payments | acme-payments | | |\n`,
   });
   const result = await checkRoots([root]);
   assert.deepEqual(result.errors, []);
   const warnings = result.warnings.join('\n');
-  assert.doesNotMatch(warnings, /"acme-react"|"copilot-concierge:graphql"|"acme-ui"/);
+  assert.doesNotMatch(warnings, /"acme-react"|"copilot-concierge:worker"|"acme-ui"/);
   assert.match(warnings, /skill "missing-skill"/);
   assert.match(warnings, /agent "acme-payments" was not found/);
   assert.match(warnings, /new role "payments" needs a "Use when"/);
@@ -60,14 +60,14 @@ test('a leftover ship-it route is reported, not treated as a built-in role', asy
 test('plugin routing uses the manifest namespace, never a matching agent basename alone', async t => {
   const root = await project(t, {
     'plugin.json': JSON.stringify({ name: 'copilot-concierge' }),
-    'com.github.copilot/agents/graphql.agent.md': agent('"GraphQL specialist."'),
-    'skills/copilot-concierge-routing/SKILL.md': `${skill('copilot-concierge-routing')}\n| Role | Agent | Skills | Use when |\n|---|---|---|---|\n| graphql | copilot-concierge:graphql | graphql | APIs |\n| graphql | zilot:graphql | graphql | Legacy migration check |\n| graphql | another-plugin:graphql | graphql | Other plugin |\n| graphql | copilot-concierge:missing | graphql | Missing role |\n`,
+    'com.github.copilot/agents/worker.agent.md': agent('"Implementation worker."'),
+    'skills/copilot-concierge-routing/SKILL.md': `${skill('copilot-concierge-routing')}\n| Role | Agent | Skills | Use when |\n|---|---|---|---|\n| graphql | copilot-concierge:worker | graphql | APIs |\n| graphql | zilot:graphql | graphql | Legacy migration check |\n| graphql | another-plugin:graphql | graphql | Other plugin |\n| graphql | copilot-concierge:missing | graphql | Missing role |\n`,
   });
   const result = await checkRoots([root]);
   assert.deepEqual(result.errors, []);
-  assert.deepEqual(result.agents, ['copilot-concierge:graphql']);
+  assert.deepEqual(result.agents, ['copilot-concierge:worker']);
   const warnings = result.warnings.join('\n');
-  assert.doesNotMatch(warnings, /agent "copilot-concierge:graphql"/);
+  assert.doesNotMatch(warnings, /agent "copilot-concierge:worker"/);
   for (const id of ['zilot:graphql', 'another-plugin:graphql', 'copilot-concierge:missing']) {
     assert.ok(warnings.includes(`agent "${id}" was not found`));
   }
@@ -119,4 +119,69 @@ test('custom files cannot silently take over Concierge skill or agent names', as
   const own = await checkRoots([shipped]);
   assert.deepEqual(own.errors, []);
   assert.doesNotMatch(own.warnings.join('\n'), /is a Concierge (skill|agent) name/);
+});
+
+
+test('routing role keys remain distinct from shipped agent IDs and skills', () => {
+  for (const role of ['enterprise-ux', 'react-frontend', 'node-backend', 'graphql']) {
+    assert.ok(CONCIERGE_ROLES.includes(role), role);
+    assert.ok(!CONCIERGE_WORKERS.includes(role), role);
+  }
+  assert.ok(CONCIERGE_WORKERS.includes('worker'));
+  assert.ok(!CONCIERGE_SKILLS.includes('enterprise-ux'));
+  for (const skill of ['react-frontend', 'node-backend', 'graphql']) assert.ok(CONCIERGE_SKILLS.includes(skill), skill);
+});
+
+test('legacy built-in IDs warn with an explicit worker and skill migration, without changing routes', async t => {
+  const rows = ['react-frontend', 'node-backend', 'graphql', 'enterprise-ux']
+    .map(role => `| ${role} | copilot-concierge:${role} | team-rules | |`).join('\n');
+  const route = `${skill('copilot-concierge-routing')}\n| Role | Agent | Skills | Use when |\n|---|---|---|---|\n${rows}\n`;
+  const root = await project(t, {
+    '.github/skills/team-rules/SKILL.md': skill('team-rules'),
+    '.github/skills/copilot-concierge-routing/SKILL.md': route,
+  });
+  const result = await checkRoots([root]);
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.warnings.length, 4);
+  for (const role of ['react-frontend', 'node-backend', 'graphql', 'enterprise-ux']) {
+    assert.ok(result.warnings.some(warning => warning.includes(`legacy agent "copilot-concierge:${role}"`) && warning.includes('"copilot-concierge:worker"') && warning.includes(`skill "${role === 'enterprise-ux' ? 'plan' : role}"`)));
+  }
+  assert.doesNotMatch(result.warnings.join('\n'), /new role/);
+  const { readFile } = await import('node:fs/promises');
+  assert.equal(await readFile(path.join(root, '.github/skills/copilot-concierge-routing/SKILL.md'), 'utf8'), route);
+});
+
+test('legacy role keys preserve exact custom IDs and do not demand new-role descriptions', async t => {
+  const root = await project(t, {
+    'plugin.json': JSON.stringify({ name: 'team-tools' }),
+    'com.github.copilot/agents/graphql.agent.md': agent('"Team GraphQL."'),
+    '.github/agents/enterprise-ux.agent.md': agent('"Team design."'),
+    '.github/skills/team-rules/SKILL.md': skill('team-rules'),
+    '.github/skills/copilot-concierge-routing/SKILL.md': `${skill('copilot-concierge-routing')}\n| Role | Agent | Skills | Use when |\n|---|---|---|---|\n| graphql | team-tools:graphql | graphql, team-rules | |\n| enterprise-ux | enterprise-ux | plan, team-rules | |\n`,
+  });
+  const result = await checkRoots([root]);
+  assert.deepEqual(result.errors, []);
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.agents.sort(), ['enterprise-ux', 'team-tools:graphql']);
+});
+
+test('removed design skill warns unless that exact skill is discovered from a custom source', async t => {
+  const route = `${skill('copilot-concierge-routing')}\n| Role | Agent | Skills | Use when |\n|---|---|---|---|\n| enterprise-ux | copilot-concierge:worker | enterprise-ux | Design |\n`;
+  const root = await project(t, { '.github/skills/copilot-concierge-routing/SKILL.md': route });
+  const result = await checkRoots([root]);
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.warnings.length, 1);
+  assert.match(result.warnings[0], /former built-in skill "enterprise-ux" is no longer shipped/);
+  const customRoot = await project(t, { '.github/skills/enterprise-ux/SKILL.md': skill('enterprise-ux') });
+  assert.deepEqual((await checkRoots([root, customRoot])).warnings, []);
+});
+
+test('new worker ID is reserved without reserving every legacy role as an agent', async t => {
+  const root = await project(t, {
+    '.github/agents/worker.agent.md': agent('"Team worker."'),
+    '.github/agents/node-backend.agent.md': agent('"Team Node."'),
+  });
+  const result = await checkRoots([root]);
+  assert.equal(result.errors.length, 1);
+  assert.match(result.errors[0], /agent ID "worker" is a Concierge agent name/);
 });

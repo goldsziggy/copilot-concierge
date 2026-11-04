@@ -35,8 +35,10 @@ You stay in one conversation. Concierge relays questions, shows the plan and kee
 Sol loads relevant procedures as skills. A cohesive feature can stay with one owner across React, Node.js, GraphQL and its tests. Delegation needs a useful reason: independent investigation, substantial context, separate implementation ownership, independent verification or an explicit custom agent/model requirement. Existing routing rows remain delegation instructions, including rows that name a shipped agent.
 
 - **Scout** handles substantial repository, document and ticket discovery. Sol can do focused retrieval by loading the same Scout skill and using its helper. Both preserve private preferences and verified repository knowledge in the existing separate stores.
-- **Planning and design** skills guide direct work; specialists help with substantial requirements investigations, independent challenges and design work.
-- **Implementation and review** specialists cover bounded assignments and independent checks. The implementation owner keeps code and its tests together. Review is proportional to risk, with an independent reviewer for meaningful behavior changes, risky assumptions or explicit review requests. An escalation role is available when more help is needed.
+- **Planning** provides a compact structured outcome; proportional grill reviews challenge material assumptions without creating a new approval gate.
+- **Implementation and review** use a generic worker with relevant domain skills and a separate reviewer for independent checks. The implementation owner keeps code and its tests together. Review is proportional to risk, with an independent reviewer for meaningful behavior changes, risky assumptions or explicit review requests. An escalation role is available when more help is needed.
+
+The React, Node and GraphQL skills remain distinct. The generic worker loads the skills its assignment needs; skills do not grant tools or permissions. The former built-in domain profiles and enterprise UX profile/skill are removed. Existing custom routing agents remain supported; legacy built-in domain routes migrate to the worker with their matching skills and a reported substitution. See [routing migration](references/routing-charters.md).
 
 Ticket access depends on your existing integrations. Concierge does not bundle a ticket connector or provider credentials.
 

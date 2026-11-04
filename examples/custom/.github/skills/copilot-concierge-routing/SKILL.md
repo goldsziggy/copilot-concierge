@@ -8,12 +8,12 @@ description: Concierge agent routing for this repository. Concierge's orchestrat
 | Role | Agent | Skills | Use when |
 | --- | --- | --- | --- |
 | react-frontend | acme-react | acme-design-system | Any React or UI change |
-| node-backend | copilot-concierge:node-backend | acme-service-conventions | Back-end changes (keeps Concierge's agent, adds a skill) |
+| node-backend | copilot-concierge:worker | node-backend, acme-service-conventions | Back-end changes (uses the reusable worker with domain and team guidance) |
 | payments | acme-payments | acme-pci | Anything touching checkout, refunds or card data |
 
-- **Role**: a Concierge role (`scout`, `product-manager`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `reviewer`, `escalation`) to replace or extend it, or a new role name to add a specialist.
-- **Agent**: the agent ID Copilot shows. Repository and personal agents use their file name (`acme-react.agent.md` is `acme-react`; `team/api.agent.md` is `team--api`). Plugin agents are `<plugin>:<name>`. Use a `copilot-concierge:` ID to keep Concierge's agent.
+- **Role**: a Concierge role (`scout`, `product-manager`, `worker`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `reviewer`, `escalation`) to replace or extend it, or a new role name to add a specialist.
+- **Agent**: the agent ID Copilot shows. Repository and personal agents use their file name (`acme-react.agent.md` is `acme-react`; `team/api.agent.md` is `team--api`). Plugin agents are `<plugin>:<name>`. Use `copilot-concierge:worker` plus the relevant domain skill for built-in implementation work. A role key is not necessarily a shipped agent ID.
 - **Skills**: skills the worker should load for this role, comma-separated, or blank.
 - **Use when**: what work the row covers.
 
-The exact agent must be discovered and its effective profile must pin one explicit model with `model-policy: required`. Missing, unverified or unpinned routes use a suitable shipped Concierge role with a reported gap, or stop if none fits. Never use an unpinned built-in worker as a substitute. Routed Scout work retains the built-in `scout` skill and its learning boundaries. Routed implementers commit, push or open a pull request only when the handoff's `git` line says the user asked for it.
+Honor the exact discovered custom agent; a model pin is optional unless explicitly required. If a route or preferred model is unavailable, report the gap and use a suitable permitted capability while preserving domain and row skills, user restrictions and independent-review requirements. A legacy built-in domain profile uses the reusable worker with its matching skill, never a claim that the removed profile ran. Routed Scout work retains the built-in `scout` skill and its learning boundaries. Routed implementers commit, push or open a pull request only when the handoff's `git` line says the user asked for it.

@@ -7,9 +7,13 @@ import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
 
-export const CONCIERGE_ROLES = ['scout', 'product-manager', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer', 'escalation'];
-export const CONCIERGE_SKILLS = ['orchestrate', 'plan', 'grill-plan', 'scout', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'review', 'debugging', 'task-evaluation'];
-const CONCIERGE_AGENTS = ['concierge', 'orchestrator', ...CONCIERGE_ROLES];
+// Routing role keys describe work, not necessarily a separately shipped agent.
+// Keep the established keys so a team's exact custom routes remain meaningful.
+export const CONCIERGE_ROLES = ['scout', 'product-manager', 'worker', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer', 'escalation'];
+export const CONCIERGE_SKILLS = ['orchestrate', 'plan', 'grill-plan', 'scout', 'react-frontend', 'node-backend', 'graphql', 'review', 'debugging', 'task-evaluation'];
+export const CONCIERGE_WORKERS = ['scout', 'product-manager', 'worker', 'reviewer', 'escalation'];
+const LEGACY_AGENTS = { 'enterprise-ux': 'plan', 'react-frontend': 'react-frontend', 'node-backend': 'node-backend', graphql: 'graphql' };
+const CONCIERGE_AGENTS = ['concierge', 'orchestrator', ...CONCIERGE_WORKERS];
 const BUILTIN_PREFIX = 'copilot-concierge:';
 
 // Where Copilot reads agents and skills for each kind of root: a project
@@ -123,15 +127,19 @@ export async function checkRoots(roots) {
       }
     }
   }
-  const knownAgent = id => agents.has(id) || id.startsWith(BUILTIN_PREFIX) && CONCIERGE_ROLES.includes(id.slice(BUILTIN_PREFIX.length));
+  const knownAgent = id => agents.has(id) || id.startsWith(BUILTIN_PREFIX) && CONCIERGE_WORKERS.includes(id.slice(BUILTIN_PREFIX.length));
   for (const { where, rows } of routing) {
     if (!rows.length) warnings.push(`${where}: no routing rows found; use a table with Role | Agent | Skills | Use when`);
     for (const row of rows) {
       if (!row.role || !row.agent) { errors.push(`${where}: each row needs a role and an agent`); continue; }
-      if (!knownAgent(row.agent)) warnings.push(`${where}: agent "${row.agent}" was not found in these folders; it must come from a plugin or another location Copilot loads`);
+      const oldRole = row.agent.startsWith(BUILTIN_PREFIX) ? row.agent.slice(BUILTIN_PREFIX.length) : undefined;
+      if (Object.hasOwn(LEGACY_AGENTS, oldRole ?? '')) {
+        warnings.push(`${where}: legacy agent "${row.agent}" is no longer shipped; keep role "${row.role}", use "copilot-concierge:worker" and add skill "${LEGACY_AGENTS[oldRole]}" while retaining the row's other skills. The checker does not rewrite routes or grant permission`);
+      } else if (!knownAgent(row.agent)) warnings.push(`${where}: agent "${row.agent}" was not found in these folders; it must come from a plugin or another location Copilot loads`);
       if (!CONCIERGE_ROLES.includes(row.role) && !row.when) warnings.push(`${where}: new role "${row.role}" needs a "Use when" description`);
       for (const skill of row.skills) {
-        if (!skills.has(skill) && !CONCIERGE_SKILLS.includes(skill)) warnings.push(`${where}: skill "${skill}" was not found in these folders`);
+        if (skill === 'enterprise-ux' && !skills.has(skill)) warnings.push(`${where}: former built-in skill "enterprise-ux" is no longer shipped; use "plan" for design planning and "react-frontend" for React implementation, retaining your own design-system skills`);
+        else if (!skills.has(skill) && !CONCIERGE_SKILLS.includes(skill)) warnings.push(`${where}: skill "${skill}" was not found in these folders`);
       }
     }
   }
