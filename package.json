@@ -4,7 +4,7 @@
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
-  "description": "Concierge: plan, challenge and execute work with native specialists, explicit model choices and an enterprise design-system-first workflow.",
+  "description": "Concierge: plan, challenge and execute work with native agents and task-specific skills.",
   "engines": {
     "node": ">=20"
   },

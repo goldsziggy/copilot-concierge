@@ -10,7 +10,7 @@ const profile = '---\nname: example\nmodel: authored-model\nmodel-policy: requir
 
 test('configuration pins each native tier and preserves role tool boundary', () => {
   const config = resolveConfig([{ source: 'session', value: { models: { concierge: 'explicit-root', orchestrator: 'explicit-sol', specialist: 'explicit-leaf' }, planApproval: 'auto' } }]);
-  for (const [file, model] of [['concierge.agent.md', 'explicit-root'], ['orchestrator.agent.md', 'explicit-sol'], ['graphql.agent.md', 'explicit-leaf'], ['escalation.agent.md', 'gpt-6.1-sol']]) {
+  for (const [file, model] of [['concierge.agent.md', 'explicit-root'], ['orchestrator.agent.md', 'explicit-sol'], ['worker.agent.md', 'explicit-leaf'], ['escalation.agent.md', 'gpt-6.1-sol']]) {
     const output = configureProfile(profile, file, config);
     assert.ok(output.includes(`model: ${JSON.stringify(model)}\n`));
     assert.ok(output.includes('model-policy: required\ntools: [task]'));

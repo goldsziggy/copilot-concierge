@@ -2,6 +2,23 @@
 
 Concierge is the maintained native Copilot plugin. Its canonical public repository is `goldsziggy/copilot-concierge`; its package, plugin and marketplace IDs are `copilot-concierge`. The former private development repository remains separate and unchanged. The historical public `v0.3.1` tag and release keep their Zilot source, IDs and uploaded assets.
 
+## Consolidated implementation workers
+
+The current source replaces the built-in React, Node.js and GraphQL profiles with `copilot-concierge:worker`. Their `react-frontend`, `node-backend` and `graphql` skills remain separate and can be combined for one cohesive assignment. Product manager, Scout, independent reviewer and escalation remain separate roles. `models.specialist` still configures the worker; existing model configuration needs no rename.
+
+Update only routes that name the removed built-in IDs:
+
+| Old Agent cell | New Agent cell | Skills to retain or add |
+| --- | --- | --- |
+| `copilot-concierge:react-frontend` | `copilot-concierge:worker` | `react-frontend` and the row's existing skills |
+| `copilot-concierge:node-backend` | `copilot-concierge:worker` | `node-backend` and the row's existing skills |
+| `copilot-concierge:graphql` | `copilot-concierge:worker` | `graphql` and the row's existing skills |
+| `copilot-concierge:enterprise-ux` | `copilot-concierge:worker` | `plan` for design planning, relevant domain skills for implementation, and existing team design guidance |
+
+Keep Role cells, including `enterprise-ux`, so their exact custom routes still match. Do not rewrite custom IDs such as `team-tools:graphql` or `team-designer`. The former built-in `enterprise-ux` skill is removed; use `plan` and applicable domain guidance rather than claiming that skill loaded. A separately discovered custom skill of that name is still custom guidance, not the removed built-in.
+
+Run `node scripts/check-custom.mjs` against the relevant project, personal and plugin folders. It warns about legacy built-in IDs and missing former skills but never edits routes or registers aliases. The orchestrator reports an explicit legacy substitution, retaining a delegated worker, required skills, approval state and exact user restrictions. Finish or stop active work before updating, then start a fresh session; source checks do not prove live host behavior. No installed plugin cache is rewritten by this migration.
+
 ## From Concierge 0.6.1
 
 Version 0.7.0 removes the Ship it specialist and its two-step draft PR/MR offer. Ask for commits, pushes or pull requests directly instead ("commit this on a new branch and open a draft PR"), in a request, a follow-up or a plan step. Copilot's tool permissions decide each command; there is no separate Concierge consent step. If a `copilot-concierge-routing` table routes the `ship-it` role, remove that row: `node scripts/check-custom.mjs` reports it as an agent that was not found.

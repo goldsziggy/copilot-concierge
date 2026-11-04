@@ -11,7 +11,7 @@
       "name": "copilot-concierge",
       "source": "./",
       "version": "0.8.0",
-      "description": "Concierge: plan, challenge and execute work with native specialists, explicit model choices and an enterprise design-system-first workflow.",
+      "description": "Concierge: plan, challenge and execute work with native agents and task-specific skills.",
       "repository": "https://github.com/goldsziggy/copilot-concierge",
       "strict": true
     }

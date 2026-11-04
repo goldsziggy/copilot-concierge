@@ -1,6 +1,6 @@
 # Custom agents for Concierge
 
-A custom agent is a specialist profile: one Markdown file with a model, tools and a charter. Concierge's orchestrator can hand work to it, but only after a [routing charter](routing-charters.md) names it and the orchestrator verifies its model pin. Without a matching routing row, Sol can execute focused work directly or choose a suitable shipped specialist when a separate context is useful. An explicit custom route stays authoritative and is not bypassed by direct execution.
+A custom agent is a specialist profile: one Markdown file with a model, tools and a charter. Concierge's orchestrator can hand work to it, but only after a [routing charter](routing-charters.md) names it and the orchestrator verifies that exact agent is available. A model pin is a preference unless the user or profile explicitly requires it. Without a matching routing row, Sol can execute focused work directly or choose a suitable shipped specialist when a separate context is useful. An explicit custom route stays authoritative and is not bypassed by direct execution.
 
 Use a custom agent when your team needs a different identity, model or tool boundary for a role, such as a reviewer that applies your rules or an implementer for your framework. If you only need extra guidance, add a [skill](custom-skills.md) to an existing Concierge role instead.
 
@@ -23,7 +23,7 @@ Copilot finds agents in these places, in this documented order. The first agent 
 
 The ID comes from the file path, not the `name` field: `team-reviewer.agent.md` is `team-reviewer`, and `security/auditor.agent.md` is `security--auditor`. [GitHub agent IDs](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-custom-agents-for-cli). Concierge's own agents appear as `copilot-concierge:<name>`, and its checker assumes other plugins use the same `<plugin.json name>:<file ID>` form. GitHub's public reference does not describe that plugin prefix, so route to the exact ID your host reports.
 
-Choose an ID that does not reuse a Concierge agent name: `concierge`, `orchestrator`, `scout`, `product-manager`, `enterprise-ux`, `react-frontend`, `node-backend`, `graphql`, `reviewer` or `escalation`. Copilot keeps one agent per ID and loads plugin agents after personal and project agents. A prefix such as `team-` avoids any collision; the checker reports these names as errors.
+Choose an ID that does not reuse a Concierge agent name: `concierge`, `orchestrator`, `scout`, `product-manager`, `worker`, `reviewer` or `escalation`. Former domain names remain routing keys, but are no longer reserved shipped agent names. Copilot keeps one agent per ID and loads plugin agents after personal and project agents. A prefix such as `team-` avoids any collision; the checker reports these names as errors.
 
 Agent and routing behavior has been exercised in Copilot CLI only, in historical Zilot 0.3.0 sessions. Custom agents and routing have not been exercised in the GitHub Copilot app, and Concierge has not tested routing to organization or enterprise agents. See [runtime verification](runtime-verification.md).
 
@@ -63,7 +63,7 @@ Replace `gpt-6-luna` with a model your Copilot account can use. This reviewer ca
 | Field | Use for a Concierge worker | Source of the rule |
 | --- | --- | --- |
 | `description` | Required. Say it is an internal Concierge worker and what it does. Quote it if it contains `: ` or ` #`; Copilot silently drops an agent whose frontmatter is not valid YAML. | GitHub reference; Concierge observation |
-| `model` | Exactly one model ID. No `Auto` and no list. | Concierge routing rule |
+| `model` | Prefer one available explicit model ID. Omission is not a routing eligibility failure; the checker warns that the host may choose one. Honor any explicitly required model. | Concierge routing preference |
 | `model-policy: required` | Optional strict policy. It makes Copilot refuse a per-call model override; use it only when that restriction is intended. | Observed in Copilot CLI; not in GitHub's public reference |
 | `tools` | Only what the role needs. Omit `task`, `write_agent`, `read_agent`, `ask_user` and `update_todo`: workers report to the orchestrator. Omit the list only for roles that must inherit connected integrations. | GitHub reference; Concierge charter |
 | `skills` | Skills to preload. Also name them in the routing row so they travel in the handoff. | Used by Concierge's profiles; not in GitHub's public reference |
@@ -94,7 +94,7 @@ Add a row to a [routing charter](routing-charters.md):
 | reviewer | team-reviewer | team-review-rules | Reviews of plans and code changes |
 ```
 
-The orchestrator prefers the named available reviewer. If it cannot use the route, it reports the gap and uses an available suitable worker or reviews directly within scope. Host permissions remain authoritative.
+The orchestrator prefers the named available reviewer. If it cannot use the route, it reports the gap and uses an available suitable independent reviewer when independence is required. Sol reviewing its own work is only a self-check. Exact user requirements and host permissions remain authoritative.
 
 Outside Concierge, Copilot may also choose an agent by its description. Start the description with "Internal Concierge worker" so other sessions are less likely to pick it.
 
@@ -119,7 +119,7 @@ Outside Concierge, Copilot may also choose an agent by its description. Start th
 | --- | --- |
 | Concierge says the agent is unknown | The exact file-derived ID and plugin prefix, a fresh session, and whether a higher-priority file with the same ID exists. The checker reports duplicate IDs. |
 | Concierge uses its own role instead | The route or its preferred model was unavailable. The report names the gap and substitution. |
-| The host refuses the model | The model is unavailable to your account. Choose an available model; Concierge does not fall back. |
+| The host refuses the model | Check account availability and any required model policy. A host-supported fallback may be used when permitted, with the substitution reported. |
 | The agent is ignored after editing | Invalid YAML (often an unquoted `: `) or a stale session. Run the checker and start a fresh session. |
 | The agent asks the user or dispatches others | Its charter or tool list includes orchestration duties. Remove them. |
 | The agent lacks a tool | The tool is not in its list, not provided by the session or blocked by a permission. Routing cannot add tools. |
@@ -127,7 +127,7 @@ Outside Concierge, Copilot may also choose an agent by its description. Start th
 ## Not supported
 
 - Routing a custom agent as the Concierge entry or orchestrator. Custom agents are leaf workers.
-- Using `Auto`, a model list or an inherited session model for a routed agent.
+- Treating a model preference as a permission grant or silently overriding a model the user explicitly requires.
 - Granting tools, permissions or approvals through an agent profile or route.
 - Checking parent-folder, organization or enterprise agents with `check-custom.mjs`; verify them in the host.
 - Live acceptance of this starter agent. It passes source checks only.

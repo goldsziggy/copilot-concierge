@@ -91,7 +91,7 @@ try {
       catch { fail(`${relative}: missing local link ${target}`); }
     }
   }
-  if (skills !== 11 || agents !== 10) fail(`Expected 11 skills and 10 agents; found ${skills} and ${agents}`);
+  if (skills !== 10 || agents !== 7) fail(`Expected 10 skills and 7 agents; found ${skills} and ${agents}`);
   if (entryAgents !== 1) fail(`Expected one Concierge entry agent; found ${entryAgents}`);
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`Package checks passed: ${skills} skills, ${agents} agents, ${files.length} files. These are static checks, not runtime acceptance.`);

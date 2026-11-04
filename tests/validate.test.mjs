@@ -37,7 +37,7 @@ for (const [name, eol] of [['LF', '\n'], ['CRLF', '\r\n']]) {
     const directory = await fixture(t, eol);
     const result = validate(directory);
     assert.equal(result.status, 0, result.error?.message ?? result.stderr);
-    assert.match(result.stdout, /Package checks passed: 11 skills, 10 agents/);
+    assert.match(result.stdout, /Package checks passed: 10 skills, 7 agents/);
   });
 }
 

@@ -15,7 +15,7 @@ Use this procedure as the current execution owner within the assigned scope and 
 
 Read applicable repository instructions, accepted behavior, assigned files and relevant existing code. Check the installed React/framework version, package scripts, analogous screen and actual component imports. Inspect current changes before editing shared files; resolve ownership through Sol rather than overwriting another worker's work; a leaf reports the conflict to Sol.
 
-Use the supplied design-system note and verify the relevant components and tokens. If absent or stale, discover the existing system in the assigned slice before writing UI. For uncertain sources or a missing system, use the `enterprise-ux` skill's guidance. Do not introduce a new framework, palette, global styling layer or component library by default.
+Use the supplied design-system note and verify the relevant components and tokens. If absent or stale, discover the existing system in the assigned slice before writing UI. For uncertain sources or a missing system, inspect relevant repository guidance and accessible components; state the gap rather than inventing a design system. Do not introduce a new framework, palette, global styling layer or component library by default.
 
 Inspect the actual API/client contract where the UI depends on data. For GraphQL, use schema/operation sources or generated types already in the repository: verify fields, nullability, partial errors, permissions, pagination and refresh behavior relevant to the task. Never invent fields or treat a hidden button as server authorization. Do not add GraphQL to a product that does not use it.
 
