@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.0 - 2026-11-04
+
+- Replace the React, Node and GraphQL agent profiles with a generic implementation worker that loads the relevant domain skills. Remove the enterprise UX agent and skill. These profile removals are breaking for direct references; documented route migration preserves domain role keys, custom routes and row skills while reporting legacy substitutions.
+- Give the plan skill a compact structured outcome capturing the original intent, objective, observable acceptance, constraints, decisions and inferences, dependencies, verification and consequential questions. Retain it through amendments and handovers.
+- Formalize proportional grill findings with severity, evidence, resolution and disposition without adding an approval gate or repeated review loop. Preserve host permissions and existing approval preferences.
+- Source-contract checks and CI cover the migration and planning guidance. Live Copilot tool inheritance, skill loading and route migration are not yet verified; no runtime improvement is claimed.
+
 ## 0.8.0 - 2026-11-03
 
 - Make Concierge more conversational: preserve the user's exact request and derive observable acceptance criteria, while proceeding with ordinary in-scope work by default. Users can still require plan approval.
