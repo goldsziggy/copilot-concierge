@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Add an `autonomy` setting: `guided` (default, unchanged behavior) or `full`. Set it with your words, `--autonomy`, the `COPILOT_CONCIERGE_AUTONOMY` environment variable or the configuration files. An invalid value is an error, never an implicit mode.
+- Design `full` for unattended runs. The orchestrator settles ordinary questions, records each as decided for the user, skips the plan checkpoint and phase pauses, and finishes in-scope work. It stops only for a hard stop reported as `blocked`, for `needs_approval` when plan approval is `ask`, or for a result. Concierge never asks, checks the result against the acceptance criteria once, lists what was decided, and ends with a `CONCIERGE-RESULT` line. Scope, plan approval, Git requests, file-write restrictions and Copilot's permissions are unchanged.
+- Add a one-task launcher mode for CI: `node scripts/launch.mjs --task TEXT | --task-file FILE [-- native flags]`. It exits 0 on `done`, 2 on `blocked`, `cancelled` or `needs_approval`, and 3 when no result is reported. The launcher adds `--no-ask-user` under `full` and never a permission flag; flags after `--` are forwarded as written.
+- Lighten the always-loaded instructions. The orchestrator's external-session protocol is now the on-demand `external-sessions` skill, and the `orchestrate` skill no longer repeats the routing-migration and learning rules that the orchestrator profile already states.
+- Remember workflows as skills. "Remember how we review merge requests: …" saves the steps as an ordinary Copilot skill through the new on-demand `skill-builder` skill, in `.github/skills/` for a team workflow or `~/.copilot/skills/` for a personal one. The orchestrator loads saved skills whose description matches the work. A recommendation made in passing is followed and offered once as a suggestion; nothing is saved without the user's request or acceptance, in either autonomy mode.
+- Concierge answers progress questions from the report it already holds instead of interrupting a working orchestrator, and reuses an answer you already gave instead of asking again.
+- Fix: the rollover brief now carries the acceptance criteria. Remove stale wording about Ship it, the scout reading configuration, required model pins and "unreleased" learning from the guides.
+- Fixes from live trials on Copilot CLI 1.0.98: settings are read with the file tool and an unreadable one never blocks; a denied tool call under `full` is retried in its plain form; skills load in proportion to the work; the owner binding is sent only when an external session needs it; the dispatch names every field the host requires; and the `CONCIERGE-RESULT` line is always the last line.
+- Source-contract and launcher tests cover these changes. Six bounded non-interactive trials ran `full` autonomy, two hard stops, a saved workflow and a `guided` run; questions that need a person, plan approval `ask` and the completion check were not run live. See runtime verification.
+- Guard against runaway runs. The orchestrator reports a hard stop once, never repeats a denied call and stops retrying a step that fails the same way twice. Concierge sends at most one completion check, nothing after a `blocked` report, and stops continuing an orchestrator whose task list did not change. A one-task launcher run is refused without `--max-ai-credits`.
+
 ## 0.9.0 - 2026-11-04
 
 - Refresh the orchestration diagram to show workers and skills, conditional plan approval and proportional plan/grill review. Keep the existing Concierge logo.

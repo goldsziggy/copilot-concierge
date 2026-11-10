@@ -16,15 +16,27 @@ objective: <short name>
 objective-id: <initial objective name; stable across rollover/resume>
 user request (verbatim): <exact words, pasted ticket text or links>
 understanding: <one or two sentences>
+acceptance criteria: <observable outcomes inferred from the request, marking assumptions; or none>
 references: <ticket keys, URLs, repositories, paths, or none>
 plan approval stated by user: <exact words, or none>
+autonomy stated by user: <exact words about being consulted or left alone, or none>
 file-write restrictions stated by user: <exact words and scope, or none>
 earlier context: <only facts this request depends on, or none>
 ```
 
-Follow-ups go to the same orchestrator as `USER FOLLOW-UP: <exact words>`, even while it is working; approval answers as `PLAN DECISION: <choice>`; `CONTINUE` and `CANCEL` are the other control messages.
+Follow-ups go to the same orchestrator as `USER FOLLOW-UP: <exact words>`, even while it is working; approval answers as `PLAN DECISION: <choice>`; `CONTINUE`, `COMPLETION CHECK` and `CANCEL` are the other control messages.
 
 Keep the user’s exact file-write restrictions in every brief, follow-up and handover. Do not infer a blanket no-write restriction from orientation or planning alone: Scout may curate private memory and verified repository knowledge under separate learning scopes. Wholly read-only work disables both stores’ writes; restrictions limited to repository or private storage remain scoped. Report every learning write as a changed file. A personal preference cannot authorize tools or alter plan approval.
+
+## Autonomy
+
+`autonomy` is `guided` (the default) or `full`. The orchestrator resolves it from the user's words, the session, the `COPILOT_CONCIERGE_AUTONOMY` environment variable, then the project and user files, and states it on every report's `autonomy:` line. See [autonomy](autonomy.md) for the setting and the one-task launcher.
+
+With `full` the run is treated as unattended. The orchestrator settles ordinary questions itself and records each as `decided for the user: <choice>: <why>` in the handover's `decisions`; it sends no `needs_input` and no plan or phase checkpoint, and stops only for `done`, `cancelled`, a hard stop reported as `blocked`, or `needs_approval` when plan approval is `ask`. The Concierge entry agent stays in its turn until one of those arrives, never calls `ask_user`, and ends its reply with `CONCIERGE-RESULT: <status> <objective-id>`.
+
+Before relaying `done` under `full`, the entry agent compares the report with the brief's acceptance criteria and the follow-up outcomes. If one lacks stated verification it sends `COMPLETION CHECK: <items>` once. That message is control metadata: the orchestrator verifies or finishes each item within scope, or says exactly why it cannot, and reports again. The entry agent compares reports only; it reads no files.
+
+Autonomy changes who answers ordinary questions. It does not change scope, plan approval, Git requests, file-write restrictions, learning scopes, review or Copilot's permissions.
 
 ## Commits, pushes and pull requests
 
@@ -73,13 +85,13 @@ For Scout, a routed Scout or an escalation doing Scout work, pass the `scout` sk
 
 ## External-session returns and recovery
 
-Native worker direct returns are unchanged. For an external coding session, the actor able to read or receive its result owns collection; the objective's current orchestrator owns evidence acceptance and completion. If only the root can read it, the path is **orchestrator -> root-owned session -> root collector -> current orchestrator**. The root performs control actions, not implementation or review.
+Native worker direct returns are unchanged. The orchestrator's side of this protocol lives in the `external-sessions` skill, which it loads only when an external session is involved; the entry agent keeps a short collector section in its profile. For an external coding session, the actor able to read or receive its result owns collection; the objective's current orchestrator owns evidence acceptance and completion. If only the root can read it, the path is **orchestrator -> root-owned session -> root collector -> current orchestrator**. The root performs control actions, not implementation or review.
 
 Before launch, discover the host's actual launch, read/notification, relay and stop capabilities and confirm the collector can return evidence to the named owner. Do not prescribe tools from a different host, invent callbacks, or assume the worker can message its coordinator. A prepared handoff and requested control action travel in the existing checkpoint handover's `returns` entry when the root must launch/collect. An unavailable return path is `blocked`, naming the missing capability, destination and last confirmed state, rather than a launch followed by indefinite waiting. A missing stop capability is reported explicitly when needed; never claim a stop without confirmation.
 
 After launch, record the actual host session ID in the same handover, send launch details to the owner, and keep **session ID -> handoff-id -> objective-id -> current owner agent ID**. The initial objective-id survives name changes at rollover; an older brief without it uses the initial objective name. A handoff-id identifies one assignment/attempt, including assignments reusing a session. An uncertain launch must be reconciled before any retry.
 
-Concierge sends each new or successor orchestrator its actual returned agent ID and stable objective-id as an owner binding through `write_agent`; a child need not know its own ID. An external handoff waits for that binding before launch. Bindings and correlated result/receipt updates are control metadata, not new user requests or authorization. A checkpoint awaiting external control/results gets the requested control action or precise blocked state, not a bare `CONTINUE` loop.
+A child cannot discover its own agent ID. When an orchestrator needs one for an external session it asks in a checkpoint, and Concierge answers with its actual returned agent ID and stable objective-id as an owner binding through `write_agent`. An external handoff waits for that binding before launch. Bindings and correlated result/receipt updates are control metadata, not new user requests or authorization. A checkpoint awaiting external control/results gets the requested control action or precise blocked state, not a bare `CONTINUE` loop.
 
 The worker's result echoes `objective-id` and `handoff-id` before the requested evidence; the collector attaches the actual session ID if the worker cannot see it. Relay the result unchanged or use a result reference the owner can actually read. Do not rely on "return to coordinator" without a destination and capable collector. Keep these states distinct:
 
@@ -116,6 +128,7 @@ status: needs_input | needs_approval | checkpoint | done | blocked | cancelled
 objective: <objective name>: <one line>
 objective-id: <stable ID, unchanged across rollover/resume>
 plan approval: <ask|auto>: <source>
+autonomy: <guided|full>: <source>
 tasks:
 - [x] done item
 - [/] item in progress
@@ -125,7 +138,7 @@ tasks:
 handover:
 - request: <the original request or ticket, verbatim; unchanged across rollovers>
 - follow-ups: <later user requests in order, each with applied | deferred: why | no change: why>
-- decisions: <user answers, approvals, Git requests and exact file-write restrictions still in force>
+- decisions: <user answers, approvals, Git requests and exact file-write restrictions still in force; under full autonomy also each `decided for the user: <choice>: <why>`>
 - outcome: <current structured outcome or accessible reference: intent, objective, acceptance-to-verification mapping, constraints, decisions versus inferences, dependencies, consequential questions and grill findings/dispositions; preserve through amendments and rollover>
 - done: <results and changed files, each with how it was verified>
 - open: <remaining items, questions, blockers and unanswered suggestions>

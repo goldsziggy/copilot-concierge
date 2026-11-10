@@ -88,13 +88,15 @@ Concierge reads two optional files; nothing creates them for you:
 
 `ask` shows the plan and waits for your answer; `auto` (the default) shows the plan and continues. Saying "go ahead without asking" or "ask me first" in the conversation overrides the files for that request or session. The project file wins over the user file. Reading the user file may trigger one Copilot path prompt.
 
+The same files accept `"autonomy": "guided"` (the default) or `"full"`, and the `COPILOT_CONCIERGE_AUTONOMY` environment variable overrides them. `full` is for unattended runs; see [autonomy](autonomy.md).
+
 ### Your own agents and skills
 
 Add agents, skills and a `copilot-concierge-routing` table in the places Copilot already reads (the repository's `.github/`, `~/.copilot/`, or a team plugin), and Concierge's orchestrator will use them. See [adding your own agents and skills](customizing.md).
 
 ### Session-local launcher
 
-For different models or a scripted setup, `node scripts/launch.mjs --project /path/to/project` creates a configured copy of the plugin and starts the CLI with it. It reads the same files plus `--session-config FILE` and `--plan-approval ask|auto`, and accepts `models` (`concierge`, `orchestrator`, `specialist`, `escalation`) and `extraDirectories` in those files. `node scripts/configure.mjs --print-only` shows the resolved settings without launching.
+For different models or a scripted setup, `node scripts/launch.mjs --project /path/to/project` creates a configured copy of the plugin and starts the CLI with it. It reads the same files plus `--session-config FILE`, `--plan-approval ask|auto` and `--autonomy guided|full`, and accepts `models` (`concierge`, `orchestrator`, `specialist`, `escalation`) and `extraDirectories` in those files. `node scripts/configure.mjs --print-only` shows the resolved settings without launching. Add `--task TEXT` or `--task-file FILE` to run one task without a prompt and exit with its result; see [one task in CI](autonomy.md#one-task-in-ci).
 
 The deprecated `models.frontdesk` setting remains accepted as an input alias for `models.concierge`. Use only one of these keys in each configuration file; specifying both is an error. This setting compatibility does not preserve the old agent invocation.
 

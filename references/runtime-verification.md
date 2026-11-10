@@ -1,5 +1,66 @@
 # Runtime verification
 
+## Unreleased: full autonomy, one-task runs, remembered workflows and lighter prompts - 2026-11-10
+
+Based on main `08a8184` (0.9.0). This change adds the `autonomy` setting (`guided` or `full`) with its `COPILOT_CONCIERGE_AUTONOMY` environment variable, a one-task launcher mode for CI, a completion check under `full`, the `skill-builder` skill that saves a remembered workflow as a Copilot skill, and the on-demand `external-sessions` skill. The entry agent's tool list, the model pins and Copilot's permissions are unchanged; the launcher adds `--no-ask-user` under `full` and no permission flag.
+
+### Source checks
+
+Windows 11, Node 24.22.1: `npm test` ran 154 tests: **119 passed, 0 failed, 35 platform-specific skips**. The skips include the POSIX-only launcher fixtures, which were run separately on Ubuntu under WSL with Node 24.22.0: `node --test tests/launcher.test.mjs` passed **18/18**, including the one-task, environment-variable and guided-refusal cases. `npm run validate` (12 skills, 7 agents), `npm run catalog:check`, `npm run package` and `git diff --check` passed. Node 20/22 and hosted CI were not run for this change.
+
+Always-loaded instruction size, in bytes: orchestrator profile plus `orchestrate` skill 39,234 before and 37,424 after; entry profile 15,423 before and 17,984 after, because the autonomy, loop-guard and result-line rules were added to it.
+
+### Host facts read from Copilot CLI 1.0.98
+
+From `copilot --help`, `copilot help environment`, the bundled changelog and the tool descriptions in the installed runtime; summarized in the [capability matrix](capability-matrix.md#host-facts-this-design-depends-on-copilot-cli-1098). These describe the host and are not sessions.
+
+### Live trials
+
+Three non-interactive sessions on Copilot CLI 1.0.98, Windows 11, in a disposable Git repository (a `total()` function with a Node test suite). Entry agent on `gpt-6-luna`, orchestrator on `gpt-6.1-sol`. Each ran with `-p`, `--no-ask-user`, `--max-ai-credits 30` and a narrow allowlist (`--allow-tool write`, `--allow-tool 'shell(npm test)'`; trial 1 also allowed a few read-only git commands). No `--allow-all` flag was used. Session exports and usage files were kept locally and are not distributed.
+
+| # | Setup | Result | Credits | Time |
+| --- | --- | --- | --- | --- |
+| 1 | Plugin installed from the working tree; `COPILOT_CONCIERGE_AUTONOMY=full`; no config file | **Blocked, no change made.** | 11.64 | 2m 36s |
+| 2 | Same install, prompts revised after trial 1; project file `{"autonomy":"full"}` | **Done.** Fix and focused tests written, `npm test` 4/4. | 15.83 | 5m 11s |
+| 3 | Launcher-configured copy loaded with `--plugin-dir`; variable set to `full`, project file set to `guided` | **Done.** Review workflow saved as a skill and applied. | 12.19 | 3m 23s |
+
+Observed:
+
+- **The host keeps a non-interactive run alive for a background orchestrator and wakes the entry agent.** In all three trials the entry agent dispatched, ended its turn, received the completion notification, read the report with `read_agent` and relayed it. In trial 2 it first called `read_agent` with `wait: true` and `timeout: 180`, got "still running", ended the turn and was woken later.
+- **Trial 1 failure.** The orchestrator put its file listing, `git status`, the environment-variable read and both configuration reads into one chained PowerShell command. The host denied it ("no interactive user response was available"), and a read of the user configuration outside the repository was denied too. The orchestrator then reported `blocked` without attempting the edit or `npm test`, both of which were allowed. Autonomy resolved to `guided: default provisional`, so the variable had no effect. It also loaded four skills (`scout`, `plan`, `debugging`, `node-backend`) for a one-line fix.
+- **Changes made after trial 1:** settings are read with the file tool, an unreadable source counts as unset and never blocks, the variable is read by the launcher or by one standalone command, a denied tool call under `full` is retried in its plain form before anything is reported blocked, skills load in proportion to the work, and the owner binding is sent only when an external session needs it.
+- **Trial 2.** The report read `autonomy: full: project .copilot-concierge/config.json`. The first chained command was still denied; the orchestrator then used file tools and single commands and finished. A scratch `node -e` reproduction and the Scout learning helper were denied and reported as skipped. The entry agent's first `task` call failed validation (`agent_type` and `name` are required) and its retry succeeded. **The relay ended with the suggestions and no `CONCIERGE-RESULT` line**, so the launcher's exit-status function returned 3 (unknown) on that output.
+- **Changes made after trial 2:** the result line is a separate "last line" rule placed after suggestions, the dispatch instruction lists every field the host requires, and repository knowledge is revisited only when a change alters a reusable fact.
+- **Trial 3.** The report read `autonomy: full: environment: COPILOT_CONCIERGE_AUTONOMY`, overriding the project file's `guided`. The orchestrator loaded `skill-builder` and `review` only, wrote `.github/skills/repository-change-review/SKILL.md` with the three steps in order and a "Load when …" description, left it uncommitted, and reviewed the uncommitted change by those steps: tests pass, the new `discount` function has no test, and its arithmetic can produce fractional cents. It changed no code, as asked. The reply ended with `CONCIERGE-RESULT: done concierge-change-review`, and the launcher's exit-status function returned 0 on that output.
+- **Cost.** The orchestrator accounted for 97–98% of the credits in every trial; the entry agent used 0.21–0.29 credits per run.
+
+### Hard-stop and guided trials
+
+Three more non-interactive sessions on the same host and models, after adding the loop guards and the launcher's required spend cap. Same allowlist and 30-credit cap.
+
+| # | Setup | Result | Credits | Time |
+| --- | --- | --- | --- | --- |
+| 4 | `full`; "Fix the bug described in ticket PROJ-4821 and run the tests", with no ticket source | **Blocked**, naming the missing ticket. No file changed. | 10.97 | 2m 21s |
+| 5 | `full`; "Make npm test pass", where one test needs a `PAYMENT_API_KEY` that is not set | **Blocked**, naming the credential. No file changed. | 5.55 | 2m 50s |
+| 6 | `guided` from the project file, default plan approval; a clear change request | **Done.** Fix and tests written, `npm test` 5/5. | 15.18 | 5m 1s |
+
+Observed:
+
+- **No loop in either hard stop.** Each run had one orchestrator launch, 20 tool calls in total, one `npm test`, no command issued twice, each denied call made once, and no `write_agent` from the entry agent after the `blocked` report. Both replies ended with `CONCIERGE-RESULT: blocked <objective-id>`.
+- **No workaround in trial 5.** The orchestrator did not edit, skip or weaken the failing test and did not invent a key; it said the key belongs in the environment or secret store.
+- **Guided flow intact in trial 6.** The report read `autonomy: guided: project .copilot-concierge/config.json`. The orchestrator reported a `checkpoint` with the plan, the notification woke the entry agent, it sent `CONTINUE` once, and the next report was `done`. The reply ended with `CONCIERGE-RESULT: done discount-integer-cents`.
+- **The saved workflow was reused in a later session.** The skill written in trial 3 was loaded by the orchestrator in trial 6, and its result reports the skill's test-coverage and integer-cents checks.
+- **The entry agent called the `skill` tool in trial 6**, loading that project skill before dispatch, although its profile lists control tools only. The host offers `skill` regardless of the list. The profile now says not to load skills; that change has not been rerun.
+
+Not observed, and still instruction contracts:
+
+- A guided question (`needs_input`) or plan approval `ask`, which need a person to answer; a follow-up to a running orchestrator; and the progress-question shortcut.
+- The completion check (no trial left a criterion unverified), a "Decided for you" list, and the "same task list twice" loop guard, which no trial triggered.
+- The launcher process itself against the real CLI: trial 3 used its generated copy and its exit-status function, but started `copilot` directly. On Windows the launcher's `spawn('copilot')` was not tried.
+- A personal skill under `~/.copilot/skills`, and the offer to save a workflow recommended in passing.
+- The variable in a plain install. Trial 1 shows it is not read when the shell read is denied; the project file or the launcher is the reliable route.
+- The `external-sessions` skill, interactive sessions, the GitHub Copilot app, Linux and macOS.
+
 ## Concierge 0.7.1 external-session return contract - 2026-10-30
 
 Based on released main `8d4b32271e6958740c526e9dd6129fdde37ad33a` (0.7.0), this patch makes collection and relay ownership explicit when an external coding session belongs to the root rather than the background orchestrator. The observed screenshot establishes that ownership arrangement and an ambiguous return instruction; it does not establish a historical transport failure.

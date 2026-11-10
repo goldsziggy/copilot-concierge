@@ -57,10 +57,12 @@ export function configureProfile(content, filename, config) {
   const policy = {
     planApproval: config.value.planApproval,
     planApprovalSource: config.source.planApproval,
+    autonomy: config.value.autonomy,
+    autonomySource: config.source.autonomy,
     roleModel: config.value.models[role],
     roleModelSource: config.source.models[role],
   };
-  return `${rewritten.trimEnd()}\n\n${begin}\n## Effective session configuration\n\n${JSON.stringify(policy, null, 2)}\n\nThis launch resolved the plan-approval preference from the user, project and session files and any task flag. The user's own words in this conversation still take precedence. Automatic plan approval never changes Copilot's tool permissions. The configured model is preferred. If unavailable, use a supported host fallback and report the actual model when known; never bypass host permissions.\n${end}\n`;
+  return `${rewritten.trimEnd()}\n\n${begin}\n## Effective session configuration\n\n${JSON.stringify(policy, null, 2)}\n\nThis launch resolved the plan-approval and autonomy preferences from the user, project and session files and any task flag. The user's own words in this conversation still take precedence. Automatic plan approval never changes Copilot's tool permissions, and neither does full autonomy. The configured model is preferred. If unavailable, use a supported host fallback and report the actual model when known; never bypass host permissions.\n${end}\n`;
 }
 
 export async function configureProfiles(destination, config) {

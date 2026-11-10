@@ -10,7 +10,7 @@ import path from 'node:path';
 // Routing role keys describe work, not necessarily a separately shipped agent.
 // Keep the established keys so a team's exact custom routes remain meaningful.
 export const CONCIERGE_ROLES = ['scout', 'product-manager', 'worker', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer', 'escalation'];
-export const CONCIERGE_SKILLS = ['orchestrate', 'plan', 'grill-plan', 'scout', 'react-frontend', 'node-backend', 'graphql', 'review', 'debugging', 'task-evaluation'];
+export const CONCIERGE_SKILLS = ['orchestrate', 'plan', 'grill-plan', 'scout', 'react-frontend', 'node-backend', 'graphql', 'review', 'debugging', 'task-evaluation', 'external-sessions', 'skill-builder'];
 export const CONCIERGE_WORKERS = ['scout', 'product-manager', 'worker', 'reviewer', 'escalation'];
 const LEGACY_AGENTS = { 'enterprise-ux': 'plan', 'react-frontend': 'react-frontend', 'node-backend': 'node-backend', graphql: 'graphql' };
 const CONCIERGE_AGENTS = ['concierge', 'orchestrator', ...CONCIERGE_WORKERS];
