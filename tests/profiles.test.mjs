@@ -282,11 +282,30 @@ test('reusable skills preserve profile identity rather than forcing Sol into a l
 async function returnContracts() {
   const { concierge, orchestrator } = await profiles();
   const handoff = await readFile(new URL('../references/handoff.md', import.meta.url), 'utf8');
-  return { concierge: concierge.body, orchestrator: orchestrator.body, handoff, skill: await orchestrationSkill() };
+  const external = await readFile(new URL('../skills/external-sessions/SKILL.md', import.meta.url), 'utf8');
+  return { concierge: concierge.body, external, handoff };
 }
 
+test('the external-session protocol loads on demand instead of with every objective', async () => {
+  const { orchestrator } = await profiles();
+  const orchestration = await orchestrationSkill();
+  const { external } = await returnContracts();
+  assert.match(external, /^---\nname: external-sessions\ndescription: .+\n---/);
+  assert.doesNotMatch(external, /\]\((?:\.\.\/|\/)/, 'skill is self-contained');
+  assert.match(external, /loading this skill grants no tool, access or authority/);
+  assert.match(orchestrator.body, /load the `external-sessions` skill and follow it/);
+  assert.match(orchestration, /load `external-sessions` before preparing, launching, collecting from or retrying it/);
+  // Always-loaded text keeps the pointer and the safe minimum, not the protocol.
+  for (const text of [orchestrator.body, orchestration]) {
+    assert.doesNotMatch(text, /result collected|owner accepted|Quarantine/);
+  }
+  assert.match(orchestrator.body, /never assume a callback/);
+  assert.match(orchestrator.body, /report `blocked` with the missing capability rather than waiting forever/);
+});
+
 test('handoff correlation and return fields agree across the profile and reference', async () => {
-  const { concierge, orchestrator, handoff } = await returnContracts();
+  const { concierge, external, handoff } = await returnContracts();
+  const orchestrator = (await profiles()).orchestrator.body;
   const template = text => text.match(/CONCIERGE-HANDOFF\r?\n([\s\S]*?)\r?\n```/)[1];
   for (const field of ['objective-id', 'handoff-id', 'owner', 'collector', 'return route', 'session', 'return']) {
     const line = text => template(text).match(new RegExp(`^${field}: .+$`, 'm'))?.[0];
@@ -297,7 +316,11 @@ test('handoff correlation and return fields agree across the profile and referen
   assert.match(concierge, /objective-id: <the original stable objective-id, unchanged>/);
   assert.match(concierge, /Never reuse an objective-id for independent work/);
   assert.match(concierge, /send its actual returned `agent_id` and stable objective-id back to it with `write_agent` as an owner binding/);
-  assert.match(orchestrator, /If it has not arrived, request that binding in a checkpoint/);
+  // Live trial 1 showed the unconditional binding costs a message on every
+  // objective; it is now sent only when an external session needs it.
+  assert.match(external, /request an owner binding in a checkpoint/);
+  assert.match(orchestrator, /ask Concierge for an owner binding in a checkpoint/);
+  assert.match(concierge, /When an orchestrator's checkpoint asks for its owner binding/);
   assert.match(concierge, /instead of a bare `CONTINUE`/);
   for (const text of [orchestrator, handoff]) {
     assert.match(text, /^objective-id: <stable ID, unchanged across rollover\/resume>/m);
@@ -318,7 +341,9 @@ test('root collection is conditional on actual capabilities and leaves acceptanc
     assert.doesNotMatch(text, /cloud_threads|send_message_to_thread|wait_threads/, 'no foreign host API names');
   }
   assert.match(contracts.concierge, /never read repository files, implement, review or declare the worker's task complete yourself/);
-  assert.match(contracts.orchestrator, /Concierge collects and relays; you own evidence acceptance and completion/);
+  for (const text of [contracts.external, (await profiles()).orchestrator.body]) {
+    assert.match(text, /Concierge collects and relays; you own evidence acceptance and completion/);
+  }
   assert.match(contracts.concierge, /Native orchestrator reports notify you; do not poll those reports/);
   assert.match(contracts.concierge, /bounded status\/result checks with a stated timeout or check limit/);
 });
@@ -343,9 +368,9 @@ test('return recovery reconciles original sessions and deduplicates before repea
     assert.match(text, /stale attempts?|stale attempt/, name);
     assert.match(text, /wrong-owner|[Ww]rong owner/, name);
   }
-  const { concierge, skill } = await returnContracts();
+  const { concierge, external } = await returnContracts();
   assert.match(concierge, /Never start a replacement worker merely because its return is missing/);
-  assert.match(skill, /never duplicate implementation to repair delivery/);
+  assert.match(external, /never duplicate implementation to repair delivery/);
 });
 
 test('owner rollover and cancellation preserve pending mappings and late evidence', async () => {
@@ -358,7 +383,7 @@ test('owner rollover and cancellation preserve pending mappings and late evidenc
     assert.match(text, /(?:without relaunching|Do not relaunch|do not launch the work again)/, name);
   }
   assert.match(contracts.concierge, /Preserve newer collector receipts when an older owner report arrives/);
-  assert.match(contracts.orchestrator, /Add `returns` entries as needed rather than omit unresolved mappings/);
+  assert.match((await profiles()).orchestrator.body, /Add `returns` entries as needed rather than omit unresolved mappings/);
 });
 
 // Static profile contracts; they do not prove live host tool or routing behavior.

@@ -90,6 +90,35 @@ The helper uses temporary files and a lock during replacement, then removes them
 
 These checks protect against common path mistakes and stale edits. They are not a guarantee of crash durability or a security boundary against hostile processes running as the same operating-system user, trusted Windows administrators or all possible filesystem races. Private memory is not encrypted or synchronized by Concierge. Anyone using the same operating-system account can share its preferences; switching Copilot accounts does not isolate them.
 
+## Workflows become skills
+
+A preference is one line about how you like to work. A workflow is a procedure for a recurring kind of work: steps, an order, checks and a definition of done. Private memory is the wrong place for a procedure, so Concierge saves a workflow as an ordinary Copilot skill through its `skill-builder` skill. This is not a third store: the result is a `SKILL.md` file that Copilot discovers like any other.
+
+| You say | What happens |
+| --- | --- |
+| “Remember how we review merge requests: …” | The steps are saved as a skill, for example `team-code-review`. |
+| “From now on, run the integration suite serially before unit tests.” | Saved as a testing skill, or added to the one you already have. |
+| A recommendation in passing, while Concierge works | It follows the recommendation now and offers once, under "Next steps", to save it. Nothing is saved until you accept. |
+| “What workflows do you remember?” | Lists your project and personal skills. |
+| “Forget the review workflow.” | Removes that skill's folder after confirming which one you mean. |
+
+Where it goes:
+
+- A team workflow for the repository is written to `.github/skills/<name>/SKILL.md`. It shows up in `git status` like any other file and is committed only when you ask.
+- Your own workflow across projects is written to `~/.copilot/skills/<name>/SKILL.md`. That is outside the repository, so Copilot may ask for path permission.
+
+How it is used later: Copilot lists discovered skills with their descriptions, and Concierge's orchestrator loads the ones whose description matches the work, or names them in a worker's handoff. No routing row is needed; add one only to send that kind of work to a particular agent. A skill is discovered when a session starts, so a new one applies from your next session.
+
+Limits and safeguards:
+
+- Concierge saves what you said or confirmed. It does not build a skill from repository prose, tickets or its own guess, including under `full` autonomy.
+- “Do not write any files” prevents the save; Concierge describes what it would have saved.
+- An existing skill of the same name is updated, keeping your unchanged text, never silently overwritten. Concierge's own skill names are reserved, because a project skill with the same name would replace Concierge's procedure.
+- A skill is guidance. It cannot grant tools, change permissions, approve a plan or set autonomy.
+- Secrets, personal data and private memory are kept out; a repository skill is shared with everyone who can read the repository.
+
+One live trial saved a review workflow as a project skill and applied it in the same run, and a later session loaded and followed it. Personal skills and the offer to save a recommendation made in passing are instruction contracts with source checks; see [runtime verification](runtime-verification.md).
+
 ## Keep learning bounded
 
 Private memory holds at most 20 preferences and 8 KiB of UTF-8 JSON. Knowledge holds at most 40 records and 24 KiB in the managed block; the whole document, including preserved user text, must stay within the helper's 256 KiB read limit. At capacity, Scout consolidates only equivalent records or asks what to remove; it does not discard unrelated information, create overflow files or silently expand the limits.

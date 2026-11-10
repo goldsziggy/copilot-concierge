@@ -5,9 +5,15 @@ import os from 'node:os';
 
 export const DEFAULTS = Object.freeze({
   planApproval: 'auto',
+  autonomy: 'guided',
   models: Object.freeze({ concierge: 'gpt-6-luna', orchestrator: 'gpt-6.1-sol', specialist: 'gpt-6-luna', escalation: 'gpt-6.1-sol' }),
   extraDirectories: Object.freeze([]),
 });
+
+// One environment variable switches the autonomy mode, so a pipeline can change
+// it without editing a file. Add a mode here and in the agent profiles together.
+export const AUTONOMY_MODES = Object.freeze(['guided', 'full']);
+export const AUTONOMY_ENV = 'COPILOT_CONCIERGE_AUTONOMY';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const modelPattern = /^[a-zA-Z0-9][a-zA-Z0-9._/-]{0,99}$/;
@@ -15,10 +21,13 @@ const modelPattern = /^[a-zA-Z0-9][a-zA-Z0-9._/-]{0,99}$/;
 export function validateConfig(config, source = 'configuration') {
   if (!object(config)) throw new Error(`${source}: expected a JSON object`);
   for (const key of Object.keys(config)) {
-    if (!['planApproval', 'models', 'extraDirectories'].includes(key)) throw new Error(`${source}: unknown setting ${key}`);
+    if (!['planApproval', 'autonomy', 'models', 'extraDirectories'].includes(key)) throw new Error(`${source}: unknown setting ${key}`);
   }
   if ('planApproval' in config && !['ask', 'auto'].includes(config.planApproval)) {
     throw new Error(`${source}: planApproval must be ask or auto; omit it to inherit`);
+  }
+  if ('autonomy' in config && !AUTONOMY_MODES.includes(config.autonomy)) {
+    throw new Error(`${source}: autonomy must be ${AUTONOMY_MODES.join(' or ')}; omit it to inherit`);
   }
   if ('models' in config) {
     if (!object(config.models)) throw new Error(`${source}: models must be an object`);
@@ -40,16 +49,20 @@ export function validateConfig(config, source = 'configuration') {
   return config;
 }
 
-// Nearest scope wins for planApproval and each model role. Extra directories
+// Nearest scope wins for planApproval, autonomy and each model role. Extra directories
 // accumulate across scopes so a user's own agents and a project's agents both load.
 export function resolveConfig(layers = []) {
-  const value = { planApproval: DEFAULTS.planApproval, models: { ...DEFAULTS.models }, extraDirectories: [] };
-  const source = { planApproval: 'default', models: Object.fromEntries(Object.keys(DEFAULTS.models).map(role => [role, 'default'])), extraDirectories: [] };
+  const value = { planApproval: DEFAULTS.planApproval, autonomy: DEFAULTS.autonomy, models: { ...DEFAULTS.models }, extraDirectories: [] };
+  const source = { planApproval: 'default', autonomy: 'default', models: Object.fromEntries(Object.keys(DEFAULTS.models).map(role => [role, 'default'])), extraDirectories: [] };
   for (const layer of layers) {
     validateConfig(layer.value, layer.source);
     if (Object.hasOwn(layer.value, 'planApproval')) {
       value.planApproval = layer.value.planApproval;
       source.planApproval = layer.source;
+    }
+    if (Object.hasOwn(layer.value, 'autonomy')) {
+      value.autonomy = layer.value.autonomy;
+      source.autonomy = layer.source;
     }
     for (const [role, model] of Object.entries(layer.value.models ?? {})) {
       // Normalize the old entry-role key per layer so nearest-scope precedence
@@ -95,7 +108,12 @@ export async function loadConfig(options = {}) {
     const layer = await readLayer(path.resolve(file), scope, required);
     if (layer) layers.push(layer);
   }
+  // Files, then the environment, then explicit flags: an invalid value fails
+  // here rather than falling back to a mode nobody chose.
+  const fromEnvironment = (options.env ?? process.env)[AUTONOMY_ENV]?.trim();
+  if (fromEnvironment) layers.push({ source: `environment: ${AUTONOMY_ENV}`, value: { autonomy: fromEnvironment } });
   if (options.planApproval !== undefined) layers.push({ source: 'task: --plan-approval', value: { planApproval: options.planApproval } });
+  if (options.autonomy !== undefined) layers.push({ source: 'task: --autonomy', value: { autonomy: options.autonomy } });
   return resolveConfig(layers);
 }
 

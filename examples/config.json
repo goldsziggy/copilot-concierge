@@ -1,5 +1,6 @@
 {
   "planApproval": "ask",
+  "autonomy": "guided",
   "models": {
     "concierge": "gpt-6-luna",
     "orchestrator": "gpt-6.1-sol",

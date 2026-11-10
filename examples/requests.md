@@ -12,7 +12,7 @@ Concierge looks at the project first, then asks one focused question with sugges
 
 > Make total([]) return 0 and keep the current behaviour for positive and negative numbers. Run the focused tests.
 
-You see a short plan and an "Approve this plan?" question. After you approve, a specialist makes the change and runs the tests, and Concierge reports what changed and how it was checked. *Verified.*
+You see a short plan and Concierge continues; with `planApproval` set to `ask` you get an "Approve this plan?" question first. The change is made, the tests run, and Concierge reports what changed and how it was checked. *The approval-question path is verified.*
 
 ## Several things at once
 
@@ -42,15 +42,15 @@ Starts a separate piece of work and answers without changing files. *Verified.*
 
 > Run an accessibility audit of src/ui.mjs. No changes.
 
-Add an explicit `copilot-concierge-routing` row for your team agent (for example `accessibility-auditor`) and its checklist skill. Concierge uses a route only after verifying the exact discovered profile and its single required model pin. Historical custom routing was *verified* under Zilot 0.3.0; the current eligibility checks are recorded separately.
+Add an explicit `copilot-concierge-routing` row for your team agent (for example `accessibility-auditor`) and its checklist skill. Concierge prefers the named agent when that exact profile is available; its model is a preference, and any substitution is reported. Historical custom routing was *verified* under Zilot 0.3.0; the current eligibility checks are recorded separately.
 
 ## Learning the project
 
 > Help me understand how this project is organized and which checks matter before I make a change.
 
-In the unreleased development version, Scout gathers source evidence and may maintain `docs/concierge/knowledge.md` for future requests. It records confirmed facts with sources and dates, preserving other documentation. Say “Do not write any files” for discovery without memory or knowledge writes. This describes the development instruction contract, not a live acceptance result.
+Scout gathers source evidence and may maintain `docs/concierge/knowledge.md` for future requests. It records confirmed facts with sources and dates, preserving other documentation. Say “Do not write any files” for discovery without memory or knowledge writes. This is an instruction contract, not a live acceptance result.
 
-## Personal preferences (unreleased)
+## Personal preferences
 
 > Remember that I prefer a short summary, then details.
 
@@ -66,7 +66,7 @@ This is a private preference used across your projects on this computer. It does
 
 You can inspect, correct, remove or disable saved preferences. “Forget all my preferences” clears saved preferences; “stop remembering” clears saved preferences and prevents future saves until you ask to resume. These requests do not erase Copilot's own chat history.
 
-## Knowledge that belongs with the code (unreleased)
+## Knowledge that belongs with the code
 
 > Document why we use integer cents for prices.
 
@@ -92,6 +92,20 @@ Concierge treats these as ordinary work. The plan lists the push and pull reques
 
 Results end with up to three suggested follow-ups, such as a check that didn't run or committing the changes. Reply with "yes" or a number to accept one; nothing starts until you do.
 
+## Workflows you want repeated
+
+> Remember how we review merge requests: check the migrations first, then run the contract tests, then read the diff for missing error handling.
+
+Concierge saves the steps as a skill in `.github/skills/`, tells you its name and path, and uses it in later sessions when a review comes up.
+
+> From now on, always run the integration suite serially before the unit tests.
+
+> What workflows do you remember?
+
+> Forget the review workflow.
+
+If you recommend a way of doing something while Concierge works, it follows it and offers to save it under "Next steps". See [memory and knowledge](../references/memory-and-knowledge.md#workflows-become-skills).
+
 ## Approval preferences
 
 > Go ahead without asking me to approve the plan.
@@ -99,6 +113,12 @@ Results end with up to three suggested follow-ups, such as a check that didn't r
 > Ask me before you change anything.
 
 These apply to the current request or session and take precedence over `.copilot-concierge/config.json` and `~/.config/copilot-concierge/config.json`.
+
+## Handing the whole task over
+
+> Fix the flaky date test and run the suite. Just handle it, don't ask me.
+
+Concierge stops asking: it decides ordinary questions itself, lists what it decided, and stops only for something it must not decide alone, such as a missing credential or an action you did not ask for. Setting `COPILOT_CONCIERGE_AUTONOMY=full` does the same for every request, which suits a CI job. Say "check with me first" to go back. See [autonomy](../references/autonomy.md). This is an instruction contract, not a live acceptance result.
 
 ## Stopping and resuming
 

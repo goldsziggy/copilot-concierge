@@ -15,7 +15,9 @@ The nearest setting wins:
 4. The user file `~/.config/copilot-concierge/config.json`.
 5. The default, `auto`.
 
-The scout reads the project file during context gathering, and the user file only if the project file sets nothing. When `scripts/launch.mjs` starts the session, it resolves the files and any `--plan-approval` flag in advance and writes the result into the profiles.
+The orchestrator reads the project file while gathering context, and the user file only if the project file sets nothing. When `scripts/launch.mjs` starts the session, it resolves the files and any `--plan-approval` flag in advance and writes the result into the profiles.
+
+[Autonomy](autonomy.md) is a separate preference. `full` autonomy removes the `auto` checkpoint and puts the plan in the result, but it never overrides `ask`: an unattended run with `ask` stops at the plan.
 
 A materially larger scope gets a revised plan and the preference again. Question-only and planning-only requests stop before implementation. Invalid values in a file are configuration errors reported by the launcher, never an implicit `auto`.
 
@@ -56,7 +58,7 @@ With `ask`, the decision always belongs to the displayed plan:
 | Missing or ambiguous answer | Clarify and wait; no approval is inferred. |
 | `ask_user` unavailable | Show the same structured plan, question and all three choices in the reply; end the turn and wait. Apply the same decision rules to the reply. |
 
-For a revision, the Scope line could be `Scope: Changed from the previous plan: also cover the mobile basket. Keep checkout and pricing unchanged.` The rest of the plan, including updated steps and checks, is shown again. A publishing example must name the action, such as `Steps: ... publish the approved version to the existing marketplace`, and its observable check, such as a public release with matching assets. This formatting does not replace Ship it's separate publication confirmation below.
+For a revision, the Scope line could be `Scope: Changed from the previous plan: also cover the mobile basket. Keep checkout and pricing unchanged.` The rest of the plan, including updated steps and checks, is shown again. A publishing example must name the action, such as `Steps: ... publish the approved version to the existing marketplace`, and its observable check, such as a public release with matching assets.
 
 These are instruction contracts. `tests/approval-format.test.mjs` checks both profiles and the example; it does not demonstrate model compliance or actual host rendering. See [runtime verification](runtime-verification.md) for observed host evidence and remaining limits.
 
