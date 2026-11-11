@@ -400,3 +400,15 @@ test('small work takes a fast path and delegation rules load on demand', async (
   assert.match(concierge.body, /always write a "Decided for you:" line/);
   assert.match(concierge.body, /"Decided for you: nothing"/);
 });
+
+// Recorded sessions: 4 of 18 dispatches sent only description and prompt and
+// were rejected; none that began with agent_type failed.
+test('the dispatch call is shown as ordered arguments with agent_type first', async () => {
+  const { concierge } = await profiles();
+  const call = concierge.body.match(/call `task` with these five arguments, written in this order:\n\n```\n([\s\S]*?)\n```/)[1];
+  assert.deepEqual(call.split('\n').map(line => line.split(':')[0]), ['agent_type', 'mode', 'name', 'description', 'prompt']);
+  assert.match(call, /^agent_type: "copilot-concierge:orchestrator"$/m);
+  assert.match(call, /^mode: "background"$/m);
+  assert.match(concierge.body, /Write `agent_type` first and `prompt` last/);
+  assert.match(concierge.body, /The host rejects a call that has only `description` and `prompt`/);
+});

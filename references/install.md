@@ -32,11 +32,11 @@ copilot plugin install copilot-concierge@copilot-concierge
 
 App: open **Customize → Plugins**, use the marketplace control beside the marketplace dropdown, and add `goldsziggy/copilot-concierge`. Find **copilot-concierge** and select **Install**. Restart the app after a CLI installation if the plugin does not appear. See [GitHub’s app instructions](https://docs.github.com/en/copilot/how-tos/github-copilot-app/customize-github-copilot-app#adding-plugins).
 
-`goldsziggy/copilot-concierge` is the canonical, maintained plugin repository. Its marketplace follows `main`; use `goldsziggy/copilot-concierge#v0.11.0` to pin the 0.11.0 release. No access to the former private development repository is needed.
+`goldsziggy/copilot-concierge` is the canonical, maintained plugin repository. Its marketplace follows `main`; use `goldsziggy/copilot-concierge#v0.11.1` to pin the 0.11.1 release. No access to the former private development repository is needed.
 
 ### From a local copy
 
-Unzip `copilot-concierge-0.11.0.zip` (it contains a `copilot-concierge` folder) or clone the repository. On macOS, choose a location the app can read: historical app trials encountered privacy restrictions under `~/Documents` and external drives. Then point Copilot at the extracted or cloned `copilot-concierge` folder:
+Unzip `copilot-concierge-0.11.1.zip` (it contains a `copilot-concierge` folder) or clone the repository. On macOS, choose a location the app can read: historical app trials encountered privacy restrictions under `~/Documents` and external drives. Then point Copilot at the extracted or cloned `copilot-concierge` folder:
 
 ```sh
 copilot plugin marketplace add /path/to/copilot-concierge

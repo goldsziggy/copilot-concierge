@@ -6,7 +6,7 @@ Tell Concierge what you want to get done. Its objective lead plans, does focused
 
 Concierge is a native plugin for **GitHub Copilot CLI and the GitHub Copilot app**. It uses Copilot's agents, skills and permissions. You need a signed-in Copilot account. Concierge prefers **Copilot Fusion** for the conversation (Copilot CLI 1.0.104 or later); its orchestrator and specialists keep GPT-6.1 Sol and GPT-6 Luna, because Fusion does not route sub-agents. [Models →](references/install.md#models)
 
-The main branch tracks **0.11.0**, which makes small tasks cheaper with a fast path and leaner prompts, reports every decision made for you under full autonomy, and retires external coding sessions. Plugin installations remain guided by default. For a published build, see the [latest GitHub release](https://github.com/goldsziggy/copilot-concierge/releases/latest); main may contain changes not yet included there.
+The main branch tracks **0.11.1**, which makes small tasks cheaper with a fast path and leaner prompts, reports every decision made for you under full autonomy, and retires external coding sessions. Plugin installations remain guided by default. For a published build, see the [latest GitHub release](https://github.com/goldsziggy/copilot-concierge/releases/latest); main may contain changes not yet included there.
 
 ## Get started
 
