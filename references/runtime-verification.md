@@ -1,5 +1,35 @@
 # Runtime verification
 
+## Concierge 0.11.1 compared with 0.7.1 - 2026-11-11
+
+Eight live runs: two per version per task. Each used `@github/copilot-sdk` 1.0.31 with Copilot CLI 1.0.109, session model `auto`, the plugin loaded from its release tag with `pluginDirectories`, a 30-credit session limit and a fresh clone of a disposable repository. The prompt was the same for both versions and stated full autonomy and no plan approval. The permission handler approved reads, writes inside the checkout, `npm test` and read-only `git status`/`diff`/`log`, and rejected everything else.
+
+- **Small task:** fix a one-line bug in a slug function, add one test, run `npm test`.
+- **Medium task:** add coupon support across four files, with tests, README documentation and an independent review.
+
+Version 0.7.1 writes no result line, so a run was treated as finished when the session went idle. Results were graded by probes written for this comparison, not by the agent's report: `npm test`, the changed files, and direct calls covering padded input for the small task and valid, expired, below-minimum and malformed coupons plus discount-before-tax totals for the medium task.
+
+| Task | Version | Run | Outcome | Model calls | Input tokens | Time | Rejected commands |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Small | 0.7.1 | 1 | Solved | 22 | 511k | 2m 54s | 3 |
+| Small | 0.7.1 | 2 | Solved | 17 | 385k | 2m 21s | 3 |
+| Small | 0.11.1 | 1 | Solved | 11 | 189k | 1m 22s | 0 |
+| Small | 0.11.1 | 2 | Solved | 11 | 188k | 1m 20s | 0 |
+| Medium | 0.7.1 | 1 | Solved | 34 | 794k | 5m 17s | 3 |
+| Medium | 0.7.1 | 2 | Reported blocked; no file changed | 12 | 235k | 1m 22s | 3 |
+| Medium | 0.11.1 | 1 | Solved | 27 | 564k | 4m 58s | 1 |
+| Medium | 0.11.1 | 2 | Solved | 21 | 416k | 3m 22s | 0 |
+
+Observed:
+
+- **Small task.** 0.11.1 averaged 44% fewer model calls, 58% fewer input tokens and 48% less time. Version 0.7.1 loaded three skills for the fix, wrote the task list eight to ten times per run and sent chained shell commands that were rejected. Version 0.11.1 loaded no skill and had no rejection.
+- **Medium task.** Against 0.7.1's one completed run, 0.11.1 averaged about 30% fewer calls and 38% fewer input tokens. In its second run, 0.7.1's orchestrator sent three chained commands, all were rejected, and it reported the objective blocked without changing a file.
+- **Quality.** Every solved run passed all probes: correct slugs, discount applied before tax, reasons returned for expired, below-minimum and malformed coupons, a receipt line and README documentation. Nothing was committed. Where both versions finished, the code was equivalent.
+- **Dispatch.** The entry agent's first `task` call was rejected and retried in all four 0.7.1 runs and in none of the 0.11.1 runs.
+- **Reporting.** Every 0.11.1 reply ended with a result line and a "Decided for you" line. In one medium run that line pointed to "the implementation report" instead of listing the choices.
+
+Limits: two runs per cell is a small sample, and the medium task varies widely between runs. The narrow, unattended allowlist favors 0.11.1; in an interactive session 0.7.1's chained commands would cost approval prompts instead of a failed run. The SDK reports model calls and tokens, not AI credits, so no credit figure is given.
+
 ## Concierge 0.11.1: first-dispatch fix - 2026-11-11
 
 Based on main `20dce6d` (0.11.0). The entry agent starts each orchestrator with one `task` call. In 18 dispatches recorded during earlier trials, 4 sent only `description` and `prompt`; the host rejected them with `"agent_type": Required` and `"name": Required`, and the agent retried with all fields. Every failed call began with `description`; none of the 7 that began with `agent_type` failed. The briefs in the failed calls were complete, so this was an ordering slip, not truncation. A failure started nothing and cost one extra model call.
