@@ -1,9 +1,11 @@
 import { extraDirectoryArguments } from './config.mjs';
 
 // The launcher owns these native flags; a forwarded copy would silently change
-// which agent, model or prompt the run uses.
-const OWNED = ['--agent', '--model', '--plugin-dir', '--prompt', '--interactive', '-p', '-i'];
-const RESULT = /CONCIERGE-RESULT:\s*`?(done|blocked|cancelled|needs_approval)\b/g;
+// which agent, model, prompt or result format the run uses.
+const OWNED = ['--agent', '--model', '--plugin-dir', '--prompt', '--interactive', '--output-format', '--silent', '--no-color', '--color', '--no-ask-user', '-p', '-i', '-s'];
+const OTHER_MODES = ['--help', '-h', '--version', '-v', '--acp', '--server', '--headless'];
+const RESULT = /^CONCIERGE-RESULT:[ \t]+(`?)(done|blocked|cancelled|needs_approval)\1[ \t]+([^\s`<>]{1,256})[ \t]*$/;
+const MAX_RESULT_LINE = 65536;
 export const MAX_TASK_BYTES = 16384;
 
 // Split launcher arguments into the configuration options that configure.mjs
@@ -28,10 +30,12 @@ export function parseLaunchArguments(argv) {
   const oneShot = task !== undefined || taskFile !== undefined;
   if (forwarded.length && !oneShot) throw new Error('Native flags after -- are forwarded only with --task or --task-file');
   for (const flag of forwarded) {
-    if (OWNED.some(owned => flag === owned || flag.startsWith(`${owned}=`))) throw new Error(`The launcher sets ${flag.split('=')[0]} itself; do not forward it`);
+    const owned = OWNED.find(option => flag === option || flag.startsWith(`${option}=`) || (option.length === 2 && flag.startsWith(option)));
+    if (owned) throw new Error(`The launcher sets ${owned} itself; do not forward it`);
+    if (OTHER_MODES.some(option => flag === option || flag.startsWith(`${option}=`))) throw new Error(`A one-task run cannot forward ${flag.split('=')[0]}`);
   }
-  // Prompts can ask an agent not to loop; only the host's spend cap guarantees
-  // it. An unattended run without one is refused rather than given a default.
+  // Require an explicit host budget. Copilot documents this as a soft
+  // per-response limit, not a guaranteed ceiling for the whole job.
   if (oneShot && !forwarded.some(flag => flag === '--max-ai-credits' || flag.startsWith('--max-ai-credits='))) {
     throw new Error('An unattended run needs a spend cap: forward --max-ai-credits N after --');
   }
@@ -48,16 +52,58 @@ export function nativeArguments(configured, { task, forwarded = [] } = {}) {
     '--agent', 'copilot-concierge:concierge', '--model', configured.value.models.concierge,
   ];
   if (configured.value.autonomy === 'full') args.push('--no-ask-user');
-  if (task !== undefined) args.push('-p', task, ...forwarded);
+  if (task !== undefined) args.push('--silent', '--output-format', 'text', '--no-color', '-p', task, ...forwarded);
   return args;
 }
 
-// Exit status for a one-shot run: the child's own failure wins; otherwise the
-// last CONCIERGE-RESULT line decides. A run with no result line is not a success.
+// Track the last nonblank line with bounded memory, including fenced examples
+// that start before the end of a long answer. Only a complete, unfenced final
+// record is a result; a quoted or earlier marker never establishes success.
+export function createResultTracker() {
+  let line = '';
+  let oversized = false;
+  let fence;
+  let status;
+
+  function finishLine() {
+    const text = line.replace(/\r$/, '');
+    if (oversized || text.trim()) {
+      status = undefined;
+      const delimiter = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(text);
+      if (fence) {
+        if (!oversized && delimiter && delimiter[1][0] === fence.character && delimiter[1].length >= fence.length && !delimiter[2].trim()) fence = undefined;
+      } else if (delimiter) {
+        fence = { character: delimiter[1][0], length: delimiter[1].length };
+      } else if (!oversized) {
+        status = RESULT.exec(text)?.[2];
+      }
+    }
+    line = '';
+    oversized = false;
+  }
+
+  return {
+    write(chunk) {
+      const pieces = chunk.split('\n');
+      for (let index = 0; index < pieces.length; index++) {
+        if (index) finishLine();
+        const remaining = MAX_RESULT_LINE - line.length;
+        line += pieces[index].slice(0, remaining);
+        if (pieces[index].length > remaining) oversized = true;
+      }
+    },
+    finish(childCode) {
+      finishLine();
+      if (childCode) return { code: childCode, status: 'host-error' };
+      if (status === 'done') return { code: 0, status };
+      if (status) return { code: 2, status };
+      return { code: 3, status: 'unknown' };
+    },
+  };
+}
+
 export function resultExitCode(output, childCode) {
-  if (childCode) return { code: childCode, status: 'host-error' };
-  const status = [...output.matchAll(RESULT)].at(-1)?.[1];
-  if (status === 'done') return { code: 0, status };
-  if (status) return { code: 2, status };
-  return { code: 3, status: 'unknown' };
+  const tracker = createResultTracker();
+  tracker.write(output);
+  return tracker.finish(childCode);
 }

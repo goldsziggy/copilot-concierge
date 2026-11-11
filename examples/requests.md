@@ -118,7 +118,18 @@ These apply to the current request or session and take precedence over `.copilot
 
 > Fix the flaky date test and run the suite. Just handle it, don't ask me.
 
-Concierge stops asking: it decides ordinary questions itself, lists what it decided, and stops only for something it must not decide alone, such as a missing credential or an action you did not ask for. Setting `COPILOT_CONCIERGE_AUTONOMY=full` does the same for every request, which suits a CI job. Say "check with me first" to go back. See [autonomy](../references/autonomy.md). This is an instruction contract, not a live acceptance result.
+Concierge settles ordinary questions itself and lists what it decided. It still stops for a missing credential, a consequential action outside the request, or plan approval set to `ask`. Say "check with me first" to return to `guided`, the normal installation default. See [autonomy](../references/autonomy.md) and its separate live-verification limits.
+
+For a container or cloud job, pass the same mode to the launcher through the environment:
+
+```sh
+COPILOT_CONCIERGE_AUTONOMY=full node /opt/copilot-concierge/scripts/launch.mjs \
+  --project /work/project --output-parent /tmp/concierge-sessions \
+  --plan-approval auto --task-file /run/concierge/task.md \
+  -- --allow-tool write --allow-tool 'shell(npm test)' --max-ai-credits 30
+```
+
+The launcher reads the variable before any model starts. `--plan-approval auto` is the operator's separate decision to proceed with the plan; the caller also supplies the tool permissions and credit limit. The plugin source can be read-only because the generated copy goes under `--output-parent`. See [container setup](../references/container-service.md), including the credit limit's scope and job timeouts.
 
 ## Stopping and resuming
 

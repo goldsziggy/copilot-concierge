@@ -1,5 +1,20 @@
 # Runtime verification
 
+## Concierge 0.10.0 container/cloud worker source checks - 2026-11-10
+
+Based on `5ec600b3a022a8df65b71d961f8a4eb4d53a2671`, this release keeps ordinary plugin installs guided and documents the existing one-task launcher as the container/cloud worker entrypoint. The launcher resolves environment configuration before starting Copilot; the plain-install profile now gives the environment priority over project/user files in both directions. Explicit plan approval remains separate.
+
+Local Linux, Node 24.22.1: `npm test` ran **170 tests: 157 passed, 0 failed, 13 native Windows skips**, in about 13 seconds. `npm run validate` passed with 12 skills, 7 agents and 110 files; both marketplace catalogs are synchronized at 0.10.0. The new executable fixtures establish:
+
+- default guided configuration, environment selection of full over a guided project file, the reverse override, generated-profile configuration, and preservation of `planApproval: "ask"`;
+- owned silent/plain output, refusal of conflicting help/output flags, and non-success for embedded, fenced, incomplete or nonfinal result markers, including streamed long-output cases;
+- EOF on the native process's standard input in task mode;
+- POSIX `SIGTERM` and `SIGINT` forwarding to a fake CLI wrapper and its ordinary child, with exit 143/130 even when that wrapper prints `done` and exits 0.
+
+The lifecycle fixtures signal the launcher PID, use no real Copilot executable and skip Windows. Independent source review found no remaining blocker in the addressed launcher/protocol scope. Profile-contract tests cover environment precedence, the refined continuation-loop guard, native versus external owner binding, and full-mode approval replies; they do not execute an LLM.
+
+No new paid model session, installed-plugin update, container PID-1 deployment, cloud service or Windows launcher acceptance was performed. The historical development trials below retain their original scope and do not establish live acceptance of the new service lifecycle or revised profiles. Exact release-commit CI and packaged-artifact evidence are recorded in the GitHub release and Actions runs.
+
 ## Unreleased: full autonomy, one-task runs, remembered workflows and lighter prompts - 2026-11-10
 
 Based on main `08a8184` (0.9.0). This change adds the `autonomy` setting (`guided` or `full`) with its `COPILOT_CONCIERGE_AUTONOMY` environment variable, a one-task launcher mode for CI, a completion check under `full`, the `skill-builder` skill that saves a remembered workflow as a Copilot skill, and the on-demand `external-sessions` skill. The entry agent's tool list, the model pins and Copilot's permissions are unchanged; the launcher adds `--no-ask-user` under `full` and no permission flag.

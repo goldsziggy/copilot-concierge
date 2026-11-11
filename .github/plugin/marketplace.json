@@ -10,7 +10,7 @@
     {
       "name": "copilot-concierge",
       "source": "./",
-      "version": "0.9.0",
+      "version": "0.10.0",
       "description": "Concierge: plan, challenge and execute work with native agents and task-specific skills.",
       "repository": "https://github.com/goldsziggy/copilot-concierge",
       "strict": true

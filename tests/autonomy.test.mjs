@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { AUTONOMY_ENV, AUTONOMY_MODES, loadConfig, resolveConfig, validateConfig } from '../scripts/lib/config.mjs';
 import { configureProfile } from '../scripts/lib/package.mjs';
-import { nativeArguments, parseLaunchArguments, resultExitCode } from '../scripts/lib/launch.mjs';
+import { createResultTracker, nativeArguments, parseLaunchArguments, resultExitCode } from '../scripts/lib/launch.mjs';
 
 const read = async file => (await readFile(new URL(`../${file}`, import.meta.url), 'utf8')).replace(/\r\n/g, '\n');
 
@@ -53,6 +53,13 @@ test('the environment variable swaps the mode over files, and the flag overrides
   assert.equal(fromEnvironment.value.autonomy, 'full');
   assert.equal(fromEnvironment.source.autonomy, `environment: ${AUTONOMY_ENV}`);
 
+  await writeFile(path.join(paths.project, '.copilot-concierge/config.json'), JSON.stringify({ autonomy: 'full', planApproval: 'ask' }));
+  const backToGuided = await loadConfig({ ...paths, env: { [AUTONOMY_ENV]: 'guided' } });
+  assert.equal(backToGuided.value.autonomy, 'guided');
+  assert.equal(backToGuided.value.planApproval, 'ask');
+  assert.equal(backToGuided.source.autonomy, `environment: ${AUTONOMY_ENV}`);
+  await writeFile(path.join(paths.project, '.copilot-concierge/config.json'), JSON.stringify({ autonomy: 'guided' }));
+
   const flagged = await loadConfig({ ...paths, env: { [AUTONOMY_ENV]: 'full' }, autonomy: 'guided' });
   assert.equal(flagged.value.autonomy, 'guided');
   assert.equal(flagged.source.autonomy, 'task: --autonomy');
@@ -95,6 +102,12 @@ test('launcher arguments separate configuration, one task and explicitly forward
     [['--task', 'a', '--', '--agent', 'other'], /sets --agent itself/],
     [['--task', 'a', '--', '--model=other'], /sets --model itself/],
     [['--task', 'a', '--', '-p', 'other'], /sets -p itself/],
+    [['--task', 'a', '--', '-pOther'], /sets -p itself/],
+    [['--task', 'a', '--', '--output-format=json'], /sets --output-format itself/],
+    [['--task', 'a', '--', '--silent=false'], /sets --silent itself/],
+    [['--task', 'a', '--', '--help'], /cannot forward --help/],
+    [['--task', 'a', '--', '-v'], /cannot forward -v/],
+    [['--task', 'a', '--', '--server'], /cannot forward --server/],
     // An unattended run without a spend cap is refused, never given a default.
     [['--task', 'a'], /needs a spend cap/],
     [['--task', 'a', '--', '--allow-tool', 'write'], /needs a spend cap/],
@@ -112,13 +125,13 @@ test('full autonomy disables the question tool but never adds a permission flag'
   const full = nativeArguments(configured('full'));
   assert.deepEqual(full, [...guided, '--no-ask-user']);
   const oneShot = nativeArguments(configured('full'), { task: 'Fix it', forwarded: ['--allow-tool', 'shell(npm test)'] });
-  assert.deepEqual(oneShot, [...full, '-p', 'Fix it', '--allow-tool', 'shell(npm test)']);
+  assert.deepEqual(oneShot, [...full, '--silent', '--output-format', 'text', '--no-color', '-p', 'Fix it', '--allow-tool', 'shell(npm test)']);
   for (const args of [guided, full, nativeArguments(configured('full'), { task: 'Fix it' })]) {
     assert.ok(!args.some(flag => /^--(?:allow|yolo|assisted)/.test(flag)), 'no permission flag is added by the launcher');
   }
 });
 
-test('a one-task run succeeds only on a reported done result', () => {
+test('a one-task run requires a complete unfenced final result with an objective ID', () => {
   assert.deepEqual(resultExitCode('work\nCONCIERGE-RESULT: done fix-login\n', 0), { code: 0, status: 'done' });
   assert.deepEqual(resultExitCode('CONCIERGE-RESULT: `blocked` fix-login', 0), { code: 2, status: 'blocked' });
   assert.equal(resultExitCode('CONCIERGE-RESULT: needs_approval x', 0).code, 2);
@@ -127,6 +140,27 @@ test('a one-task run succeeds only on a reported done result', () => {
   assert.equal(resultExitCode('CONCIERGE-RESULT: done a\n...\nCONCIERGE-RESULT: blocked a\n', 0).status, 'blocked');
   assert.deepEqual(resultExitCode('All finished, tests pass.', 0), { code: 3, status: 'unknown' });
   assert.deepEqual(resultExitCode('CONCIERGE-RESULT: done x', 7), { code: 7, status: 'host-error' });
+  for (const output of [
+    'The failing test contains CONCIERGE-RESULT: done but the objective is still blocked.\n',
+    'CONCIERGE-RESULT: done x\nCorrection: the requested work remains incomplete.\n',
+    'CONCIERGE-RESULT: done\n',
+    'CONCIERGE-RESULT: done <objective-id>\n',
+    '> CONCIERGE-RESULT: done quoted\n',
+    '```text\nCONCIERGE-RESULT: done example\n```\n',
+    '```text\nCONCIERGE-RESULT: done example',
+    '~~~text\nCONCIERGE-RESULT: done example',
+    'CONCIERGE-RESULT: done x extra words\n',
+  ]) assert.deepEqual(resultExitCode(output, 0), { code: 3, status: 'unknown' }, output);
+  assert.equal(resultExitCode('```text\nCONCIERGE-RESULT: done example\n```\nActual result:\nCONCIERGE-RESULT: blocked real-objective\r\n\r\n', 0).code, 2);
+});
+
+test('streamed results retain fence state across chunks and long answers', () => {
+  const tracker = createResultTracker();
+  for (const chunk of ['```text\n', 'x'.repeat(70000), '\nCONCIERGE-', 'RESULT: done example\n']) tracker.write(chunk);
+  assert.equal(tracker.finish(0).code, 3, 'a long fenced example never becomes a final result');
+  const finished = createResultTracker();
+  for (const chunk of ['x'.repeat(70000), '\nSummary.\r\nCONCIERGE-RES', 'ULT: done actual-objective\r', '\n \n']) finished.write(chunk);
+  assert.deepEqual(finished.finish(0), { code: 0, status: 'done' });
 });
 
 // Instruction contracts only: these do not show that a live model follows them.
