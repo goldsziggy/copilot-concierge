@@ -1,5 +1,20 @@
 # Runtime verification
 
+## Concierge 0.11.1: first-dispatch fix - 2026-11-11
+
+Based on main `20dce6d` (0.11.0). The entry agent starts each orchestrator with one `task` call. In 18 dispatches recorded during earlier trials, 4 sent only `description` and `prompt`; the host rejected them with `"agent_type": Required` and `"name": Required`, and the agent retried with all fields. Every failed call began with `description`; none of the 7 that began with `agent_type` failed. The briefs in the failed calls were complete, so this was an ordering slip, not truncation. A failure started nothing and cost one extra model call.
+
+The profile now shows the call as five ordered arguments, `agent_type` first and `prompt` last, and states that a call with only `description` and `prompt` is rejected.
+
+Dispatch-only live trials: `@github/copilot-sdk` 1.0.31 with Copilot CLI 1.0.109, session model `auto`, three different requests in rotation. Each session was aborted as soon as the first `task` call returned, and every permission request was rejected, so no orchestrator did any work.
+
+| Plugin | Dispatches | First call accepted | First call rejected | Began with `agent_type` |
+| --- | --- | --- | --- | --- |
+| 0.11.0 | 18 | 12 | 6 | 9 |
+| With the fix | 18 | 18 | 0 | 18 |
+
+Source checks on Windows 11, Node 24.22.1: `npm test` ran 149 tests: 117 passed, 0 failed, 32 platform skips. No full task was rerun with the fix; the change is confined to the dispatch instruction.
+
 ## Concierge 0.11.0: lean orchestration - 2026-11-11
 
 Based on main `9a9573c` (0.10.0). Source checks on Windows 11, Node 24.22.1: `npm test` ran 148 tests: 116 passed, 0 failed, 32 platform skips; `npm run validate` passed with 12 skills, 7 agents and 111 files.
@@ -23,7 +38,7 @@ Observed:
 - The `decided for the user` block was filled and relayed in both runs after it was added.
 - Run-to-run variance is large: the last run cost more because the review found a real defect. The savings are indicative, not a measured average.
 
-Not fixed, and seen live: the reviewer loads both `review` and `grill-plan` for a change review; the entry agent's first `task` call sometimes omits the agent type and is retried. Not run live: guided questions, plan approval `ask`, a worker other than the reviewer, parallel objectives, rollover and the `orchestrate-reference` rules.
+Not fixed, and seen live: the reviewer loads both `review` and `grill-plan` for a change review; the entry agent's first `task` call sometimes omitted the agent type and was retried (fixed in 0.11.1). Not run live: guided questions, plan approval `ask`, a worker other than the reviewer, parallel objectives, rollover and the `orchestrate-reference` rules.
 
 ## Concierge 0.10.0: plugin-only automation - 2026-11-10
 

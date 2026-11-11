@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.1 - 2026-11-11
+
+- Fix: Concierge's first dispatch no longer fails about one time in three. The entry agent sometimes called `task` with only `description` and `prompt`, which the host rejects, and then retried. The profile now shows the call as five ordered arguments with `agent_type` first and `prompt` last. In dispatch-only live trials on Copilot CLI 1.0.109, 18 of 18 dispatches succeeded with the fix against 12 of 18 on 0.11.0.
+
 ## 0.11.0 - 2026-11-11
 
 - Add a fast path for small, clear work: the orchestrator does it alone, loads no skill, starts no worker and writes the task list twice.
