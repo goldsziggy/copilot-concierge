@@ -1,8 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.10.0 - 2026-11-10
 
-- Add an `autonomy` setting: `guided` (default, unchanged behavior) or `full`. Set it with your words, `--autonomy`, the `COPILOT_CONCIERGE_AUTONOMY` environment variable or the configuration files. An invalid value is an error, never an implicit mode.
+- Keep ordinary plugin installs `guided` by default and support container/cloud workers through the existing one-task launcher. `COPILOT_CONCIERGE_AUTONOMY=full` is resolved before Copilot starts and overrides file settings; plain-install instructions now follow the same environment-before-files order. No container detection silently enables autonomy, and explicit `planApproval: "ask"` remains independent.
+- Make service results dependable: one-task output is silent, uncolored text, standard input is closed, and only a complete unfenced final result with an objective ID establishes success. Quoted examples, incomplete/nonfinal markers and forwarded help/output-mode changes cannot make a job falsely succeed. Result tracking stays bounded across long streamed output.
+- Forward service `SIGINT`/`SIGTERM` to Copilot and its ordinary POSIX process group; interrupted runs return 130/143 even if a child prints `done` and exits successfully. Document writable session copies outside a read-only plugin tree, runtime authentication, task supervision and reconciliation before retries.
+- Correct the no-progress guard so owner binding, external control/receipt changes, completion evidence and terminal results can progress without checklist changes. Native direct worker returns no longer require an unavailable owner ID.
+- Add executable launcher and process-lifecycle regressions alongside profile-contract checks. These fixtures do not establish new live Copilot or deployed-container acceptance. Clarify that the required native AI-credit budget is a soft per-response limit, not a guaranteed total-job ceiling.
+
+- Add an `autonomy` setting: `guided` (default) or `full`. Set it with your words, `--autonomy`, the `COPILOT_CONCIERGE_AUTONOMY` environment variable or the configuration files. The launcher rejects invalid values; a plain plugin reports an invalid value and stays guided.
 - Design `full` for unattended runs. The orchestrator settles ordinary questions, records each as decided for the user, skips the plan checkpoint and phase pauses, and finishes in-scope work. It stops only for a hard stop reported as `blocked`, for `needs_approval` when plan approval is `ask`, or for a result. Concierge never asks, checks the result against the acceptance criteria once, lists what was decided, and ends with a `CONCIERGE-RESULT` line. Scope, plan approval, Git requests, file-write restrictions and Copilot's permissions are unchanged.
 - Add a one-task launcher mode for CI: `node scripts/launch.mjs --task TEXT | --task-file FILE [-- native flags]`. It exits 0 on `done`, 2 on `blocked`, `cancelled` or `needs_approval`, and 3 when no result is reported. The launcher adds `--no-ask-user` under `full` and never a permission flag; flags after `--` are forwarded as written.
 - Lighten the always-loaded instructions. The orchestrator's external-session protocol is now the on-demand `external-sessions` skill, and the `orchestrate` skill no longer repeats the routing-migration and learning rules that the orchestrator profile already states.

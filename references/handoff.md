@@ -30,9 +30,9 @@ Keep the user’s exact file-write restrictions in every brief, follow-up and ha
 
 ## Autonomy
 
-`autonomy` is `guided` (the default) or `full`. The orchestrator resolves it from the user's words, the session, the `COPILOT_CONCIERGE_AUTONOMY` environment variable, then the project and user files, and states it on every report's `autonomy:` line. See [autonomy](autonomy.md) for the setting and the one-task launcher.
+`autonomy` is `guided` (the default) or `full`. The user's current words and session preference take precedence. The launcher resolves its flag, `COPILOT_CONCIERGE_AUTONOMY`, and configuration files before any model starts, then includes the effective value and source in each profile. A plain installed plugin needs a permitted shell read to see the environment variable; it cannot guarantee the same bootstrap behavior. The orchestrator states the selected value and source on every report's `autonomy:` line. See [autonomy](autonomy.md) for the exact precedence and [container workers](container-service.md) for unattended startup.
 
-With `full` the run is treated as unattended. The orchestrator settles ordinary questions itself and records each as `decided for the user: <choice>: <why>` in the handover's `decisions`; it sends no `needs_input` and no plan or phase checkpoint, and stops only for `done`, `cancelled`, a hard stop reported as `blocked`, or `needs_approval` when plan approval is `ask`. The Concierge entry agent stays in its turn until one of those arrives, never calls `ask_user`, and ends its reply with `CONCIERGE-RESULT: <status> <objective-id>`.
+With `full` the run is treated as unattended. The orchestrator settles ordinary questions itself and records each as `decided for the user: <choice>: <why>` in the handover's `decisions`; it sends no `needs_input` and no plan or phase checkpoint, and stops only for `done`, `cancelled`, a hard stop reported as `blocked`, or `needs_approval` when plan approval is `ask`. The Concierge entry agent ends its turn while the background orchestrator works and is woken by the host's notification; it does not poll or call `ask_user`. After collecting the report, it ends its reply with `CONCIERGE-RESULT: <status> <objective-id>`. External-session control checkpoints still obtain the binding or supported return action described below.
 
 Before relaying `done` under `full`, the entry agent compares the report with the brief's acceptance criteria and the follow-up outcomes. If one lacks stated verification it sends `COMPLETION CHECK: <items>` once. That message is control metadata: the orchestrator verifies or finishes each item within scope, or says exactly why it cannot, and reports again. The entry agent compares reports only; it reads no files.
 
@@ -64,7 +64,7 @@ CONCIERGE-HANDOFF
 objective: <objective name>; task: <this worker's piece>
 objective-id: <stable ID from the brief>
 handoff-id: <unique ID for this assignment/attempt; never reused for a retry>
-owner: <current orchestrator name and actual agent ID>
+owner: <current orchestrator name; actual agent ID when bound, required for external sessions>
 collector: <actor with confirmed result access: owner or Concierge/root>
 return route: <native direct return or supported collector relay; actual destination and host capability>
 session: <pending before launch; actual host session ID recorded after launch>

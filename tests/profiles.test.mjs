@@ -167,6 +167,37 @@ test('ordinary scoped work proceeds by default while explicit approval remains a
   assert.match(orchestrator.body, /With `ask`, report `needs_approval` and wait/);
 });
 
+// These are prompt-contract regressions, not executions of the host or an LLM.
+test('plain installs honor environment autonomy before file defaults in both directions', async () => {
+  const { orchestrator } = await profiles();
+  const autonomy = orchestrator.body.match(/## Autonomy\n([\s\S]*?)\n## Git and pull requests/)[1];
+  assert.match(autonomy, /then this session, then an effective-configuration block/);
+  assert.match(autonomy, /use its value and source without rereading lower-priority sources/);
+  assert.match(autonomy, /read the variable with one shell command that does nothing else, before checking the project and user files/);
+  assert.match(autonomy, /Read only `COPILOT_CONCIERGE_AUTONOMY`, never dump the environment/);
+  assert.match(autonomy, /`full` overrides a file's `guided`, and `guided` overrides a file's `full`/);
+  assert.match(autonomy, /Only when the variable is unset or cannot be read/);
+  assert.match(autonomy, /The default is `guided`/);
+  assert.match(autonomy, /report an unavailable environment read rather than claiming the variable was applied/);
+  assert.match(autonomy, /Plan approval `ask` is not overridden/);
+  assert.doesNotMatch(autonomy, /if both leave it unset, read the variable/);
+});
+
+test('no-progress guard permits external handshakes, completion evidence and terminal results', async () => {
+  const { concierge } = await profiles();
+  const guard = concierge.body.match(/\*\*Loop guard, in every mode\.\*\* (.+)/)[1];
+  assert.match(guard, /only to consecutive `checkpoint` reports requesting a bare `CONTINUE`/);
+  assert.match(guard, /where you sent a bare `CONTINUE` between them/);
+  assert.match(guard, /Compare task state, reported evidence, unresolved questions and follow-up outcomes, and external control\/return state/);
+  assert.match(guard, /identical `tasks` lines alone do not establish a stall/);
+  assert.match(guard, /Owner-binding requests, external launch\/collection\/receipt updates, user answers or approvals, completion-check responses and terminal reports are never stalled merely because their task lists match/);
+  assert.match(guard, /If none of that state advanced, do not send `CONTINUE` again/);
+  assert.match(guard, /Send at most one `COMPLETION CHECK` per objective/);
+  assert.match(guard, /After a `blocked` report under `full`, send nothing more/);
+  assert.match(concierge.body, /If they later answer a displayed approval plan, apply the same plan-decision rules as in `guided` and send `PLAN DECISION: <exact choice and any text>`/);
+  assert.doesNotMatch(guard, /If two reports in a row from an orchestrator show the same `tasks` lines/);
+});
+
 test('orchestrator follows a customer copilot-concierge-routing skill without changing its rules', async () => {
   const { orchestrator } = await profiles();
   assert.match(orchestrator.body, /lists `copilot-concierge-routing` or skills named `copilot-concierge-routing-<something>`, load them before choosing specialists/);
@@ -322,6 +353,8 @@ test('handoff correlation and return fields agree across the profile and referen
   assert.match(orchestrator, /ask Concierge for an owner binding in a checkpoint/);
   assert.match(concierge, /When an orchestrator's checkpoint asks for its owner binding/);
   assert.match(concierge, /instead of a bare `CONTINUE`/);
+  assert.match(orchestrator, /Native direct returns need no owner-binding checkpoint, and you must never invent an agent ID/);
+  assert.match(orchestrator, /^owner: <current orchestrator name; actual agent ID when bound, required for external sessions>$/m);
   for (const text of [orchestrator, handoff]) {
     assert.match(text, /^objective-id: <stable ID, unchanged across rollover\/resume>/m);
     assert.match(text, /^- returns: .*actual session ID or pending.*result reference and owner receipt/m);

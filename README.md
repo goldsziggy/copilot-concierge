@@ -6,7 +6,7 @@ Tell Concierge what you want to get done. Its objective lead plans, does focused
 
 Concierge is a native plugin for **GitHub Copilot CLI and the GitHub Copilot app**. It uses Copilot's agents, skills and permissions. You need a signed-in Copilot account with access to the configured models; the defaults are GPT-6 Luna and GPT-6.1 Sol.
 
-The main branch tracks **0.9.0**, which consolidates implementation into a worker with task-specific skills and formalizes the plan and proportional grill. For a published build, see the [latest GitHub release](https://github.com/goldsziggy/copilot-concierge/releases/latest); main may contain changes not yet included there.
+The main branch tracks **0.10.0**, which adds full autonomy, one-task runs for containers and CI, and reusable workflow skills. Normal plugin installations remain guided by default. For a published build, see the [latest GitHub release](https://github.com/goldsziggy/copilot-concierge/releases/latest); main may contain changes not yet included there.
 
 ## Get started
 
@@ -21,6 +21,8 @@ copilot --agent copilot-concierge:concierge
 Then give it a goal:
 
 > Make the basket screen easier to use. Follow our existing design system, show me the plan, then implement it and run the relevant tests.
+
+A normal installation starts in **`guided` mode**. It keeps the conversation, questions and progress checkpoints. Running inside a container does not change the mode.
 
 **In the app:** open **Customize → Plugins**, add the `goldsziggy/copilot-concierge` marketplace and install **copilot-concierge**. Open your project, select **concierge** in the agent picker and **GPT-6 Luna** in the model picker, then send your request. Restart the app if a CLI installation does not appear.
 
@@ -55,7 +57,18 @@ These are skills the execution owner loads when useful, not additional agents or
 
 Concierge proceeds with ordinary work within your requested scope by default. Set `{"planApproval":"ask"}` or request a plan-only review if you want to approve the plan first. Copilot's tool permissions and explicit restrictions still apply. [Approval settings →](references/approval-preference.md)
 
-**Hand the whole task over when you want to.** Say "just handle it, don't ask me", or set `COPILOT_CONCIERGE_AUTONOMY=full`, and Concierge stops asking: it decides ordinary questions itself, tells you what it decided, checks the result against your goal and stops only for something it must not decide alone. This mode is built for unattended runs; `node scripts/launch.mjs --task-file task.md` runs one task and exits with a status a pipeline can use. Copilot's permissions are unchanged. [Autonomy and CI →](references/autonomy.md)
+**Hand the whole task over when you want to.** Say "just handle it, don't ask me" to choose `full` autonomy for the work. Concierge settles ordinary questions, records its decisions and continues through the requested phases. Plan approval `ask` and Copilot's permissions still apply. [Autonomy →](references/autonomy.md)
+
+**Run it as a container or cloud worker.** Set `COPILOT_CONCIERGE_AUTONOMY=full` and use the one-task launcher. It resolves the environment before any model starts, runs the task, and returns an exit status the service can use. Choose plan approval explicitly and put the generated session copy on writable storage:
+
+```sh
+COPILOT_CONCIERGE_AUTONOMY=full node /opt/copilot-concierge/scripts/launch.mjs \
+  --project /work/project --output-parent /tmp/concierge-sessions \
+  --plan-approval auto --task-file /run/concierge/task.md \
+  -- --allow-tool write --allow-tool 'shell(npm test)' --max-ai-credits 30
+```
+
+The paths are the service's plugin copy, assigned checkout and task file. The plugin copy can be read-only. A plain installed plugin can read the environment only through a permitted model tool call; use the launcher for dependable environment configuration. [Container and cloud setup →](references/container-service.md)
 
 **Commits and pull requests are just requests.** Ask Concierge to commit, push or open a pull request, in the original request, as a follow-up or as a plan step, and it does it with your existing Git and GitHub tools. Copilot's tool permissions decide each command. Without such a request, Concierge leaves changes uncommitted and tells you so.
 

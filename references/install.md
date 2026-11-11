@@ -2,9 +2,9 @@
 
 You need GitHub Copilot CLI 1.0.93 or later and/or the GitHub Copilot app, signed in to an account that offers `gpt-6-luna` and `gpt-6.1-sol`. Concierge adds no services, hooks or credentials. Availability and fallback behavior depend on the host and account; organization model policies can restrict availability. A fallback has not been verified for every host.
 
-## 0.7.0
+## 0.10.0
 
-Version 0.7.0 allows Sol to work directly and delegate selectively, removes the Ship it step (ask for commits, pushes and pull requests directly), suggests grounded next steps and mirrors tasks into Copilot's todo view. See [migrating from 0.6.1](migration.md#from-concierge-061). Start a fresh session after updating because existing sessions keep their loaded profiles. See [runtime verification](runtime-verification.md#concierge-070-direct-capable-objective-ownership--2026-10-28) for checks and remaining acceptance limits. To return to the earlier coordination-only orchestrator, pin `goldsziggy/copilot-concierge#v0.6.1`.
+Version 0.10.0 adds full autonomy, one-task launcher runs for containers and CI, and remembered workflows saved as skills. Ordinary installations remain guided. Sol still works directly or delegates selectively, and commits, pushes and pull requests remain ordinary requests. Start a fresh session after updating because existing sessions keep their loaded profiles. See [runtime verification](runtime-verification.md) for source checks and the limits of the existing live trials. For an older installation, see [migrating from 0.6.1](migration.md#from-concierge-061).
 
 ## Windows prerequisites
 
@@ -32,11 +32,11 @@ copilot plugin install copilot-concierge@copilot-concierge
 
 App: open **Customize → Plugins**, use the marketplace control beside the marketplace dropdown, and add `goldsziggy/copilot-concierge`. Find **copilot-concierge** and select **Install**. Restart the app after a CLI installation if the plugin does not appear. See [GitHub’s app instructions](https://docs.github.com/en/copilot/how-tos/github-copilot-app/customize-github-copilot-app#adding-plugins).
 
-`goldsziggy/copilot-concierge` is the canonical, maintained plugin repository. Its marketplace follows `main`; use `goldsziggy/copilot-concierge#v0.7.0` to pin the 0.7.0 release. No access to the former private development repository is needed.
+`goldsziggy/copilot-concierge` is the canonical, maintained plugin repository. Its marketplace follows `main`; use `goldsziggy/copilot-concierge#v0.10.0` to pin the 0.10.0 release. No access to the former private development repository is needed.
 
 ### From a local copy
 
-Unzip `copilot-concierge-0.7.0.zip` (it contains a `copilot-concierge` folder) or clone the repository. On macOS, choose a location the app can read: historical app trials encountered privacy restrictions under `~/Documents` and external drives. Then point Copilot at the extracted or cloned `copilot-concierge` folder:
+Unzip `copilot-concierge-0.10.0.zip` (it contains a `copilot-concierge` folder) or clone the repository. On macOS, choose a location the app can read: historical app trials encountered privacy restrictions under `~/Documents` and external drives. Then point Copilot at the extracted or cloned `copilot-concierge` folder:
 
 ```sh
 copilot plugin marketplace add /path/to/copilot-concierge
@@ -57,7 +57,7 @@ Or run `/agent` in an open session and pick **concierge**.
 
 App: open a project, choose **concierge** in the agent picker under the message box, then choose **GPT-6 Luna** in the model picker **before sending the first message**. The app otherwise starts the session on its default model; Concierge's orchestrator and specialists keep their own pinned models either way.
 
-Then describe the goal, ask a question or paste a ticket. Concierge asks focused questions, shows a short plan for approval and reports back. See [sample prompts](../examples/requests.md).
+Then describe the goal, ask a question or paste a ticket. A normal installation uses `guided` autonomy: Concierge asks focused questions when needed, shows a short plan and reports back. Plan approval defaults to `auto`; set it to `ask` to wait for your approval. A container or cloud host does not change these defaults. See [sample prompts](../examples/requests.md).
 
 Copilot keeps its own tool permissions. To stop being asked before each command or edit, use `copilot --agent copilot-concierge:concierge --allow-all` (or `/allow-all`) in the CLI, or **Mode → Tool permissions → Approve all** in the app. That is separate from Concierge's plan approval.
 
@@ -88,7 +88,7 @@ Concierge reads two optional files; nothing creates them for you:
 
 `ask` shows the plan and waits for your answer; `auto` (the default) shows the plan and continues. Saying "go ahead without asking" or "ask me first" in the conversation overrides the files for that request or session. The project file wins over the user file. Reading the user file may trigger one Copilot path prompt.
 
-The same files accept `"autonomy": "guided"` (the default) or `"full"`, and the `COPILOT_CONCIERGE_AUTONOMY` environment variable overrides them. `full` is for unattended runs; see [autonomy](autonomy.md).
+The same files accept `"autonomy": "guided"` (the default) or `"full"`. Through the launcher, `COPILOT_CONCIERGE_AUTONOMY` overrides configuration files and `--autonomy` overrides the variable. A plain installed plugin needs a permitted shell read to see the variable; use the launcher for deterministic environment configuration. `full` is for unattended runs and leaves plan approval and permissions separate. See [autonomy](autonomy.md).
 
 ### Your own agents and skills
 
@@ -97,6 +97,8 @@ Add agents, skills and a `copilot-concierge-routing` table in the places Copilot
 ### Session-local launcher
 
 For different models or a scripted setup, `node scripts/launch.mjs --project /path/to/project` creates a configured copy of the plugin and starts the CLI with it. It reads the same files plus `--session-config FILE`, `--plan-approval ask|auto` and `--autonomy guided|full`, and accepts `models` (`concierge`, `orchestrator`, `specialist`, `escalation`) and `extraDirectories` in those files. `node scripts/configure.mjs --print-only` shows the resolved settings without launching. Add `--task TEXT` or `--task-file FILE` to run one task without a prompt and exit with its result; see [one task in CI](autonomy.md#one-task-in-ci).
+
+For a container or cloud worker, keep the plugin source read-only and pass a writable `--output-parent`, such as `/tmp/concierge-sessions`, outside it. Set `COPILOT_CONCIERGE_AUTONOMY=full`, choose `--plan-approval auto` explicitly for unattended implementation, and forward only the task's required Copilot permissions plus `--max-ai-credits`. Each launch runs one task; an existing job runner handles scheduling. See the [container service entrypoint](container-service.md).
 
 The deprecated `models.frontdesk` setting remains accepted as an input alias for `models.concierge`. Use only one of these keys in each configuration file; specifying both is an error. This setting compatibility does not preserve the old agent invocation.
 
