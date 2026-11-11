@@ -1,64 +1,88 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="860" viewBox="0 0 1120 860" role="img" aria-labelledby="title description">
-  <title id="title">Concierge and its working objective lead</title>
-  <desc id="description">You talk to Concierge. Concierge relays questions and updates, with plan approval when requested or required. Sol owns each objective, working directly or delegating to workers who load relevant React, Node and GraphQL skills. Planning records the outcome and acceptance criteria. Grill challenges material assumptions proportionally, with independent review when warranted. Workers return evidence to Sol. Copilot permissions, user restrictions and learning safeguards remain authoritative.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1010" viewBox="0 0 1120 1010" role="img" aria-labelledby="title description">
+  <title id="title">How Concierge gets an objective done</title>
+  <desc id="description">You talk to Concierge. Concierge passes each objective to Sol, the working lead, and relays questions, plans and results. Sol picks the lightest path that finishes the job: a fast path for small, clear work with no skill and no worker; the full workflow with a plan and skills for larger work; or delegation to a worker, reviewer or scout when a separate context pays for itself. Every result is verified, lists what was decided for you, suggests next steps and ends with a result line. In guided mode Concierge asks and shows the plan; in full autonomy it decides, records each decision and stops only at hard stops; a Copilot SDK client can drive the same plugin unattended. Copilot permissions and your restrictions always apply.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M1 1 L9 5 L1 9" fill="none" stroke="#007e87" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
-    <style>text{font-family:Arial,Helvetica,sans-serif}.heading{fill:#062342;font-size:26px;font-weight:700}.body{fill:#466175;font-size:20px}.small{fill:#466175;font-size:18px}.label{fill:#466175;font-size:14px;font-weight:700;letter-spacing:1.4px}.line{fill:none;stroke:#007e87;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}</style>
+    <style>text{font-family:Arial,Helvetica,sans-serif}.heading{fill:#062342;font-size:26px;font-weight:700}.body{fill:#466175;font-size:20px}.small{fill:#466175;font-size:18px}.label{fill:#466175;font-size:14px;font-weight:700;letter-spacing:1.4px}.line{fill:none;stroke:#007e87;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.onDark{fill:#d9eff1;font-size:19px}.onDarkLabel{fill:#55e1db;font-size:14px;font-weight:700;letter-spacing:1.4px}.onDarkHead{fill:#ffffff;font-size:22px;font-weight:700}</style>
   </defs>
-  <rect width="1120" height="860" rx="24" fill="#f3f9fa"/>
+  <rect width="1120" height="1010" rx="24" fill="#f3f9fa"/>
   <rect x="40" y="40" width="8" height="46" rx="4" fill="#00bfc3"/>
-  <text x="65" y="71" fill="#062342" font-size="34" font-weight="750">One objective. A working lead.</text>
-  <text x="65" y="107" class="body">Direct work by default when focused. Separate agents when useful.</text>
+  <text x="65" y="71" fill="#062342" font-size="34" font-weight="750">One conversation. One working lead.</text>
+  <text x="65" y="107" class="body">Small work stays small. Help is brought in only when it pays.</text>
+
   <rect x="40" y="145" width="250" height="136" rx="18" fill="white" stroke="#b9cdd4"/>
   <text x="65" y="184" class="label">YOU</text>
   <text x="65" y="219" class="heading">Share a goal</text>
   <text x="65" y="253" class="body">Answer what matters</text>
   <path d="M306 213 H342" class="line" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
   <rect x="358" y="145" width="316" height="136" rx="18" fill="#062342"/>
-  <text x="383" y="184" fill="#55e1db" font-size="14" font-weight="700" letter-spacing="1.4">YOUR CONVERSATION</text>
+  <text x="383" y="184" class="onDarkLabel">YOUR CONVERSATION</text>
   <text x="383" y="219" fill="white" font-size="27" font-weight="700">Concierge</text>
-  <text x="383" y="246" fill="#d9eff1" font-size="20">Questions &amp; updates</text>
-  <text x="383" y="269" fill="#d9eff1" font-size="17">Approval when requested or required</text>
+  <text x="383" y="246" class="onDark">Briefs, relays and reports</text>
+  <text x="383" y="269" fill="#d9eff1" font-size="17">Never does the work itself</text>
   <path d="M690 213 H726" class="line" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
   <rect x="742" y="145" width="338" height="136" rx="18" fill="white" stroke="#007e87" stroke-width="2"/>
   <text x="767" y="184" class="label">WORKING OBJECTIVE LEAD</text>
   <text x="767" y="219" class="heading">Sol</text>
-  <text x="767" y="246" class="body">Plan · execute · integrate</text>
-  <text x="767" y="269" class="small">Verify &amp; own completion</text>
-  <text x="40" y="326" class="body" font-weight="700">One owner keeps related reasoning, implementation and tests together</text>
+  <text x="767" y="246" class="body">Plan · execute · verify</text>
+  <text x="767" y="269" class="small">Owns the completion claim</text>
+
+  <text x="40" y="326" class="body" font-weight="700">Sol picks the lightest path that finishes the job</text>
   <path d="M911 281 V348 H200 V369 M560 348 V369 M911 348 V369" class="line"/>
   <path d="M200 359 V369" class="line" marker-end="url(#arrow)"/>
   <path d="M560 359 V369" class="line" marker-end="url(#arrow)"/>
   <path d="M911 359 V369" class="line" marker-end="url(#arrow)"/>
+
   <rect x="40" y="382" width="320" height="238" rx="18" fill="white" stroke="#007e87" stroke-width="2"/>
-  <text x="64" y="417" class="label">DIRECT EXECUTION</text>
-  <text x="64" y="452" class="heading">Skills + tools</text>
-  <text x="64" y="488" class="body">Inspect · plan · build · test</text>
-  <text x="64" y="519" class="body">Load relevant procedures</text>
+  <text x="64" y="417" class="label">SMALL, CLEAR WORK</text>
+  <text x="64" y="452" class="heading">Fast path</text>
+  <text x="64" y="488" class="body">Read · change · check · report</text>
+  <text x="64" y="519" class="body">Done by Sol in one pass</text>
   <path d="M64 539 H336" stroke="#dce8eb"/>
-  <text x="64" y="570" class="small">Scoped context retrieval</text>
-  <text x="64" y="598" class="small">Same Scout helper &amp; safeguards</text>
+  <text x="64" y="570" class="small">No skill loaded, no worker</text>
+  <text x="64" y="598" class="small">Task list written twice</text>
+
   <rect x="400" y="382" width="320" height="238" rx="18" fill="white" stroke="#c7d9de"/>
-  <text x="424" y="417" class="label">SELECTIVE DELEGATION</text>
-  <text x="424" y="452" class="heading">Workers + skills</text>
-  <text x="424" y="488" class="body">React · Node · GraphQL</text>
-  <text x="424" y="519" class="body">Load skills for the assignment</text>
+  <text x="424" y="417" class="label">LARGER OR UNCLEAR WORK</text>
+  <text x="424" y="452" class="heading">Plan + skills</text>
+  <text x="424" y="488" class="body">Outcome and checks first</text>
+  <text x="424" y="519" class="body">Skills loaded as needed</text>
   <path d="M424 539 H696" stroke="#dce8eb"/>
-  <text x="424" y="570" class="small">Independent or owned work</text>
-  <text x="424" y="598" class="small">Respect routes &amp; return evidence</text>
+  <text x="424" y="570" class="small">React · Node · GraphQL · debug</text>
+  <text x="424" y="598" class="small">Your saved workflows apply</text>
+
   <rect x="760" y="382" width="320" height="238" rx="18" fill="white" stroke="#c7d9de"/>
-  <text x="784" y="417" class="label">PLANNING &amp; REVIEW</text>
-  <text x="784" y="452" class="heading">Plan + grill</text>
-  <text x="784" y="488" class="body">Outcome &amp; acceptance</text>
-  <text x="784" y="519" class="body">Challenge material assumptions</text>
+  <text x="784" y="417" class="label">WHEN SEPARATE CONTEXT PAYS</text>
+  <text x="784" y="452" class="heading">Specialists</text>
+  <text x="784" y="488" class="body">Worker · reviewer · scout</text>
+  <text x="784" y="519" class="body">Handoff in, evidence back</text>
   <path d="M784 539 H1056" stroke="#dce8eb"/>
-  <text x="784" y="570" class="small">Proportional independent review</text>
-  <text x="784" y="598" class="small">Evidence · resolution · checks</text>
-  <text x="560" y="658" text-anchor="middle" class="body">Workers report to Sol. A tracked task does not require another agent.</text>
-  <text x="560" y="689" text-anchor="middle" class="small">Copilot permissions, user restrictions and configured models still apply.</text>
-  <rect x="40" y="720" width="1040" height="108" rx="18" fill="#062342"/>
-  <text x="64" y="761" fill="white" font-size="28" font-weight="700">Talk to your Concierge.</text>
-  <text x="64" y="798" fill="#d9eff1" font-size="22">It keeps the conversation moving while Sol gets the objective done.</text>
+  <text x="784" y="570" class="small">Independent review of risky work</text>
+  <text x="784" y="598" class="small">Your routing rules are honored</text>
+
+  <rect x="40" y="648" width="1040" height="104" rx="18" fill="white" stroke="#b9cdd4"/>
+  <text x="64" y="683" class="label">EVERY RESULT</text>
+  <text x="64" y="722" class="body">Verified outcome</text>
+  <text x="300" y="722" class="body">Decided for you</text>
+  <text x="524" y="722" class="body">Suggested next steps</text>
+  <text x="792" y="722" class="body">A result line for scripts</text>
+  <path d="M276 700 V730 M500 700 V730 M768 700 V730" stroke="#dce8eb" stroke-width="2"/>
+
+  <rect x="40" y="776" width="320" height="130" rx="18" fill="#062342"/>
+  <text x="64" y="811" class="onDarkLabel">GUIDED · DEFAULT</text>
+  <text x="64" y="846" class="onDarkHead">You stay in the loop</text>
+  <text x="64" y="878" class="onDark">Questions, plan, checkpoints</text>
+  <rect x="400" y="776" width="320" height="130" rx="18" fill="#062342"/>
+  <text x="424" y="811" class="onDarkLabel">FULL AUTONOMY</text>
+  <text x="424" y="846" class="onDarkHead">Hand the task over</text>
+  <text x="424" y="878" class="onDark">Decides, records, stops if stuck</text>
+  <rect x="760" y="776" width="320" height="130" rx="18" fill="#062342"/>
+  <text x="784" y="811" class="onDarkLabel">AUTOMATION</text>
+  <text x="784" y="846" class="onDarkHead">Copilot SDK client</text>
+  <text x="784" y="878" class="onDark">Same plugin, reads the result</text>
+
+  <text x="560" y="950" text-anchor="middle" class="body">Copilot's permissions and your restrictions apply in every mode.</text>
+  <text x="560" y="980" text-anchor="middle" class="small">A tracked task does not require another agent.</text>
 </svg>
