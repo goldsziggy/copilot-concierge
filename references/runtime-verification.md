@@ -1,5 +1,30 @@
 # Runtime verification
 
+## Concierge 0.11.0: lean orchestration - 2026-11-11
+
+Based on main `9a9573c` (0.10.0). Source checks on Windows 11, Node 24.22.1: `npm test` ran 148 tests: 116 passed, 0 failed, 32 platform skips; `npm run validate` passed with 12 skills, 7 agents and 111 files.
+
+Live trials used `@github/copilot-sdk` 1.0.31 with Copilot CLI 1.0.109, the plugin loaded from the working tree, a 30-credit session limit, full autonomy stated in the prompt and a permission handler that approved reads, writes inside the checkout, `npm test` and read-only git. The small task is a one-line fix plus a test; the medium task adds coupon support across four files and asks for an independent review. Each row is one run.
+
+| Task | Version | Result | Model calls | Input tokens | Time | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| Small | 0.10.0 | done | 14 | 291k | 2m 20s | Loaded `orchestrate` and `debugging`; 8 task-list writes |
+| Small | Fast path | done | 15 | 279k | 1m 59s | No skill loaded; 4 task-list writes |
+| Medium | 0.10.0 | done | 23 | 467k | 3m 29s | 2 compound commands rejected |
+| Medium | Lean profile | done | 21 | 405k | 3m 43s | Reviewer chained commands: 3 rejected, second reviewer started |
+| Medium | Shell rule in every profile | done | 21 | 402k | 3m 30s | 0 rejected, one reviewer |
+| Medium | Split skill and decided block | done | 18 | 358k | 3m 1s | Four decided items reported and relayed |
+| Medium | External sessions removed | done | 30 | 614k | 4m 49s | Review found a rounding defect; fixed and re-reviewed |
+
+Observed:
+
+- The orchestrator loaded `orchestrate` on demand before delegating and sent the reviewer a handoff with a handoff-id. `orchestrate-reference` was never loaded, as intended for a plain delegation.
+- After the shell rule reached the specialist profiles, no shell command was rejected in three runs except one ad hoc `node -e` check outside the allowlist.
+- The `decided for the user` block was filled and relayed in both runs after it was added.
+- Run-to-run variance is large: the last run cost more because the review found a real defect. The savings are indicative, not a measured average.
+
+Not fixed, and seen live: the reviewer loads both `review` and `grill-plan` for a change review; the entry agent's first `task` call sometimes omits the agent type and is retried. Not run live: guided questions, plan approval `ask`, a worker other than the reviewer, parallel objectives, rollover and the `orchestrate-reference` rules.
+
 ## Concierge 0.10.0: plugin-only automation - 2026-11-10
 
 Based on main `5684474`. Before 0.10.0 was tagged, the one-task launcher mode and its service lifecycle (task flags, exit statuses, result-line parser, signal forwarding, container worker guide) were removed. Concierge is used as a plugin; unattended automation is a Copilot SDK client that loads it, described in [SDK automation](sdk-automation.md). The launcher starts an interactive session only, as before 0.10.0. The section below records checks of code that is no longer shipped.

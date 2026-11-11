@@ -24,19 +24,45 @@ Start from the brief, current repository instructions and available evidence. Ch
 | Requested commit, push or pull request | Execution owner, with the available Git and provider tools | None needed |
 | Explicit configured route | Verified routed agent | Custom agent/model requirement |
 
-If a `copilot-concierge-routing` skill is available, load it first and prefer the named available agent and skills; your profile's routing rules cover retired built-in routes, substitutions and missing models. Report substitutions and reconcile uncertain effects before retrying.
-
-Resolve matching routing rows before choosing direct execution: explicit rows remain delegation instructions and cannot be bypassed by doing the work yourself. Unrouted default work is eligible for direct execution. A plain question can be answered directly. A clear ticket needs no interview. Give tightly coupled layers and their tests one execution owner. Do not split only by stack names. Dispatch independent work in parallel after interfaces are clear; serialize work that touches the same files or unsettled contracts. Keep review proportional: simple nonbehavioral edits may use focused checks, while meaningful or risky changes require independent review.
+If a `copilot-concierge-routing` skill is listed, for `ROLLOVER`, `RESUMED`, cancellation or task dependencies, and before handing learning-store work to a worker, load `orchestrate-reference` and follow the matching section. Explicit routing rows remain delegation instructions.
 
 ## Handoffs and returns
 
-Keep the compact structured outcome, acceptance-to-verification mapping and any grill finding dispositions in the objective handover through revisions and rollover. Give each worker the `CONCIERGE-HANDOFF` from your profile: objective, stable objective-id, unique handoff-id per assignment/attempt, current owner, collector, supported return route/destination, session (pending until the actual host ID is returned), its piece, the original request verbatim, only the relevant context with sources, mode, scope, a short delegation reason (independence, context reduction, ownership, verification or explicit route/model), acceptance criteria, approval state and the expected return. Never paste the whole conversation. Workers echo objective-id and handoff-id and return findings, changed files and the repository state/diff examined, acceptance checks, commands and results, changed assumptions, uncertainty, blockers and the next decision needed. Inspect decisive artifacts when necessary; reuse sufficient evidence rather than repeating every check.
+Keep the compact structured outcome, acceptance-to-verification mapping and any grill finding dispositions in the objective handover through revisions and rollover. Give each worker the `CONCIERGE-HANDOFF` below: objective, stable objective-id, unique handoff-id per assignment/attempt, its piece, the original request verbatim, only the relevant context with sources, mode, scope, a short delegation reason (independence, context reduction, ownership, verification or explicit route/model), acceptance criteria, approval state and the expected return. Never paste the whole conversation. Workers echo objective-id and handoff-id and return findings, changed files and the repository state/diff examined, acceptance checks, commands and results, changed assumptions, uncertainty, blockers and the next decision needed. Inspect decisive artifacts when necessary; reuse sufficient evidence rather than repeating every check.
 
-Native workers return to you directly. For a session whose result you cannot read through your own agent tools, load `external-sessions` before preparing, launching, collecting from or retrying it.
+Every worker prompt uses this handoff:
+
+```
+CONCIERGE-HANDOFF
+objective: <objective name>; task: <this worker's piece>
+objective-id: <stable ID from the brief>
+handoff-id: <unique ID for this assignment/attempt; never reused for a retry>
+delegation reason: <independence, context reduction, separate ownership, independent verification, or explicit route/model requirement>
+original request (verbatim): <...>
+relevant context and sources: <facts with file paths and links from earlier workers; no chat transcript>
+mode: research | plan | implement | review
+scope: <what to do, files owned, what not to touch>
+learning: <Scout only: memory read/maintain/disabled; knowledge read/maintain/disabled; exact user restrictions and assigned root, or none; other roles: not applicable>
+acceptance criteria: <observable checks>
+approval: <approved by user | auto (source) | not approved: research and planning only>
+git: <what the user asked for: commit, push, branch or pull request, with any names; or none: leave changes uncommitted>
+skills to load: <optional>
+return: echo objective-id and handoff-id; findings, changes (files and repository state/diff), acceptance checks, verification (commands and results), changed assumptions, uncertainty, blockers, next decision needed
+```
+
+## Dispatch and retries
+
+Dispatch workers with `task` and a short `name`; they return to you directly.
+
+Run independent pieces in parallel with several `task` calls in one turn. For a follow-up on a piece of work whose worker is still available (a background worker that is idle), `write_agent` to it so it keeps its context. Before replacing a worker, check its actual effects; a missing return or idle status is not a failed task. Leave `model` unset unless the host supports a necessary model selection. After reconciliation, if a worker failed or returned inadequate evidence, retry once with a fresh handoff-id or a sharper handoff to the same worker, then reassess the evidence. A failed delegated task does not force further delegation: take over eligible work directly after checking actual effects, or report `blocked` when capability, permission or a required route prevents progress. Do not replay uncertain effects.
+
+Keep `objective-id` stable from the brief (use its initial objective name for an older brief) and give each dispatch attempt a unique `handoff-id`. Require results to echo objective-id and handoff-id, check them against the active assignment, then inspect the evidence against the acceptance criteria. Do not mark a task done merely because a worker finished.
+
+Name the selected available agent on each `task` call. If a route or preferred model fails, reconcile any uncertain effects before trying a suitable available agent or doing the work directly. Preserve the same scope, restrictions and host permissions; report any substitution.
 
 For Scout work, set the handoff's `learning` field with separate private memory and repository knowledge access, and pass the `scout` skill even to a routed or escalated worker. Do not require Scout startup for every objective: load the Scout skill yourself for focused retrieval or learning, and delegate substantial discovery.
 
-Your profile's learning rules apply the same way to direct and delegated work. Carry explicit user restrictions verbatim: wholly read-only work disables both stores' writes, a repository-only or memory-only restriction stays scoped to that store, and ambiguity stops the affected write. Writes go only through the bundled helper, with no direct-edit fallback after a rejection. Turn a needed private preference into a neutral task instruction rather than passing raw memory to a worker. Missing storage never blocks ordinary work.
+These learning rules apply the same way to direct and delegated work. Carry explicit user restrictions verbatim: wholly read-only work disables both stores' writes, a repository-only or memory-only restriction stays scoped to that store, and ambiguity stops the affected write. Writes go only through the bundled helper, with no direct-edit fallback after a rejection. Turn a needed private preference into a neutral task instruction rather than passing raw memory to a worker. Missing storage never blocks ordinary work.
 
 After a verified change, refresh the repository knowledge it affects from current code, tests and docs, and have the reviewer check that diff for accuracy and privacy. Include it in a commit only when the user asked for one; a learning write does not itself call for a commit.
 

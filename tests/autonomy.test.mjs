@@ -105,7 +105,7 @@ test('the brief and report carry autonomy consistently across profiles and the r
     assert.match(text, /decided for the user/);
   }
   assert.match(orchestrator, new RegExp(AUTONOMY_ENV));
-  assert.match(orchestrator, /read the variable with one shell command that does nothing else/);
+  assert.match(orchestrator, /with one shell command that does nothing else, once per objective/);
   assert.match(orchestrator, /A setting you cannot read is unset: use the default and continue, and never stop for it/);
   assert.match(orchestrator, /The default is `guided`/);
   assert.match(orchestrator, /report any other value and use `guided`/);
@@ -130,7 +130,7 @@ test('full autonomy is unattended: it decides, never asks and stops only at hard
     /If the same step fails the same way twice, stop retrying it and report `blocked`/,
     /continuing without progress is not/,
     /A denied tool call is not a hard stop/,
-    /run each command on its own exactly as the task or repository names it/,
+    /Run one command per shell call, exactly as the task or repository names it/,
     /A source you cannot read is unset, never a blocker/,
     /`COMPLETION CHECK: <items>` from Concierge is control metadata, not a user request/,
   ]) assert.match(orchestrator, pattern);

@@ -16,6 +16,10 @@ async function profiles() {
     const value = key => header.match(new RegExp(`^${key}: (.+)$`, 'm'))?.[1];
     result[value('name')] = { model: value('model'), policy: value('model-policy'), tools: value('tools'), header, body: text.slice(header.length) };
   }
+  const orchestrate = (await readFile(new URL('../skills/orchestrate/SKILL.md', import.meta.url), 'utf8')).replace(/\r\n/g, '\n');
+  const reference = (await readFile(new URL('../skills/orchestrate-reference/SKILL.md', import.meta.url), 'utf8')).replace(/\r\n/g, '\n');
+  result.orchestrator.contract = `${result.orchestrator.body}\n${orchestrate}\n${reference}`;
+  result.orchestrator.orchestrate = orchestrate;
   return result;
 }
 
@@ -58,20 +62,20 @@ test('learning access and privacy survive routing, escalation and rollover', asy
   const orchestration = await readFile(new URL('../skills/orchestrate/SKILL.md', import.meta.url), 'utf8');
   const handoff = await readFile(new URL('../references/handoff.md', import.meta.url), 'utf8');
   assert.equal((concierge.body.match(/^file-write restrictions stated by user:/gm) ?? []).length, 2);
-  for (const content of [concierge.body, orchestrator.body, escalation.body, orchestration, handoff]) {
+  for (const content of [concierge.body, orchestrator.contract, escalation.body, orchestration, handoff]) {
     assert.match(content, /learning/i);
     assert.match(content, /wholly read-only/i);
     assert.match(content, /private/);
     assert.match(content, /repository knowledge/);
   }
-  for (const content of [orchestrator.body, handoff]) {
+  for (const content of [orchestrator.contract, handoff]) {
     assert.match(content, /^learning: .*memory read\/maintain\/disabled; knowledge read\/maintain\/disabled/m);
   }
   assert.match(concierge.body, /even without a repository/);
   assert.match(concierge.body, /Carry this distinction through follow-ups and rollover/);
-  assert.match(orchestrator.body, /Serialize private memory mutations per OS user and knowledge mutations per repository/);
-  assert.match(orchestrator.body, /other roles have no learning-write exception/);
-  assert.match(orchestrator.body, /never put raw memory, user evidence or personal history/);
+  assert.match(orchestrator.contract, /Serialize private memory mutations per OS user and knowledge mutations per repository/);
+  assert.match(orchestrator.contract, /other roles have no learning-write exception/);
+  assert.match(orchestrator.contract, /never put raw memory, user evidence or personal history/);
   assert.match(orchestration, /even to a routed or escalated worker/);
 });
 
@@ -90,10 +94,10 @@ test('knowledge commits stay deliberate and memories cannot grant authority', as
 
 test('routing and model gaps permit scoped host-supported fallback', async () => {
   const { orchestrator } = await profiles();
-  assert.match(orchestrator.body, /model pin is a preference, not an eligibility requirement/);
-  assert.match(orchestrator.body, /execute directly within scope/);
-  assert.match(orchestrator.body, /Never bypass host permissions or a user restriction/);
-  assert.match(orchestrator.body, /reconcile any uncertain effects/);
+  assert.match(orchestrator.contract, /model pin is a preference, not an eligibility requirement/);
+  assert.match(orchestrator.contract, /execute directly within scope/);
+  assert.match(orchestrator.contract, /Never bypass host permissions or a user restriction/);
+  assert.match(orchestrator.contract, /reconcile any uncertain effects/);
 });
 
 test('Concierge entry is control-only; the root list does not restrict its children', async () => {
@@ -177,24 +181,23 @@ test('plain installs honor environment autonomy before file defaults in both dir
   const autonomy = orchestrator.body.match(/## Autonomy\n([\s\S]*?)\n## Git and pull requests/)[1];
   assert.match(autonomy, /then this session, then an effective-configuration block/);
   assert.match(autonomy, /use its value and source without rereading lower-priority sources/);
-  assert.match(autonomy, /read the variable with one shell command that does nothing else, before checking the project and user files/);
-  assert.match(autonomy, /Read only `COPILOT_CONCIERGE_AUTONOMY`, never dump the environment/);
-  assert.match(autonomy, /`full` overrides a file's `guided`, and `guided` overrides a file's `full`/);
-  assert.match(autonomy, /Only when the variable is unset or cannot be read/);
+  assert.match(autonomy, /read `COPILOT_CONCIERGE_AUTONOMY` with one shell command that does nothing else, once per objective, and never dump the environment/);
+  assert.match(autonomy, /A valid value overrides the project and user files in either direction/);
+  assert.match(autonomy, /Only when the variable is unset, empty or cannot be read/);
   assert.match(autonomy, /The default is `guided`/);
   assert.match(autonomy, /report an unavailable environment read rather than claiming the variable was applied/);
   assert.match(autonomy, /Plan approval `ask` is not overridden/);
   assert.doesNotMatch(autonomy, /if both leave it unset, read the variable/);
 });
 
-test('no-progress guard permits external handshakes, completion evidence and terminal results', async () => {
+test('no-progress guard permits completion evidence and terminal results', async () => {
   const { concierge } = await profiles();
   const guard = concierge.body.match(/\*\*Loop guard, in every mode\.\*\* (.+)/)[1];
   assert.match(guard, /only to consecutive `checkpoint` reports requesting a bare `CONTINUE`/);
   assert.match(guard, /where you sent a bare `CONTINUE` between them/);
-  assert.match(guard, /Compare task state, reported evidence, unresolved questions and follow-up outcomes, and external control\/return state/);
+  assert.match(guard, /Compare task state, reported evidence, unresolved questions and follow-up outcomes; identical/);
   assert.match(guard, /identical `tasks` lines alone do not establish a stall/);
-  assert.match(guard, /Owner-binding requests, external launch\/collection\/receipt updates, user answers or approvals, completion-check responses and terminal reports are never stalled merely because their task lists match/);
+  assert.match(guard, /User answers or approvals, completion-check responses and terminal reports are never stalled merely because their task lists match/);
   assert.match(guard, /If none of that state advanced, do not send `CONTINUE` again/);
   assert.match(guard, /Send at most one `COMPLETION CHECK` per objective/);
   assert.match(guard, /After a `blocked` report under `full`, send nothing more/);
@@ -233,12 +236,12 @@ test('commits, pushes and pull requests are ordinary requests, never refused as 
     /Without such a request, leave changes uncommitted and say so/,
     /Do not force-push, rewrite published history, merge or delete branches unless the user asks/,
     /^git: <what the user asked for/m,
-  ]) assert.match(orchestrator.body, pattern);
+  ]) assert.match(orchestrator.contract, pattern);
   assert.match(concierge.body, /Never tell the user that Concierge cannot commit, push or open a pull request/);
   assert.match(orchestration, /Never answer that the Concierge workflow cannot commit or push/);
   assert.match(escalation.body, /when the handoff's `git` line says the user asked for it/);
   assert.match(scoutSkill, /Scout may perform specifically requested Git actions/);
-  for (const text of [orchestrator.body, orchestration, escalation.body]) {
+  for (const text of [orchestrator.contract, orchestration, escalation.body]) {
     assert.doesNotMatch(text, /Do not authorize commits|no-commit\/push|never merge or push|When the user authorizes commits/);
   }
 });
@@ -255,7 +258,7 @@ test("Sol mirrors its checklist into the session todos that Copilot's todo view 
     /keep the earlier ids/,
     /Workers never write todos/,
     /continue with the checklist alone/,
-  ]) assert.match(orchestrator.body, pattern);
+  ]) assert.match(orchestrator.contract, pattern);
   assert.match(concierge.body, /you do not write those/);
   // Mirroring is Sol's job; the entry agent stays control-only with no SQL tool.
   assert.doesNotMatch(concierge.tools, /\bsql\b/);
@@ -299,7 +302,7 @@ test('direct execution preserves route, evidence, approval and recovery boundari
     /stop direct work and dispatching/,
     /inspect directly or have a scout check what already exists/,
     /never directly edit a store or bypass a helper refusal/,
-  ]) assert.match(orchestrator.body, pattern);
+  ]) assert.match(orchestrator.contract, pattern);
 });
 
 test('reusable skills preserve profile identity rather than forcing Sol into a leaf role', async () => {
@@ -314,116 +317,37 @@ test('reusable skills preserve profile identity rather than forcing Sol into a l
 });
 
 // Source-contract regressions, not a simulated transport or live model trial.
-async function returnContracts() {
+test('handoff correlation fields agree across the skill and reference', async () => {
   const { concierge, orchestrator } = await profiles();
-  const handoff = await readFile(new URL('../references/handoff.md', import.meta.url), 'utf8');
-  const external = await readFile(new URL('../skills/external-sessions/SKILL.md', import.meta.url), 'utf8');
-  return { concierge: concierge.body, external, handoff };
-}
-
-test('the external-session protocol loads on demand instead of with every objective', async () => {
-  const { orchestrator } = await profiles();
-  const orchestration = await orchestrationSkill();
-  const { external } = await returnContracts();
-  assert.match(external, /^---\nname: external-sessions\ndescription: .+\n---/);
-  assert.doesNotMatch(external, /\]\((?:\.\.\/|\/)/, 'skill is self-contained');
-  assert.match(external, /loading this skill grants no tool, access or authority/);
-  assert.match(orchestrator.body, /load the `external-sessions` skill and follow it/);
-  assert.match(orchestration, /load `external-sessions` before preparing, launching, collecting from or retrying it/);
-  // Always-loaded text keeps the pointer and the safe minimum, not the protocol.
-  for (const text of [orchestrator.body, orchestration]) {
-    assert.doesNotMatch(text, /result collected|owner accepted|Quarantine/);
-  }
-  assert.match(orchestrator.body, /never assume a callback/);
-  assert.match(orchestrator.body, /report `blocked` with the missing capability rather than waiting forever/);
-});
-
-test('handoff correlation and return fields agree across the profile and reference', async () => {
-  const { concierge, external, handoff } = await returnContracts();
-  const orchestrator = (await profiles()).orchestrator.body;
-  const template = text => text.match(/CONCIERGE-HANDOFF\r?\n([\s\S]*?)\r?\n```/)[1];
-  for (const field of ['objective-id', 'handoff-id', 'owner', 'collector', 'return route', 'session', 'return']) {
+  const handoff = (await readFile(new URL('../references/handoff.md', import.meta.url), 'utf8')).replace(/\r\n/g, '\n');
+  const template = text => text.match(/CONCIERGE-HANDOFF\n([\s\S]*?)\n```/)[1];
+  for (const field of ['objective-id', 'handoff-id', 'return']) {
     const line = text => template(text).match(new RegExp(`^${field}: .+$`, 'm'))?.[0];
-    assert.ok(line(orchestrator), field);
-    assert.equal(line(orchestrator), line(handoff), field);
+    assert.ok(line(orchestrator.contract), field);
+    assert.equal(line(orchestrator.contract), line(handoff), field);
   }
-  assert.equal((concierge.match(/^objective-id:/gm) ?? []).length, 2, 'new and rollover briefs preserve identity');
-  assert.match(concierge, /objective-id: <the original stable objective-id, unchanged>/);
-  assert.match(concierge, /Never reuse an objective-id for independent work/);
-  assert.match(concierge, /send its actual returned `agent_id` and stable objective-id back to it with `write_agent` as an owner binding/);
-  // Live trial 1 showed the unconditional binding costs a message on every
-  // objective; it is now sent only when an external session needs it.
-  assert.match(external, /request an owner binding in a checkpoint/);
-  assert.match(orchestrator, /ask Concierge for an owner binding in a checkpoint/);
-  assert.match(concierge, /When an orchestrator's checkpoint asks for its owner binding/);
-  assert.match(concierge, /instead of a bare `CONTINUE`/);
-  assert.match(orchestrator, /Native direct returns need no owner-binding checkpoint, and you must never invent an agent ID/);
-  assert.match(orchestrator, /^owner: <current orchestrator name; actual agent ID when bound, required for external sessions>$/m);
-  for (const text of [orchestrator, handoff]) {
-    assert.match(text, /^objective-id: <stable ID, unchanged across rollover\/resume>/m);
-    assert.match(text, /^- returns: .*actual session ID or pending.*result reference and owner receipt/m);
-  }
+  assert.equal((concierge.body.match(/^objective-id:/gm) ?? []).length, 2, 'new and rollover briefs preserve identity');
+  assert.match(concierge.body, /objective-id: <the original stable objective-id, unchanged>/);
+  assert.match(concierge.body, /Never reuse an objective-id for independent work/);
+  for (const text of [orchestrator.contract, handoff]) assert.match(text, /^objective-id: <stable ID, unchanged across rollover\/resume>/m);
 });
 
-test('root collection is conditional on actual capabilities and leaves acceptance with the owner', async () => {
-  const contracts = await returnContracts();
-  for (const [name, text] of Object.entries(contracts)) {
-    assert.match(text, /[Nn]ative (?:specialists|workers|worker).*direct/, name);
-    assert.match(text, /collector/, name);
-    assert.match(text, /capabilit/, name);
-    assert.match(text, /[Ii]f only (?:the root|Concierge)|accessible only to you/, name);
-    assert.match(text, /blocked/, name);
-    assert.match(text, /missing capability/, name);
-    assert.match(text, /(?:wait|waiting) forever|indefinite waiting/, name);
-    assert.doesNotMatch(text, /cloud_threads|send_message_to_thread|wait_threads/, 'no foreign host API names');
+// The external-session protocol never ran live and was retired after 0.10.0.
+test('external sessions are retired and archived, not half-present', async () => {
+  const all = await profiles();
+  const handoff = await readFile(new URL('../references/handoff.md', import.meta.url), 'utf8');
+  for (const [name, text] of [['concierge', all.concierge.body], ['orchestrator', all.orchestrator.contract], ['handoff', handoff]]) {
+    assert.doesNotMatch(text, /owner binding|owner-binding|collector|return route|result collected|owner accepted|Quarantine/i, name);
+    assert.doesNotMatch(text, /^- returns: /m, name);
+    assert.doesNotMatch(text, /load (the )?`external-sessions`/, name);
   }
-  assert.match(contracts.concierge, /never read repository files, implement, review or declare the worker's task complete yourself/);
-  for (const text of [contracts.external, (await profiles()).orchestrator.body]) {
-    assert.match(text, /Concierge collects and relays; you own evidence acceptance and completion/);
-  }
-  assert.match(contracts.concierge, /Native orchestrator reports notify you; do not poll those reports/);
-  assert.match(contracts.concierge, /bounded status\/result checks with a stated timeout or check limit/);
+  assert.match(all.orchestrator.body, /Concierge has no route for a session whose result you cannot read with your own agent tools/);
+  const archive = new URL('../docs/archive/external-sessions/', import.meta.url);
+  assert.match(await readFile(new URL('external-sessions.skill.md', archive), 'utf8'), /^name: external-sessions$/m);
+  assert.match(await readFile(new URL('README.md', archive), 'utf8'), /not loaded, validated or supported/);
+  await assert.rejects(readFile(new URL('../skills/external-sessions/SKILL.md', import.meta.url)), /ENOENT/);
 });
 
-test('launch, activity, collection, relay and owner acceptance are distinct receipts', async () => {
-  for (const [name, text] of Object.entries(await returnContracts())) {
-    for (const state of ['launch accepted', 'running', 'idle', 'result collected', 'relayed', 'owner accepted']) {
-      assert.ok(text.includes(state), `${name}: ${state}`);
-    }
-    assert.match(text, /[Ii]dle never means completed/, name);
-    assert.match(text, /(?:actual host session ID|actual session ID)/, name);
-    assert.match(text, /(?:acknowledgement|acknowledgement is only|send to the verified current owner)/, name);
-  }
-});
-
-test('return recovery reconciles original sessions and deduplicates before repeating work', async () => {
-  for (const [name, text] of Object.entries(await returnContracts())) {
-    assert.match(text, /[Rr]econcile.*original session|original session.*reconcil/s, name);
-    assert.match(text, /[Dd]eduplicate|duplicate delivery/, name);
-    assert.match(text, /handoff-id and result reference/, name);
-    assert.match(text, /[Qq]uarantine/, name);
-    assert.match(text, /stale attempts?|stale attempt/, name);
-    assert.match(text, /wrong-owner|[Ww]rong owner/, name);
-  }
-  const { concierge, external } = await returnContracts();
-  assert.match(concierge, /Never start a replacement worker merely because its return is missing/);
-  assert.match(external, /never duplicate implementation to repair delivery/);
-});
-
-test('owner rollover and cancellation preserve pending mappings and late evidence', async () => {
-  const contracts = await returnContracts();
-  for (const [name, text] of Object.entries(contracts)) {
-    assert.match(text, /successor/, name);
-    assert.match(text, /cancellation state/, name);
-    assert.match(text, /late results|late evidence/i, name);
-    assert.match(text, /(?:without|not|do not).*reopen.*cancelled/, name);
-    assert.match(text, /(?:without relaunching|Do not relaunch|do not launch the work again)/, name);
-  }
-  assert.match(contracts.concierge, /Preserve newer collector receipts when an older owner report arrives/);
-  assert.match((await profiles()).orchestrator.body, /Add `returns` entries as needed rather than omit unresolved mappings/);
-});
-
-// Static profile contracts; they do not prove live host tool or routing behavior.
 test('generic worker loads assigned domain skills and preserves explicit route migration', async () => {
   const all = await profiles();
   for (const name of ['enterprise-ux', 'react-frontend', 'node-backend', 'graphql']) assert.equal(all[name], undefined);
@@ -432,8 +356,47 @@ test('generic worker loads assigned domain skills and preserves explicit route m
   assert.equal(all.worker.tools, undefined);
   assert.match(all.worker.body, /planning-only or not-approved handoff does not authorize implementation/);
   assert.match(all.worker.body, /if the user did not request commit, push or a pull request, leave changes uncommitted/);
-  assert.match(all.orchestrator.body, /available custom agent named by a row still wins/);
-  assert.match(all.orchestrator.body, /add the corresponding domain skill alongside all row skills/);
-  assert.match(all.orchestrator.body, /Never rewrite the user's routing files silently/);
+  assert.match(all.orchestrator.contract, /available custom agent named by a row still wins/);
+  assert.match(all.orchestrator.contract, /add the corresponding domain skill alongside all row skills/);
+  assert.match(all.orchestrator.contract, /Never rewrite the user's routing files silently/);
   assert.ok(!((await readdir(new URL('../skills/', import.meta.url))).includes('enterprise-ux')));
+});
+
+// Live SDK trials: the preloaded orchestrate skill and a domain skill were
+// loaded for a one-line fix, and a third of the tool calls were list updates.
+test('small work takes a fast path and delegation rules load on demand', async () => {
+  const { orchestrator, worker } = await profiles();
+  assert.doesNotMatch(orchestrator.header, /^skills:/m, 'orchestrate is no longer preloaded');
+  for (const pattern of [
+    /## Small, clear work first/,
+    /Load no skill\. `orchestrate`, `plan`, `debugging` and the domain skills are for larger or unclear work/,
+    /Start no worker and ask for no review, unless the change is risky or the user asked for one/,
+    /Write the task list twice: once when you start and once with the result/,
+    /Leave the fast path as soon as the work proves larger, riskier or less clear/,
+    /Before your first `task` call in an objective, load `orchestrate`/,
+    /only when it changes shape or you report/,
+    /a turn that only updates the list is wasted/,
+    /at those same moments, in the same turn and in one `sql` call/,
+    /Run one command per shell call, exactly as the task or repository names it/,
+    /never a chained, piped or multi-statement line/,
+  ]) assert.match(orchestrator.body, pattern);
+  // The template and routing compatibility rules are in the skill only.
+  assert.doesNotMatch(orchestrator.body, /^handoff-id: </m);
+  assert.doesNotMatch(orchestrator.body, /retired built-in/);
+  assert.match(orchestrator.contract, /^handoff-id: </m);
+  assert.match(orchestrator.contract, /## Routing tables/);
+  assert.match(orchestrator.contract, /## Dispatch and retries/);
+  assert.match(orchestrator.contract, /## Todo rows/);
+  assert.match(worker.body, /Run one command per shell call, exactly as the handoff or repository names it/);
+  assert.ok(Buffer.byteLength(orchestrator.body) < 25000, 'the always-loaded orchestrator profile stays lean');
+  // A plain delegation loads the handoff and dispatch rules without the rare cases.
+  assert.ok(Buffer.byteLength(orchestrator.orchestrate) < 13000, 'the orchestrate skill stays small');
+  assert.doesNotMatch(orchestrator.orchestrate, /## Routing tables|## Todo rows/);
+  assert.match(orchestrator.orchestrate, /load `orchestrate-reference` and follow the matching section/);
+  // Live medium trials: the decided list appeared in one run of three.
+  assert.match(orchestrator.body, /^decided for the user:$/m);
+  assert.match(orchestrator.body, /Fill the report's `decided for the user` block in every report, never leaving it out/);
+  const { concierge } = await profiles();
+  assert.match(concierge.body, /always write a "Decided for you:" line/);
+  assert.match(concierge.body, /"Decided for you: nothing"/);
 });

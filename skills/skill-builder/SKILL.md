@@ -35,7 +35,7 @@ The user's file-write restrictions apply. With "do not write any files" in force
 
 Read what is already there first. If a skill of that name exists, update it: keep the user's text that the new instruction does not change, and say what you replaced. Never overwrite one silently, and never edit a skill that belongs to an installed plugin.
 
-Choose a name that says what the workflow is for, such as `team-code-review` or `my-release-checks`. Do not reuse a Concierge skill name: `orchestrate`, `plan`, `grill-plan`, `scout`, `react-frontend`, `node-backend`, `graphql`, `review`, `debugging`, `task-evaluation`, `external-sessions` or `skill-builder`. Project and personal skills load before plugin skills, so a clash would replace Concierge's own procedure. Names starting `copilot-concierge-routing` are reserved for routing tables.
+Choose a name that says what the workflow is for, such as `team-code-review` or `my-release-checks`. Do not reuse a Concierge skill name: `orchestrate`, `plan`, `grill-plan`, `scout`, `react-frontend`, `node-backend`, `graphql`, `review`, `debugging`, `task-evaluation`, `orchestrate-reference` or `skill-builder`. Project and personal skills load before plugin skills, so a clash would replace Concierge's own procedure. Names starting `copilot-concierge-routing` are reserved for routing tables.
 
 ## Write it
 

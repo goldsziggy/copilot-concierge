@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.11.0 - 2026-11-11
+
+- Add a fast path for small, clear work: the orchestrator does it alone, loads no skill, starts no worker and writes the task list twice.
+- Write the task list and its todo mirror only when the list changes shape or with a report, not after every step.
+- Run one command per shell call in every profile, with independent commands issued in the same turn. Compound lines cannot match permission rules.
+- Make the always-loaded text leaner. The `orchestrate` skill is no longer preloaded; it holds the handoff template and dispatch rules and loads before the first delegation. Rare cases (customer routing tables, todo rows for rollover and cancellation, learning scopes in handoffs) moved to a new on-demand `orchestrate-reference` skill. Orchestrator profile 29.4 KB to 23.5 KB; entry profile 19.0 KB to 15.7 KB.
+- Make "Decided for you" reliable under full autonomy: the report has a required `decided for the user` block, and Concierge always relays it or says "Decided for you: nothing".
+- Remove external coding sessions. The owner binding, collector, return route and receipt states are gone from the profiles, templates and loop guard. The protocol never ran live; it is archived, with restore notes, in `docs/archive/external-sessions/`. Work is done by native sub-agents, and cloud automation is a Copilot SDK client.
+- The reviewer is told to load only the skill its assignment needs. Live runs still show it loading both `review` and `grill-plan`.
+- Live SDK trials on Copilot CLI 1.0.109 compared the same tasks against 0.10.0. A small fix used no skill and half the task-list writes. A medium four-file change with a review ran in 18 to 21 model calls against 23, with no rejected command once the shell rule reached the reviewer. One later run took 30 calls because its review found a defect that was then fixed and re-reviewed. Each configuration was run once or twice, so the savings are indicative.
+
 ## 0.10.0 - 2026-11-10
 
 - Concierge is used as a plugin, and unattended automation is a Copilot SDK client that loads it. New [SDK automation](references/sdk-automation.md) guide: load the plugin, select the `concierge` agent, leave out `onUserInputRequest`, state autonomy and plan approval in the prompt, wait for the `CONCIERGE-RESULT` line across turns, and own the deadline. Verified with three live SDK trials.

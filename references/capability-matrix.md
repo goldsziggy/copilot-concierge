@@ -26,7 +26,7 @@ Read from the installed CLI's help text, changelog and tool descriptions on 2026
 
 Unattended runs are [Copilot SDK clients](sdk-automation.md) that load the plugin, select the `concierge` agent and leave out the SDK's `onUserInputRequest` handler, which is what enables `ask_user` there (`@github/copilot-sdk` 1.0.31 types). Three live SDK trials completed a small task; see [SDK automation](sdk-automation.md#verification).
 
-The orchestrator's external-session protocol moved to the on-demand `external-sessions` skill. The owner binding is now requested through a checkpoint when an external session needs it, instead of being sent after every orchestrator launch. The actual return path still requires host-supported collection and relay.
+External coding sessions are no longer supported: the 0.7.1 return protocol described below was removed after 0.10.0 and is archived in `docs/archive/external-sessions/`. Work is done by native sub-agents, and cloud automation is a Copilot SDK client.
 
 Three bounded non-interactive trials on Copilot CLI 1.0.98 exercised `full` autonomy from a project file and from the variable through a launcher-configured copy, and a saved workflow. Three further trials covered two hard stops, which ended `blocked` without a loop or a workaround, and a `guided` run with its plan checkpoint. Questions that need a person, plan approval `ask`, the completion check and an SDK client were not run; see [runtime verification](runtime-verification.md) and [autonomy](autonomy.md).
 
