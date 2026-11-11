@@ -3,10 +3,13 @@ import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 
+// Copilot Fusion is selected as `auto` (stored ID) or its `fusion` alias.
+const FUSION = new Set(['auto', 'fusion']);
+
 export const DEFAULTS = Object.freeze({
   planApproval: 'auto',
   autonomy: 'guided',
-  models: Object.freeze({ concierge: 'gpt-6-luna', orchestrator: 'gpt-6.1-sol', specialist: 'gpt-6-luna', escalation: 'gpt-6.1-sol' }),
+  models: Object.freeze({ concierge: 'auto', orchestrator: 'gpt-6.1-sol', specialist: 'gpt-6-luna', escalation: 'gpt-6.1-sol' }),
   extraDirectories: Object.freeze([]),
 });
 
@@ -36,8 +39,11 @@ export function validateConfig(config, source = 'configuration') {
     }
     for (const [role, model] of Object.entries(config.models)) {
       if (!Object.hasOwn(DEFAULTS.models, role) && role !== 'frontdesk') throw new Error(`${source}: unknown model role ${role}`);
-      if (typeof model !== 'string' || !modelPattern.test(model) || model.toLowerCase() === 'auto') {
-        throw new Error(`${source}: ${role} must name one explicit model ID, never Auto`);
+      if (typeof model !== 'string' || !modelPattern.test(model)) throw new Error(`${source}: ${role} must name one model ID`);
+      // Copilot Fusion routes only the session's own model; a sub-agent pinned to
+      // auto resolves to a single model instead, so only the entry role may use it.
+      if (FUSION.has(model.toLowerCase()) && role !== 'concierge' && role !== 'frontdesk') {
+        throw new Error(`${source}: ${role} must name one explicit model ID; Copilot Fusion (auto or fusion) applies only to the concierge role`);
       }
     }
   }

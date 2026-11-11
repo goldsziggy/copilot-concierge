@@ -70,7 +70,10 @@ try {
           if (value && !/^["'[]/.test(value) && /: | #/.test(value)) fail(`${relative}: quote the value of "${line.split(':')[0]}"`);
         }
         const model = field(text, 'model');
-        if (model.toLowerCase() === 'auto' || !model) fail(`${relative}: exact model required`);
+        // Only the entry agent follows the session's Copilot Fusion choice; Fusion
+        // does not route sub-agents, so they keep exact models.
+        if (!model || (model.toLowerCase() === 'auto' && name !== 'concierge')) fail(`${relative}: exact model required`);
+        if (name === 'concierge' && model !== 'auto') fail(`${relative}: the entry agent prefers Copilot Fusion (model: auto)`);
         // Copilot gives a nested agent only tools its parent agent also has
         // (verified in CLI 1.0.93), so the orchestrator must not narrow its list.
         const hasTools = /^tools:/m.test(text.split('\n---')[0]);

@@ -1,6 +1,6 @@
 # Capability matrix: Copilot CLI and the GitHub Copilot app
 
-## Host facts this design depends on (Copilot CLI 1.0.98)
+## Host facts this design depends on (Copilot CLI 1.0.98 and 1.0.109)
 
 Read from the installed CLI's help text, changelog and tool descriptions on 2026-11-10. They describe the host, not Concierge's behavior on it.
 
@@ -9,26 +9,26 @@ Read from the installed CLI's help text, changelog and tool descriptions on 2026
 | `task` takes `mode` `sync` or `background`; only a background agent accepts `write_agent` | Tool schema and error text | The entry agent starts each orchestrator in the background so follow-ups reach it. |
 | A message to a running background agent steers its active turn | Changelog 1.0.92 | `USER FOLLOW-UP` and `COMPLETION CHECK` can be sent while the orchestrator works. |
 | `read_agent` takes `wait` and `timeout` (default 30, at most 180 seconds) and `since_turn`; completion notifications are automatic | Tool schema and description | The entry agent ends its turn and is woken by the notification. It does not poll. |
-| A non-interactive run waits for background agents, up to `COPILOT_TASK_WAIT_TIMEOUT_SECONDS`, then warns and exits | Changelog 1.0.33, 1.0.88 and the prompt-mode code path | One-task runs rely on this; set the variable for long tasks. |
-| `--no-ask-user` removes the question tool | `copilot --help` | The launcher adds it under `full` autonomy. |
-| `--max-ai-credits` must be at least 30 | Observed error | The examples use 30. |
+| A non-interactive run waits for background agents, up to `COPILOT_TASK_WAIT_TIMEOUT_SECONDS`, then warns and exits | Changelog 1.0.33, 1.0.88 and the prompt-mode code path | The non-interactive trials relied on this; set the variable for long tasks. |
+| `--no-ask-user` removes the question tool | `copilot --help` | The optional interactive launcher adds it under `full` autonomy. |
+| `--max-ai-credits` must be at least 30, and is a soft limit per response | Observed error; GitHub's command reference | The trials used 30. It does not cap a whole run. |
+| Copilot Fusion is the `auto` model, with `fusion` as a CLI alias since 1.0.104 and a `fusionTier` setting (`standard`, `high`, `max`) since 1.0.106 | `copilot help config` and changelog (CLI 1.0.109) | The entry agent names `model: auto`. |
+| Fusion routes the session's own model, not sub-agents | GitHub's Fusion guide; SDK trial B (orchestrator on `auto` ran on GPT-6 Luna with `isAuto: false`) | The orchestrator and specialists keep explicit models. |
 | Sub-agent nesting depth defaults to 4, with a concurrency limit | Changelog 1.0.71, 1.0.66 | Concierge nests two levels below the entry agent; specialists never start agents. Many parallel objectives can meet the concurrency limit. |
 | Sub-agents keep their parent's tool restrictions | Changelog 1.0.67 | The orchestrator declares no tool list, so its workers are not narrowed. |
 | `include-custom-instructions`, `reasoning-effort` and a single `model` are supported agent frontmatter | Changelog 1.0.86, 1.0.88, 1.0.83 | Used as written in the profiles. |
 | Skills are discovered from `.github/skills`, `.agents/skills`, `~/.copilot/skills` and plugins, at session start | Changelog and the skills guide | Saved workflows are written to the first or third of these and apply from the next session. |
-| In non-interactive runs, repository hooks and workspace MCP servers load only in a trusted folder; `COPILOT_ALLOW_ALL=true` also trusts the folder | `copilot help environment`, changelog 1.0.40, 1.0.49 | The CI guide recommends narrow `--allow-tool` flags instead. |
+| In non-interactive runs, repository hooks and workspace MCP servers load only in a trusted folder; `COPILOT_ALLOW_ALL=true` also trusts the folder | `copilot help environment`, changelog 1.0.40, 1.0.49 | Prefer narrow `--allow-tool` flags, or a narrow SDK permission handler. |
 
-## Concierge 0.10.0: autonomy and one-task runs
+## Concierge 0.10.0: autonomy and SDK automation
 
-`autonomy` is `guided` (default) or `full`, set by the user's words, the launcher flag, the `COPILOT_CONCIERGE_AUTONOMY` environment variable or the configuration files. A normal plugin install stays guided unless explicitly configured otherwise; the host being a container or cloud service never selects `full`. `full` is designed for unattended runs: the orchestrator settles ordinary questions and records them, sends no `needs_input` or plan checkpoint, and stops only for a hard stop, `needs_approval` under `ask`, or a result. The entry agent ends its turn while the background orchestrator works, is woken by the host's completion notification, never calls `ask_user`, checks the result against the acceptance criteria once, and ends with a `CONCIERGE-RESULT` line.
+`autonomy` is `guided` (default) or `full`, set by the user's words, the `COPILOT_CONCIERGE_AUTONOMY` environment variable (when a permitted shell read can see it) or the configuration files. A plugin install stays guided unless explicitly configured otherwise; the host being a container or cloud service never selects `full`. `full` is designed for unattended runs: the orchestrator settles ordinary questions and records them, sends no `needs_input` or plan checkpoint, and stops only for a hard stop, `needs_approval` under `ask`, or a result. The entry agent ends its turn while the background orchestrator works, is woken by the host's completion notification, never calls `ask_user`, checks the result against the acceptance criteria once, and ends with a `CONCIERGE-RESULT` line.
 
-The launcher's `--task` and `--task-file` use Copilot CLI's non-interactive `-p` mode and add `--no-ask-user` under `full`. Those flags exist in Copilot CLI 1.0.98 (`copilot --help`). Permission flags are forwarded only when the caller writes them after `--`; none is added.
-
-The launcher resolves the environment before starting a model and writes the effective configuration into a fresh session copy. This is the supported configuration path for [container/cloud workers](container-service.md); use an assigned project and writable `--output-parent` when the plugin source is read-only. A plain installed plugin has no configuration bootstrap and needs a permitted shell read to see the environment variable. A live container/cloud deployment has not been verified.
+Unattended runs are [Copilot SDK clients](sdk-automation.md) that load the plugin, select the `concierge` agent and leave out the SDK's `onUserInputRequest` handler, which is what enables `ask_user` there (`@github/copilot-sdk` 1.0.31 types). Three live SDK trials completed a small task; see [SDK automation](sdk-automation.md#verification).
 
 The orchestrator's external-session protocol moved to the on-demand `external-sessions` skill. The owner binding is now requested through a checkpoint when an external session needs it, instead of being sent after every orchestrator launch. The actual return path still requires host-supported collection and relay.
 
-Three bounded non-interactive trials on Copilot CLI 1.0.98 exercised `full` autonomy from a project file and from the variable through a launcher-configured copy, and a saved workflow. Three further trials covered two hard stops, which ended `blocked` without a loop or a workaround, and a `guided` run with its plan checkpoint. Questions that need a person, plan approval `ask`, the completion check and the launcher process on Windows were not run; see [runtime verification](runtime-verification.md) and [autonomy](autonomy.md).
+Three bounded non-interactive trials on Copilot CLI 1.0.98 exercised `full` autonomy from a project file and from the variable through a launcher-configured copy, and a saved workflow. Three further trials covered two hard stops, which ended `blocked` without a loop or a workaround, and a `guided` run with its plan checkpoint. Questions that need a person, plan approval `ask`, the completion check and an SDK client were not run; see [runtime verification](runtime-verification.md) and [autonomy](autonomy.md).
 
 ## Concierge 0.7.1 external-session returns
 

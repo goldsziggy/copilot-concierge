@@ -5,41 +5,32 @@ Autonomy says who settles the ordinary decisions that come up while Concierge wo
 | Mode | Built for | Behavior |
 | --- | --- | --- |
 | `guided` (default) | A conversation | Concierge relays questions, shows the plan and pauses between phases of long work. |
-| `full` | Unattended runs, such as a CI job | The orchestrator decides for itself, records each decision, and carries the task to a verified result. It never asks a question. |
+| `full` | Unattended runs, such as an SDK-driven cloud agent | The orchestrator decides for itself, records each decision, and carries the task to a verified result. It never asks a question. |
 
 Autonomy is a workflow preference, like [plan approval](approval-preference.md). It changes who answers, not what is allowed: Copilot's tool, path and URL permissions stay in force, and Concierge adds no permission flag in either mode.
 
-A normal plugin installation defaults to `guided`. Containers, CI variables and cloud hosts do not turn on `full` automatically. Set `COPILOT_CONCIERGE_AUTONOMY=full` explicitly for an unattended worker and start it through the launcher. There is no separate service mode.
+A plugin installation defaults to `guided`. Containers, CI variables and cloud hosts do not turn on `full` automatically.
 
 ## Choosing a mode
 
-Through the launcher, the nearest setting wins:
+The nearest setting wins:
 
-1. Your words for this request ("just handle it, don't ask me", "check with me first").
+1. Your words for this request ("just handle it, don't ask me", "use full autonomy", "check with me first").
 2. Your words earlier in the session.
-3. The launcher's `--autonomy guided|full` flag.
-4. The `COPILOT_CONCIERGE_AUTONOMY` environment variable.
-5. A launcher `--session-config` file.
-6. The project file `.copilot-concierge/config.json`.
-7. The user file `~/.config/copilot-concierge/config.json`.
-8. The default, `guided`.
+3. The `COPILOT_CONCIERGE_AUTONOMY` environment variable, `guided` or `full`.
+4. The project file `.copilot-concierge/config.json`.
+5. The user file `~/.config/copilot-concierge/config.json`.
+6. The default, `guided`.
 
 ```json
 { "autonomy": "full" }
 ```
 
-To swap modes without editing a file, pass the variable to the launcher:
+Only `guided` and `full` are accepted, in lower case. An invalid value is reported, and the mode stays `guided`. Each result states the mode in force and where it came from.
 
-```sh
-COPILOT_CONCIERGE_AUTONOMY=full node scripts/launch.mjs --project /path/to/project
-```
+Your words are the most dependable source, because reading them needs no tool call. The files are read with the agent's file tool. Nothing runs before a plugin session starts, so the orchestrator reads the environment variable with one shell command when your words do not settle the mode. If Copilot does not permit that command, the variable is treated as unset and the files decide. For unattended runs, put the mode in the prompt or the project file.
 
-Only `guided` and `full` are accepted, in lower case. Each result states the mode in force and where it came from.
-
-How reliably the variable is read depends on how Concierge is started:
-
-- **Through the launcher** (`node scripts/launch.mjs`): the launcher reads the variable, refuses an invalid value, and writes the resolved mode into every agent before the session starts. This is the dependable route for CI, containers and cloud services. A writable `--output-parent` keeps generated files separate from a read-only plugin installation.
-- **In a plain plugin install** (`copilot --agent copilot-concierge:concierge`): nothing runs before the session, so the orchestrator needs a permitted shell read to see the variable. Without one it cannot promise environment precedence. Use your words or an accessible project configuration for a conversation, and use the launcher when an environment variable must select the mode before work begins.
+The optional [configured-copy launcher](install.md#session-local-launcher) resolves its `--autonomy` flag, the variable and the files before the session starts, and writes the result into the profiles.
 
 ## What `full` does
 
@@ -47,7 +38,8 @@ How reliably the variable is read depends on how Concierge is started:
 - **Does not pause.** No plan checkpoint and no stop between the phases your request covers. With plan approval `auto`, the plan appears in the result.
 - **Finishes in-scope work.** A check that did not run, or a failure its own change caused, is done rather than offered as a suggestion. Suggestions are kept for work beyond the request.
 - **Checks the result against the goal.** Before reporting `done`, Concierge compares the report with the acceptance criteria. If one has no stated verification, it sends the orchestrator back once to verify it or say why it cannot.
-- **Never asks.** The launcher also starts Copilot with `--no-ask-user`.
+- **Never asks.** Concierge does not call the question tool. An SDK client can also remove that tool; see [SDK automation](sdk-automation.md).
+- **Ends with a result line.** The last line of each result is `CONCIERGE-RESULT: <done|blocked|cancelled|needs_approval> <objective-id>`, in plain text, so a client can read the outcome.
 
 ## Hard stops
 
@@ -62,76 +54,33 @@ If you are present, answer in your next message. An unattended run ends there.
 
 ## What stops a runaway run
 
-- **The host's credit limit.** The launcher requires `--max-ai-credits` for a one-task run. GitHub describes it as a soft limit per response, resetting per user message, so it is not a guaranteed ceiling on the whole job's spend. Set a job timeout and any account budget separately. See the [CLI command reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference#command-line-options).
-- **The host's own limits.** Sub-agents nest at most four deep and run under a concurrency limit, and a non-interactive run stops waiting for background agents after `COPILOT_TASK_WAIT_TIMEOUT_SECONDS`.
-- **Concierge's instructions.** Specialists do not start agents, there is one orchestrator per objective, and a blocked objective is not restarted without new user input.
+- **The host's own limits.** Sub-agents nest at most four deep and run under a concurrency limit. Copilot's `--max-ai-credits` is a soft limit per response that resets with each user message, not a ceiling on a whole job. See the [CLI command reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference#command-line-options).
+- **The client's deadline.** An unattended client sets its own wall-clock limit and aborts the session; see [SDK automation](sdk-automation.md#budget-and-lifetime).
+- **Concierge's structure.** Specialists do not start agents, there is one orchestrator per objective, and a blocked objective is not restarted without new user input.
 - **Instructions.** The orchestrator reports a hard stop once and ends its turn, tries a denied action once more in its plain form and never the same call twice, and stops retrying a step that fails the same way twice. Concierge sends at most one completion check and sends nothing after a `blocked` report. Its no-progress guard applies to repeated bare `CONTINUE` checkpoint cycles; an unchanged task list alone does not invalidate new evidence, owner bindings, receipts or a terminal result.
 
-The credit and background-wait controls are provided by Copilot, with the scope described above. Concierge's agent structure and retry rules are instruction contracts; see the verification status below for what was observed.
+The host limits are enforced by Copilot. Concierge's structure and retry rules are instruction contracts; see the verification status below for what was observed.
 
 ## What `full` does not change
 
-- **Plan approval.** `planApproval: "ask"` is not overridden. The run stops once at the plan and reports `needs_approval`; use `auto` for a job that should run to completion.
+- **Plan approval.** `planApproval: "ask"` is not overridden. The run stops once at the plan and reports `needs_approval`; use `auto` for a run that should go to completion.
 - **Git.** Commits, pushes and pull requests happen only when the task asks for them.
 - **Scope and restrictions.** The requested scope, "do not write any files" and the separate memory and knowledge rules apply as before. An inferred preference is not saved without your confirmation.
 - **Review and retries.** Risky changes still get an independent review, and a failed step is retried once, then reported.
-- **Permissions.** Copilot decides each tool call. See below for a non-interactive run.
+- **Permissions.** Copilot decides each tool call. In a non-interactive run nobody can approve a prompt, so the session must already allow what the task needs.
 
-## One task in CI
+## Unattended runs
 
-The launcher runs one task without a prompt and turns Concierge's result into an exit status. A one-task run needs `full` autonomy, because nobody is there to answer; the launcher refuses to start one in `guided` mode.
+Unattended automation is a Copilot SDK client that loads the plugin and drives the `concierge` agent. [SDK automation](sdk-automation.md) covers the session setup, how to choose the mode in the prompt, how to wait for the result line and how to cancel.
 
-```sh
-COPILOT_CONCIERGE_AUTONOMY=full node scripts/launch.mjs \
-  --project /work/project --output-parent /tmp/concierge-sessions \
-  --plan-approval auto --task-file /run/concierge/task.md \
-  -- --allow-tool write --allow-tool 'shell(npm test)' --max-ai-credits 30
-```
-
-- Use the task's checkout for `--project`; it selects project configuration and the CLI working directory. A relative `--task-file` is resolved from the launcher's starting directory, so absolute paths are useful in services.
-- `--output-parent` must be writable. Point it outside the plugin source for a read-only installation; each run gets a fresh `session-*` copy.
-- `--plan-approval auto` is a separate, explicit choice for this job. `full` alone never overrides `planApproval: "ask"`; such a run stops with `needs_approval`.
-- `--task TEXT` or `--task-file FILE` gives the task. A task file is limited to 16 KiB.
-- `--max-ai-credits N` must be among the forwarded flags. An unattended run without this explicit credit limit is refused. The host applies a soft per-response budget, not a guaranteed total-job spend ceiling.
-- Flags after `--` go to `copilot` unchanged, and only with a task. The launcher owns the agent, model, plugin directory, prompt and response-output format; it rejects forwarded flags that would replace these.
-- Copilot's non-interactive mode cannot show permission prompts, so the job must grant what the task needs: forward `--allow-tool`, `--deny-tool` or `--allow-all-tools`, or set Copilot's own `COPILOT_ALLOW_ALL`. Concierge never adds these for you. Prefer the narrowest set, such as `write` plus the exact test command, and set the credit limit with `--max-ai-credits` (Copilot CLI 1.0.98 requires at least 30).
-- The agent's answer goes to standard output. The launcher selects silent, uncolored text output so tool logs and usage statistics are not treated as result records. The launcher's own lines go to standard error. Task mode closes standard input; use the task argument or file rather than piping a prompt.
-
-Concierge ends its answer with `CONCIERGE-RESULT: <status> <objective-id>`, and the launcher exits with:
-
-| Exit status | Meaning |
-| --- | --- |
-| 0 | `done` |
-| 2 | `blocked`, `cancelled` or `needs_approval` |
-| 3 | no valid final result record: the outcome is unknown, so the job fails |
-| 130 / 143 | interrupted by `SIGINT` / `SIGTERM` |
-| other | Copilot's own failure status |
-
-A GitHub Actions step, assuming the Copilot CLI is installed on the runner:
-
-```yaml
-- name: Run the task with Concierge
-  env:
-    COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_TOKEN }}
-    COPILOT_CONCIERGE_AUTONOMY: full
-  run: >
-    node scripts/launch.mjs --project "$GITHUB_WORKSPACE" --output-parent "$RUNNER_TEMP/concierge-sessions"
-    --plan-approval auto --task-file "$GITHUB_WORKSPACE/.github/concierge-task.md"
-    -- --allow-tool write --allow-tool 'shell(npm test)' --max-ai-credits 30
-```
-
-What Copilot CLI itself does in a non-interactive run, from its 1.0.98 help text and changelog:
-
-- It waits for background agents before exiting, up to `COPILOT_TASK_WAIT_TIMEOUT_SECONDS`, and warns on standard error if it stops waiting. Set that variable to cover your longest expected run.
-- A tool call that is not allowed is denied rather than prompted. The agent then reports what it could not do.
-- Repository hooks and workspace MCP servers load only when the folder is already trusted, so a ticket connector configured in the repository may be absent in CI.
-- `COPILOT_ALLOW_ALL=true` also trusts the working directory, which loads that directory's skills, plugins, MCP servers and hooks. Use narrower flags on code you did not write.
-- Sub-agents may nest four levels deep by default. Concierge uses two below the entry agent, and specialists never start agents.
-
-Write the task as you would say it, including what "done" means and whether to commit or open a pull request. Without a Git request, changes stay uncommitted in the job's checkout.
-
-For container paths, runtime credentials and a service entrypoint, see [Container and cloud workers](container-service.md). The launcher is a process per task; your existing job runner owns scheduling and retries.
+Write the task as you would say it, including what "done" means and whether to commit or open a pull request. Without a Git request, changes stay uncommitted in the checkout.
 
 ## Verification status
 
-The setting, its precedence, the launcher's arguments and its exit statuses are covered by tests that make no model calls. Three bounded non-interactive trials on Copilot CLI 1.0.98 then ran `full` autonomy for real: one failed and drove fixes, and two completed their task with only file edits and `npm test` allowed, the last one reading the variable through a launcher-configured copy and ending with the result line. Each cost 12 to 16 AI credits for a small change. Two hard-stop trials, a missing ticket and a missing credential, ended `blocked` with one orchestrator launch, no repeated command, no workaround and no file changed, and a `guided` trial completed through its plan checkpoint. The completion check, the no-progress guard, the launcher process on Windows and a live container/cloud deployment have not been run live; see [runtime verification](runtime-verification.md).
+The setting, its precedence and the generated profiles are covered by tests that make no model calls. Six bounded non-interactive trials on Copilot CLI 1.0.98 (`copilot -p` with the plugin) then ran the profiles for real:
+
+- `full` autonomy: one trial failed and drove fixes, and two completed their task with only file edits and `npm test` allowed, ending with the result line. Each cost 12 to 16 AI credits for a small change.
+- Two hard stops, a missing ticket and a missing credential: each ended `blocked` with one orchestrator launch, no repeated command, no workaround and no file changed.
+- A `guided` trial completed through its plan checkpoint.
+
+The completion check, the no-progress guard and an SDK client have not been run live; see [runtime verification](runtime-verification.md).
