@@ -1,6 +1,12 @@
 # Runtime verification
 
-## Concierge 0.10.0 container/cloud worker source checks - 2026-11-10
+## Concierge 0.10.0: plugin-only automation - 2026-11-10
+
+Based on main `5684474`. Before 0.10.0 was tagged, the one-task launcher mode and its service lifecycle (task flags, exit statuses, result-line parser, signal forwarding, container worker guide) were removed. Concierge is used as a plugin; unattended automation is a Copilot SDK client that loads it, described in [SDK automation](sdk-automation.md). The launcher starts an interactive session only, as before 0.10.0. The section below records checks of code that is no longer shipped.
+
+The SDK guidance comes from the `@github/copilot-sdk` 1.0.31 package's type definitions and README. Among other things, they state that `onUserInputRequest` enables `ask_user`, that `pluginDirectories` loads Open Plugins directories, and that sub-agent events do not complete `sendAndWait`. Three live SDK trials then drove the plugin from this branch; they are recorded in [SDK automation](sdk-automation.md#verification). Trial A used CLI 1.0.98 with the shipped models. Trial B used CLI 1.0.109 with the session and every agent on `auto` (Copilot Fusion). Both ended `CONCIERGE-RESULT: done` with the fix and test written and `npm test` 3/3. In trial B only the entry agent was Fusion-routed, so the release pins only the entry agent to `auto`. Trial C ran that final profile set from this branch on the installed CLI, updated to 1.0.109. Concierge's 5 calls were Fusion-routed (`isAuto: true`, served by GPT-6 Luna) and the orchestrator's 9 calls ran on its pinned GPT-6.1 Sol. The result was `CONCIERGE-RESULT: done` after 2m 20s, with `npm test` 3/3 and nothing committed.
+
+## Concierge 0.10.0 container/cloud worker source checks (superseded) - 2026-11-10
 
 Based on `5ec600b3a022a8df65b71d961f8a4eb4d53a2671`, this release keeps ordinary plugin installs guided and documents the existing one-task launcher as the container/cloud worker entrypoint. The launcher resolves environment configuration before starting Copilot; the plain-install profile now gives the environment priority over project/user files in both directions. Explicit plan approval remains separate.
 
@@ -15,7 +21,7 @@ The lifecycle fixtures signal the launcher PID, use no real Copilot executable a
 
 No new paid model session, installed-plugin update, container PID-1 deployment, cloud service or Windows launcher acceptance was performed. The historical development trials below retain their original scope and do not establish live acceptance of the new service lifecycle or revised profiles. Exact release-commit CI and packaged-artifact evidence are recorded in the GitHub release and Actions runs.
 
-## Unreleased: full autonomy, one-task runs, remembered workflows and lighter prompts - 2026-11-10
+## Concierge 0.10.0 development: full autonomy, one-task runs, remembered workflows and lighter prompts - 2026-11-10
 
 Based on main `08a8184` (0.9.0). This change adds the `autonomy` setting (`guided` or `full`) with its `COPILOT_CONCIERGE_AUTONOMY` environment variable, a one-task launcher mode for CI, a completion check under `full`, the `skill-builder` skill that saves a remembered workflow as a Copilot skill, and the on-demand `external-sessions` skill. The entry agent's tool list, the model pins and Copilot's permissions are unchanged; the launcher adds `--no-ask-user` under `full` and no permission flag.
 

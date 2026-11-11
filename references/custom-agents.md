@@ -56,14 +56,14 @@ versus not performed, blockers and the next decision needed. Report only to the
 orchestrator; do not invent a successful check or an approval.
 ```
 
-Replace `gpt-6-luna` with a model your Copilot account can use. This reviewer can only read and load skills. For an implementation specialist with edit and shell tools, see [`examples/custom`](../examples/custom/.github/agents/acme-react.agent.md).
+Replace `gpt-6-luna` with a model your Copilot account can use. Keep an explicit model rather than `auto`: Copilot Fusion does not route sub-agents, so a worker set to `auto` runs on a single model chosen for it. This reviewer can only read and load skills. For an implementation specialist with edit and shell tools, see [`examples/custom`](../examples/custom/.github/agents/acme-react.agent.md).
 
 ## Frontmatter Concierge relies on
 
 | Field | Use for a Concierge worker | Source of the rule |
 | --- | --- | --- |
 | `description` | Required. Say it is an internal Concierge worker and what it does. Quote it if it contains `: ` or ` #`; Copilot silently drops an agent whose frontmatter is not valid YAML. | GitHub reference; Concierge observation |
-| `model` | Prefer one available explicit model ID. Omission is not a routing eligibility failure; the checker warns that the host may choose one. Honor any explicitly required model. | Concierge routing preference |
+| `model` | Prefer one available explicit model ID, not `auto`; Copilot Fusion applies only to the session's own agent. Omission is not a routing eligibility failure; the checker warns that the host may choose one. Honor any explicitly required model. | Concierge routing preference |
 | `model-policy: required` | Optional strict policy. It makes Copilot refuse a per-call model override; use it only when that restriction is intended. | Observed in Copilot CLI; not in GitHub's public reference |
 | `tools` | Only what the role needs. Omit `task`, `write_agent`, `read_agent`, `ask_user` and `update_todo`: workers report to the orchestrator. Omit the list only for roles that must inherit connected integrations. | GitHub reference; Concierge charter |
 | `skills` | Skills to preload. Also name them in the routing row so they travel in the handoff. | Used by Concierge's profiles; not in GitHub's public reference |

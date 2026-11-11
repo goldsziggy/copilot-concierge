@@ -151,7 +151,7 @@ test('launcher preserves invocation cwd without --project and explicitly selects
   assert.equal(calls.length, 1);
   assert.equal(calls[0].cwd, paths.cwd);
   const options = nativeOptions(calls[0].argv);
-  assert.equal(options.get('--model'), 'gpt-6-luna', 'Default must remain explicit rather than native Auto');
+  assert.equal(options.get('--model'), 'auto', 'The entry agent prefers Copilot Fusion by default');
   assert.match(result.stdout, /Plan approval: auto/);
 });
 
@@ -187,12 +187,13 @@ test('invalid configuration and unsupported launch options never start Copilot',
   const cases = [
     { name: 'malformed JSON', config: '{ broken' },
     { name: 'invalid approval value', config: JSON.stringify({ planApproval: true }) },
-    { name: 'Auto model', config: JSON.stringify({ models: { concierge: 'Auto' } }) },
+    { name: 'Fusion for a sub-agent role', config: JSON.stringify({ models: { orchestrator: 'Auto' } }) },
     { name: 'unknown setting', config: JSON.stringify({ allowAllTools: true }) },
     { name: 'missing explicit session file', extra: paths => ['--session-config', path.join(paths.root, 'missing.json')] },
     { name: 'permission bypass flag', extra: () => ['--allow-all-tools'] },
     { name: 'duplicate project', extra: paths => ['--project', paths.project, '--project', paths.cwd] },
     { name: 'print-only belongs to configure', extra: () => ['--print-only'] },
+    { name: 'no one-task mode; automation uses the Copilot SDK', extra: () => ['--task', 'Fix it'] },
   ];
   for (const entry of cases) {
     await t.test(entry.name, async subtest => {
@@ -222,98 +223,4 @@ test('the environment variable selects full autonomy, which disables the questio
   assertExit(launch(guided), 0);
   const [plain] = await invocations(guided);
   assert.ok(!plain.argv.includes('--no-ask-user'));
-});
-
-test('a one-task run owns plain response output and forwards the caller permissions', posixOnly, async t => {
-  const paths = await fixture(t);
-  const result = launch(paths, ['--task', 'Fix the failing basket test', '--', '--allow-tool', 'shell(npm test)', '--max-ai-credits', '30'], 0, {
-    COPILOT_CONCIERGE_AUTONOMY: 'full',
-    COPILOT_TEAM_TEST_STDOUT: 'Fixed the test.\nCONCIERGE-RESULT: done basket-test\n',
-  });
-  assertExit(result, 0);
-  const calls = await invocations(paths);
-  assert.equal(calls.length, 1);
-  const argv = calls[0].argv;
-  assert.deepEqual(argv.slice(argv.indexOf('--no-ask-user')), ['--no-ask-user', '--silent', '--output-format', 'text', '--no-color', '-p', 'Fix the failing basket test', '--allow-tool', 'shell(npm test)', '--max-ai-credits', '30']);
-  assert.equal(result.stdout, 'Fixed the test.\nCONCIERGE-RESULT: done basket-test\n');
-  assert.match(result.stderr, /Autonomy: full/);
-  assert.match(result.stderr, /Concierge result: done/);
-});
-
-test('a one-task run fails the job unless Concierge reports done', posixOnly, async t => {
-  for (const [stdout, childCode, expected] of [
-    ['Needs a deploy key.\nCONCIERGE-RESULT: blocked deploy\n', 0, 2],
-    ['Plan: ...\nCONCIERGE-RESULT: needs_approval deploy\n', 0, 2],
-    ['The run ended without a result line.\n', 0, 3],
-    ['The example CONCIERGE-RESULT: done is not the result of this task.\n', 0, 3],
-    ['CONCIERGE-RESULT: done deploy\nThe deployment is still incomplete.\n', 0, 3],
-    ['CONCIERGE-RESULT: done\n', 0, 3],
-    ['```text\nCONCIERGE-RESULT: done example\n```\n', 0, 3],
-    ['CONCIERGE-RESULT: done deploy\n', 9, 9],
-  ]) {
-    const paths = await fixture(t);
-    const task = path.join(paths.root, 'task.md');
-    await writeFile(task, 'Ship the fix.\n');
-    const result = launch(paths, ['--task-file', task, '--autonomy', 'full', '--', '--max-ai-credits', '30'], childCode, { COPILOT_TEAM_TEST_STDOUT: stdout });
-    assertExit(result, expected);
-    const [call] = await invocations(paths);
-    assert.deepEqual(call.argv.slice(-4), ['-p', 'Ship the fix.', '--max-ai-credits', '30']);
-  }
-});
-
-test('an invalid autonomy value or a misused one-task option never starts Copilot', posixOnly, async t => {
-  for (const [extra, environment] of [
-    [[], { COPILOT_CONCIERGE_AUTONOMY: 'FULL' }],
-    [['--autonomy', 'unattended'], {}],
-    [['--', '--allow-all-tools'], {}],
-    [['--task', 'x', '--', '--agent', 'other'], {}],
-    [['--task', 'x', '--', '--help', '--max-ai-credits', '30'], { COPILOT_CONCIERGE_AUTONOMY: 'full' }],
-    [['--task', 'x', '--', '--output-format', 'json', '--max-ai-credits', '30'], { COPILOT_CONCIERGE_AUTONOMY: 'full' }],
-    [['--task-file', 'missing-task.md', '--', '--max-ai-credits', '30'], { COPILOT_CONCIERGE_AUTONOMY: 'full' }],
-    // Nobody is there to answer a guided run, so a task without full autonomy is refused.
-    [['--task', 'x', '--', '--max-ai-credits', '30'], {}],
-    [['--task', 'x', '--autonomy', 'guided', '--', '--max-ai-credits', '30'], { COPILOT_CONCIERGE_AUTONOMY: 'full' }],
-    // An unattended run without a spend cap is refused.
-    [['--task', 'x', '--autonomy', 'full'], {}],
-    [['--task', 'x', '--autonomy', 'full', '--', '--allow-tool', 'write'], {}],
-  ]) {
-    const paths = await fixture(t);
-    const result = launch(paths, extra, 0, environment);
-    assertExit(result, 1);
-    assert.ok(result.stderr.trim());
-    assert.deepEqual(await invocations(paths), []);
-    assert.deepEqual(await readdir(paths.output), [], 'a refused run leaves no generated copy');
-  }
-});
-
-test('a task that says --help is passed as task text rather than an early successful exit', posixOnly, async t => {
-  const paths = await fixture(t);
-  const result = launch(paths, ['--task', '--help', '--autonomy', 'full', '--', '--max-ai-credits', '30'], 0, {
-    COPILOT_TEAM_TEST_STDOUT: 'CONCIERGE-RESULT: done help-request\n',
-  });
-  assertExit(result, 0);
-  const [call] = await invocations(paths);
-  assert.equal(call.argv[call.argv.indexOf('-p') + 1], '--help');
-});
-
-test('service environment overrides guided project settings before Copilot starts and preserves ask', posixOnly, async t => {
-  const paths = await fixture(t);
-  await writeFile(paths.projectConfig, JSON.stringify({ autonomy: 'guided', planApproval: 'ask' }));
-  const result = launch(paths, ['--task', 'Make the requested change', '--', '--max-ai-credits', '30'], 0, {
-    COPILOT_CONCIERGE_AUTONOMY: 'full',
-    COPILOT_TEAM_TEST_STDOUT: 'Plan requires approval.\nCONCIERGE-RESULT: needs_approval change\n',
-  });
-  assertExit(result, 2);
-  const [call] = await invocations(paths);
-  const pluginDirectory = call.argv[call.argv.indexOf('--plugin-dir') + 1];
-  assert.equal(path.dirname(pluginDirectory), paths.output);
-  const effective = JSON.parse(await readFile(path.join(pluginDirectory, 'effective-config.json'), 'utf8'));
-  assert.equal(effective.value.autonomy, 'full');
-  assert.equal(effective.source.autonomy, 'environment: COPILOT_CONCIERGE_AUTONOMY');
-  assert.equal(effective.value.planApproval, 'ask');
-  for (const filename of ['concierge.agent.md', 'orchestrator.agent.md', 'worker.agent.md']) {
-    const profile = await readFile(path.join(pluginDirectory, 'com.github.copilot/agents', filename), 'utf8');
-    assert.match(profile, /"autonomy": "full"/);
-    assert.match(profile, /"planApproval": "ask"/);
-  }
 });

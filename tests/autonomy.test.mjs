@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { AUTONOMY_ENV, AUTONOMY_MODES, loadConfig, resolveConfig, validateConfig } from '../scripts/lib/config.mjs';
 import { configureProfile } from '../scripts/lib/package.mjs';
-import { createResultTracker, nativeArguments, parseLaunchArguments, resultExitCode } from '../scripts/lib/launch.mjs';
+import { nativeArguments } from '../scripts/lib/launch.mjs';
 
 const read = async file => (await readFile(new URL(`../${file}`, import.meta.url), 'utf8')).replace(/\r\n/g, '\n');
 
@@ -82,85 +82,13 @@ test('generated profiles carry the resolved mode and its source', () => {
   }
 });
 
-test('launcher arguments separate configuration, one task and explicitly forwarded native flags', () => {
-  assert.deepEqual(parseLaunchArguments(['--project', 'repo']), { configure: ['--project', 'repo'], task: undefined, taskFile: undefined, forwarded: [], oneShot: false });
-  const run = parseLaunchArguments(['--autonomy', 'full', '--task', 'Fix the failing test', '--', '--allow-tool', 'shell(npm test)', '--max-ai-credits', '30']);
-  assert.deepEqual(run.configure, ['--autonomy', 'full']);
-  assert.equal(run.task, 'Fix the failing test');
-  assert.deepEqual(run.forwarded, ['--allow-tool', 'shell(npm test)', '--max-ai-credits', '30']);
-  assert.equal(run.oneShot, true);
-  assert.equal(parseLaunchArguments(['--task-file', 'task.md', '--', '--max-ai-credits=30']).taskFile, 'task.md');
-  // A permission flag that is not explicitly forwarded stays a configuration
-  // error, as before; it is never interpreted by the launcher.
-  assert.deepEqual(parseLaunchArguments(['--allow-all-tools']).configure, ['--allow-all-tools']);
-  for (const [argv, message] of [
-    [['--', '--allow-all-tools'], /only with --task or --task-file/],
-    [['--task', 'a', '--task', 'b'], /one task/],
-    [['--task', 'a', '--task-file', 'b'], /one task/],
-    [['--task'], /Incomplete option/],
-    [['--task', '  '], /must not be empty/],
-    [['--task', 'a', '--', '--agent', 'other'], /sets --agent itself/],
-    [['--task', 'a', '--', '--model=other'], /sets --model itself/],
-    [['--task', 'a', '--', '-p', 'other'], /sets -p itself/],
-    [['--task', 'a', '--', '-pOther'], /sets -p itself/],
-    [['--task', 'a', '--', '--output-format=json'], /sets --output-format itself/],
-    [['--task', 'a', '--', '--silent=false'], /sets --silent itself/],
-    [['--task', 'a', '--', '--help'], /cannot forward --help/],
-    [['--task', 'a', '--', '-v'], /cannot forward -v/],
-    [['--task', 'a', '--', '--server'], /cannot forward --server/],
-    // An unattended run without a spend cap is refused, never given a default.
-    [['--task', 'a'], /needs a spend cap/],
-    [['--task', 'a', '--', '--allow-tool', 'write'], /needs a spend cap/],
-    [['--task-file', 'task.md', '--autonomy', 'full'], /needs a spend cap/],
-  ]) assert.throws(() => parseLaunchArguments(argv), message, argv.join(' '));
-});
-
 test('full autonomy disables the question tool but never adds a permission flag', () => {
-  const configured = mode => ({
-    pluginDirectory: '/generated/session-x',
-    value: { autonomy: mode, models: { concierge: 'root-model' }, extraDirectories: [] },
-  });
+  const configured = autonomy => ({ pluginDirectory: '/tmp/session-x', value: { autonomy, extraDirectories: [], models: { concierge: 'auto' } } });
   const guided = nativeArguments(configured('guided'));
-  assert.deepEqual(guided, ['--no-auto-update', '--plugin-dir', '/generated/session-x', '--agent', 'copilot-concierge:concierge', '--model', 'root-model']);
-  const full = nativeArguments(configured('full'));
-  assert.deepEqual(full, [...guided, '--no-ask-user']);
-  const oneShot = nativeArguments(configured('full'), { task: 'Fix it', forwarded: ['--allow-tool', 'shell(npm test)'] });
-  assert.deepEqual(oneShot, [...full, '--silent', '--output-format', 'text', '--no-color', '-p', 'Fix it', '--allow-tool', 'shell(npm test)']);
-  for (const args of [guided, full, nativeArguments(configured('full'), { task: 'Fix it' })]) {
+  assert.deepEqual(nativeArguments(configured('full')), [...guided, '--no-ask-user']);
+  for (const args of [guided, nativeArguments(configured('full'))]) {
     assert.ok(!args.some(flag => /^--(?:allow|yolo|assisted)/.test(flag)), 'no permission flag is added by the launcher');
   }
-});
-
-test('a one-task run requires a complete unfenced final result with an objective ID', () => {
-  assert.deepEqual(resultExitCode('work\nCONCIERGE-RESULT: done fix-login\n', 0), { code: 0, status: 'done' });
-  assert.deepEqual(resultExitCode('CONCIERGE-RESULT: `blocked` fix-login', 0), { code: 2, status: 'blocked' });
-  assert.equal(resultExitCode('CONCIERGE-RESULT: needs_approval x', 0).code, 2);
-  assert.equal(resultExitCode('CONCIERGE-RESULT: cancelled x', 0).code, 2);
-  // The last result line wins; an earlier quoted example does not.
-  assert.equal(resultExitCode('CONCIERGE-RESULT: done a\n...\nCONCIERGE-RESULT: blocked a\n', 0).status, 'blocked');
-  assert.deepEqual(resultExitCode('All finished, tests pass.', 0), { code: 3, status: 'unknown' });
-  assert.deepEqual(resultExitCode('CONCIERGE-RESULT: done x', 7), { code: 7, status: 'host-error' });
-  for (const output of [
-    'The failing test contains CONCIERGE-RESULT: done but the objective is still blocked.\n',
-    'CONCIERGE-RESULT: done x\nCorrection: the requested work remains incomplete.\n',
-    'CONCIERGE-RESULT: done\n',
-    'CONCIERGE-RESULT: done <objective-id>\n',
-    '> CONCIERGE-RESULT: done quoted\n',
-    '```text\nCONCIERGE-RESULT: done example\n```\n',
-    '```text\nCONCIERGE-RESULT: done example',
-    '~~~text\nCONCIERGE-RESULT: done example',
-    'CONCIERGE-RESULT: done x extra words\n',
-  ]) assert.deepEqual(resultExitCode(output, 0), { code: 3, status: 'unknown' }, output);
-  assert.equal(resultExitCode('```text\nCONCIERGE-RESULT: done example\n```\nActual result:\nCONCIERGE-RESULT: blocked real-objective\r\n\r\n', 0).code, 2);
-});
-
-test('streamed results retain fence state across chunks and long answers', () => {
-  const tracker = createResultTracker();
-  for (const chunk of ['```text\n', 'x'.repeat(70000), '\nCONCIERGE-', 'RESULT: done example\n']) tracker.write(chunk);
-  assert.equal(tracker.finish(0).code, 3, 'a long fenced example never becomes a final result');
-  const finished = createResultTracker();
-  for (const chunk of ['x'.repeat(70000), '\nSummary.\r\nCONCIERGE-RES', 'ULT: done actual-objective\r', '\n \n']) finished.write(chunk);
-  assert.deepEqual(finished.finish(0), { code: 0, status: 'done' });
 });
 
 // Instruction contracts only: these do not show that a live model follows them.
@@ -187,7 +115,7 @@ test('full autonomy is unattended: it decides, never asks and stops only at hard
   const orchestrator = await read('com.github.copilot/agents/orchestrator.agent.md');
   const concierge = await read('com.github.copilot/agents/concierge.agent.md');
   for (const pattern of [
-    /treat the run as unattended, such as a CI job/,
+    /treat the run as unattended, such as a cloud agent driven through the Copilot SDK/,
     /record it in `decisions` as `decided for the user: <choice>: <why>`/,
     /never user decisions or approvals/,
     /Never report `needs_input`/,
@@ -239,16 +167,20 @@ test('autonomy changes who answers, not what is allowed', async () => {
   assert.deepEqual(tools, ['ask_user', 'list_agents', 'read_agent', 'task', 'update_todo', 'write_agent']);
 });
 
-test('the result line the entry agent writes is the one the launcher reads', async () => {
+test('the result line the entry agent writes is the one an SDK client reads', async () => {
   const concierge = await read('com.github.copilot/agents/concierge.agent.md');
+  const sdk = await read('references/sdk-automation.md');
   // Live trial 2: the line was dropped when it was not unambiguously last.
   assert.match(concierge, /the very last line of your reply, after any suggestions, is exactly/);
+  assert.match(concierge, /in plain text with no formatting, quoting or list marker/);
   assert.match(concierge, /never omit it or put text after it/);
   const statuses = concierge.match(/`CONCIERGE-RESULT: <([a-z_|]+)> <objective-id>`/)?.[1].split('|');
   assert.deepEqual(statuses, ['done', 'blocked', 'cancelled', 'needs_approval']);
-  for (const status of statuses) {
-    const result = resultExitCode(`Summary.\nCONCIERGE-RESULT: ${status} objective-1\n`, 0);
-    assert.equal(result.status, status);
-    assert.equal(result.code, status === 'done' ? 0 : 2);
-  }
+  // The documented client pattern accepts exactly the line the profile asks for.
+  const pattern = new RegExp(sdk.match(/^const RESULT = \/(.+)\/;$/m)[1]);
+  for (const status of statuses) assert.equal(pattern.exec(`CONCIERGE-RESULT: ${status} objective-1`)?.[1], status);
+  assert.equal(pattern.exec('- CONCIERGE-RESULT: done objective-1'), null);
+  assert.match(sdk, /Leave out `onUserInputRequest`/);
+  assert.match(sdk, /Do not rely on `sendAndWait`'s return value for the result/);
+  assert.match(sdk, /`auto` for the session, which is Copilot Fusion/);
 });

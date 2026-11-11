@@ -107,7 +107,11 @@ test('every role has one preferred model without required policy', async () => {
   assert.equal(Object.keys(all).length, 7);
   for (const [name, profile] of Object.entries(all)) {
     assert.equal(profile.policy, undefined, name);
-    assert.doesNotMatch(profile.model, /^\[|,|auto/i, `${name} must not list fallback models`);
+    assert.doesNotMatch(profile.model, /^\[|,/, `${name} must not list fallback models`);
+    // Copilot Fusion routes only the session's own agent (live SDK trials B and C),
+    // so only the entry agent may follow it; sub-agents keep explicit models.
+    if (name === 'concierge') assert.equal(profile.model, 'auto', 'the entry agent prefers Copilot Fusion');
+    else assert.doesNotMatch(profile.model, /auto|fusion/i, `${name} must keep an explicit model`);
   }
   assert.equal(all.concierge.model, DEFAULTS.models.concierge);
   assert.equal(all.orchestrator.model, DEFAULTS.models.orchestrator);

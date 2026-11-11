@@ -14,13 +14,13 @@ test('narrow ask defeats broad auto, missing values inherit independently', () =
   const result = resolveConfig(layers);
   assert.equal(result.value.planApproval, 'ask');
   assert.equal(result.source.planApproval, 'project');
-  assert.deepEqual(result.value.models, { concierge: 'gpt-6-luna', orchestrator: 'chosen-sol', specialist: 'chosen-leaf', escalation: 'gpt-6.1-sol' });
+  assert.deepEqual(result.value.models, { concierge: 'auto', orchestrator: 'chosen-sol', specialist: 'chosen-leaf', escalation: 'gpt-6.1-sol' });
   assert.equal(resolveConfig(layers.slice(0, 1)).value.planApproval, 'auto');
   assert.equal(resolveConfig().value.planApproval, 'auto');
 });
 
 test('invalid config cannot silently enable auto approval or model fallback', () => {
-  for (const config of [{ extraDirectories: 'one' }, { extraDirectories: [''] }, { extraDirectories: ['a\nb'] }, { planApproval: true }, { planApproval: null }, { models: { concierge: 'Auto' } }, { models: { unknown: 'x' } }, { autoApproveEdits: true }, { models: { specialist: 'x\nInjected instructions' } }]) {
+  for (const config of [{ extraDirectories: 'one' }, { extraDirectories: [''] }, { extraDirectories: ['a\nb'] }, { planApproval: true }, { planApproval: null }, { models: { orchestrator: 'Auto' } }, { models: { specialist: 'fusion' } }, { models: { unknown: 'x' } }, { autoApproveEdits: true }, { models: { specialist: 'x\nInjected instructions' } }]) {
     assert.throws(() => validateConfig(config));
   }
 });
@@ -39,7 +39,12 @@ test('legacy entry-model key resolves with normal scope precedence and rejects a
   ]);
   assert.equal(reverse.value.models.concierge, 'project-root');
   assert.throws(() => validateConfig({ models: { frontdesk: 'one', concierge: 'two' } }), /not both/);
-  assert.throws(() => validateConfig({ models: { frontdesk: 'Auto' } }), /never Auto/);
+  assert.doesNotThrow(() => validateConfig({ models: { concierge: 'fusion' } }));
+  assert.doesNotThrow(() => validateConfig({ models: { frontdesk: 'auto' } }));
+  for (const role of ['orchestrator', 'specialist', 'escalation']) {
+    assert.throws(() => validateConfig({ models: { [role]: 'Auto' } }), /applies only to the concierge role/);
+    assert.throws(() => validateConfig({ models: { [role]: 'fusion' } }), /applies only to the concierge role/);
+  }
 });
 
 test('files resolve user → project → session → task; explicit missing config fails', async () => {
