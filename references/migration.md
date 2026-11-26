@@ -4,7 +4,7 @@ Concierge is the maintained native Copilot plugin. Its canonical public reposito
 
 ## From the 0.11 three-tier layout
 
-Release 0.11 shipped seven agents in three tiers: the `concierge` entry agent, an `orchestrator`, and the specialists `scout`, `product-manager`, `worker` and `reviewer`, plus `escalation`. The main branch, not yet released, ships exactly two agents and 18 skills. This is a breaking change for anything that names a removed agent. It has passed the static source-contract checks only; no live session has run it.
+Release 0.11 shipped seven agents in three tiers: the `concierge` entry agent, an `orchestrator`, and the specialists `scout`, `product-manager`, `worker` and `reviewer`, plus `escalation`. Version 0.12.0 ships exactly two agents and 20 skills. This is a breaking change for anything that names a removed agent. It has passed the static source-contract checks only; no live session has run it.
 
 **What you start is unchanged.** `copilot --agent copilot-concierge:concierge`, plan approval (`ask` or `auto`), autonomy (`guided` or `full`) and their precedence, the `CONCIERGE-RESULT` last line, the learning stores, and commits, pushes and pull requests as ordinary requests all work as before. Finish or stop active work, update, then start a fresh session; existing sessions keep their loaded profiles.
 

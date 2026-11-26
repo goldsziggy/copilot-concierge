@@ -20,7 +20,7 @@ Read from the installed CLI's help text, changelog and tool descriptions on 2026
 | Skills are discovered from `.github/skills`, `.agents/skills`, `~/.copilot/skills` and plugins, at session start | Changelog and the skills guide | Saved workflows are written to the first or third of these and apply from the next session. |
 | In non-interactive runs, repository hooks and workspace MCP servers load only in a trusted folder; `COPILOT_ALLOW_ALL=true` also trusts the folder | `copilot help environment`, changelog 1.0.40, 1.0.49 | Prefer narrow `--allow-tool` flags, or a narrow SDK permission handler. |
 
-## Two-agent layout (unreleased)
+## Two-agent layout (0.12.0)
 
 Concierge now ships exactly two agents and 20 skills. `copilot-concierge:concierge` is a thin front: it answers simple questions itself and hands everything else to `copilot-concierge:worker` with a brief, using its `brief` and `relay` skills. The worker owns each objective and does the work with the skills it needs: `discovery`, `scout`, `plan`, `grill-plan`, `development`, `test`, `react-frontend`, `node-backend`, `graphql`, `debugging`, `review`, `escalate`, `orchestrate`, `orchestrate-reference`, `skill-builder` and `task-evaluation`. The `orchestrator`, `scout`, `product-manager`, `reviewer` and `escalation` profiles and the old leaf `worker` are removed.
 
