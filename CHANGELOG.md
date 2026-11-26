@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.12.0 - 2026-11-26
 
 - Breaking: Concierge now ships exactly two agents instead of seven. `copilot-concierge:concierge` is a thin front agent and `copilot-concierge:worker` is the single back agent that owns each objective and does the work. The `orchestrator`, `scout`, `product-manager`, `reviewer` and `escalation` profiles and the old leaf `worker` are removed; the orchestrator profile became the new `worker`. Scripts, instructions and custom charters that name a removed agent must be updated. See the migration guide.
 - This layout has passed the static source-contract tests only. It has not been run live against a model in the CLI, the app or an SDK client. Live trials and measurements recorded for 0.11.1 and earlier describe the three-tier layout and do not cover it.

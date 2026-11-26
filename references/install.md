@@ -6,7 +6,7 @@ You need GitHub Copilot CLI 1.0.93 or later and/or the GitHub Copilot app, signe
 
 Version 0.11.0 adds a fast path for small work, leaner always-loaded prompts and a dependable "Decided for you" list, and removes external coding sessions. Version 0.10.0 added full autonomy for unattended runs, guidance for driving the plugin from a Copilot SDK client, and remembered workflows saved as skills. Ordinary installations remain guided, and commits, pushes and pull requests remain ordinary requests. Start a fresh session after updating because existing sessions keep their loaded profiles. See [runtime verification](runtime-verification.md) for source checks and the limits of the existing live trials. For an older installation, see [migrating from 0.6.1](migration.md#from-concierge-061).
 
-The main branch, not yet released, replaces the 0.11 layout of an entry agent, an orchestrator and specialist agents with two agents: `copilot-concierge:concierge`, which you talk to, and `copilot-concierge:worker`, which does the work. It ships 18 skills. You start it the same way. This layout has passed the static source checks only and has not been run live. If you have a configuration file with `models`, a routing table or scripts that name the removed agents, see [migrating from the 0.11 three-tier layout](migration.md#from-the-011-three-tier-layout).
+Version 0.12.0 replaces the 0.11 layout of an entry agent, an orchestrator and specialist agents with two agents: `copilot-concierge:concierge`, which you talk to, and `copilot-concierge:worker`, which does the work. It ships 20 skills. You start it the same way. This layout has passed the static source checks only and has not been run live. If you have a configuration file with `models`, a routing table or scripts that name the removed agents, see [migrating from the 0.11 three-tier layout](migration.md#from-the-011-three-tier-layout).
 
 ## Windows prerequisites
 
@@ -34,11 +34,11 @@ copilot plugin install copilot-concierge@copilot-concierge
 
 App: open **Customize → Plugins**, use the marketplace control beside the marketplace dropdown, and add `goldsziggy/copilot-concierge`. Find **copilot-concierge** and select **Install**. Restart the app after a CLI installation if the plugin does not appear. See [GitHub’s app instructions](https://docs.github.com/en/copilot/how-tos/github-copilot-app/customize-github-copilot-app#adding-plugins).
 
-`goldsziggy/copilot-concierge` is the canonical, maintained plugin repository. Its marketplace follows `main`; use `goldsziggy/copilot-concierge#v0.11.1` to pin the 0.11.1 release. No access to the former private development repository is needed.
+`goldsziggy/copilot-concierge` is the canonical, maintained plugin repository. Its marketplace follows `main`; use `goldsziggy/copilot-concierge#v0.12.0` to pin the 0.12.0 release. No access to the former private development repository is needed.
 
 ### From a local copy
 
-Unzip `copilot-concierge-0.11.1.zip` (it contains a `copilot-concierge` folder) or clone the repository. On macOS, choose a location the app can read: historical app trials encountered privacy restrictions under `~/Documents` and external drives. Then point Copilot at the extracted or cloned `copilot-concierge` folder:
+Unzip `copilot-concierge-0.12.0.zip` (it contains a `copilot-concierge` folder) or clone the repository. On macOS, choose a location the app can read: historical app trials encountered privacy restrictions under `~/Documents` and external drives. Then point Copilot at the extracted or cloned `copilot-concierge` folder:
 
 ```sh
 copilot plugin marketplace add /path/to/copilot-concierge
