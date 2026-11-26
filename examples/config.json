@@ -3,7 +3,6 @@
   "autonomy": "guided",
   "models": {
     "concierge": "gpt-6-luna",
-    "orchestrator": "gpt-6.1-sol",
-    "specialist": "gpt-6-luna"
+    "worker": "gpt-6.1-sol"
   }
 }

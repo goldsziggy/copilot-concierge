@@ -2,9 +2,49 @@
 
 Concierge is the maintained native Copilot plugin. Its canonical public repository is `goldsziggy/copilot-concierge`; its package, plugin and marketplace IDs are `copilot-concierge`. The former private development repository remains separate and unchanged. The historical public `v0.3.1` tag and release keep their Zilot source, IDs and uploaded assets.
 
+## From the 0.11 three-tier layout
+
+Release 0.11 shipped seven agents in three tiers: the `concierge` entry agent, an `orchestrator`, and the specialists `scout`, `product-manager`, `worker` and `reviewer`, plus `escalation`. The main branch, not yet released, ships exactly two agents and 18 skills. This is a breaking change for anything that names a removed agent. It has passed the static source-contract checks only; no live session has run it.
+
+**What you start is unchanged.** `copilot --agent copilot-concierge:concierge`, plan approval (`ask` or `auto`), autonomy (`guided` or `full`) and their precedence, the `CONCIERGE-RESULT` last line, the learning stores, and commits, pushes and pull requests as ordinary requests all work as before. Finish or stop active work, update, then start a fresh session; existing sessions keep their loaded profiles.
+
+**Agents.** `copilot-concierge:concierge` is now a thin front. It answers simple questions itself (greetings, what Concierge is and how to use it, general questions that do not depend on your project, and progress from the latest report) and hands everything else to the worker with a brief. `copilot-concierge:worker` is the single back agent: it owns each objective and does the work itself, as the orchestrator profile did, starting a sub-agent only when a separate context earns its cost or a routing row names an agent.
+
+| Removed agent | What does that work now |
+| --- | --- |
+| `copilot-concierge:orchestrator` | `copilot-concierge:worker`, which owns the objective |
+| `copilot-concierge:worker` (the old leaf implementer) | The worker itself, with the `development` and `test` skills and any domain skill |
+| `copilot-concierge:scout` | The worker, with the `scout` and `discovery` skills |
+| `copilot-concierge:product-manager` | The worker, with the `plan` skill |
+| `copilot-concierge:reviewer` | A sub-agent with the `review` or `grill-plan` skill: the agent a routing row names, otherwise a general-purpose agent the host offers. If none is available, the worker reviews with `review` itself and says the review was not independent |
+| `copilot-concierge:escalation` | The worker itself, which already runs on the stronger model; there is no separate escalation tier. The `escalate` skill is unrelated: it settles blockers |
+
+Only `concierge` is selectable; do not start `copilot-concierge:worker` directly. Update scripts, instructions and custom agent charters that mention the orchestrator: sub-agents now report to the worker.
+
+**Skills.** Six skills are new, and their names are now reserved along with the existing twelve: `brief` and `relay` (used only by the entry agent, to write the brief and dispatch, and to relay reports), and `discovery`, `development`, `test` and `escalate` (used by the worker). If you have a project or personal skill with one of these names, rename it; `check-custom.mjs` reports the collision as an error. Only `concierge` and `worker` remain reserved agent IDs.
+
+**Model configuration.** The `models` roles are now `concierge` (default `auto`, Copilot Fusion) and `worker` (default `gpt-6.1-sol`).
+
+| Old key | Now |
+| --- | --- |
+| `models.concierge` | Unchanged |
+| `models.frontdesk` | Still a deprecated alias for `models.concierge` |
+| `models.orchestrator` | Deprecated alias for `models.worker`; rename it |
+| `models.specialist`, `models.escalation` | Retired with their agents. Still accepted in old files and checked, then ignored; remove them |
+
+Giving both an alias and its role in one file, such as `models.orchestrator` and `models.worker`, is an error. Note that `models.specialist` used to set the old leaf worker's model; it no longer sets anything, and `models.worker` now sets the model of the agent that owns the objective.
+
+**Routing tables.** `copilot-concierge-routing` skills still work and their role keys remain valid; the keys now describe kinds of work, not shipped agents. A row that names your custom agent still wins. A row that names `copilot-concierge:worker` means the worker does that work itself with the row's skills. A row that names a retired built-in is treated the same way, with the matching skill added, and `npm run check:custom` (`node scripts/check-custom.mjs`) prints a migration warning for it. Change those Agent cells to `copilot-concierge:worker` and add the skill listed in [domain roles and old built-in IDs](routing-charters.md#domain-roles-and-old-built-in-ids). The checker never rewrites your files.
+
+**Reports and rollover.** The report's `handover` block is replaced by a `progress` object: one JSON object in every report that is the worker's whole memory of the objective (the request, follow-ups, decisions, outcome, repository summary, tasks, facts, error signatures, what is done and open, uncommitted files and counts). The entry agent keeps the latest one and passes it back verbatim in the brief's new `progress:` line on rollover or resume; it never edits, summarises or shows it. A client or custom charter that parsed the `handover` block must read `progress` instead. The `CONCIERGE-BRIEF`, `CONCIERGE-HANDOFF` and `CONCIERGE-REPORT` markers and the control messages are unchanged.
+
+**Blockers.** Blockers are typed (`question`, `permission`, `repeated_failure`, `missing_dependency`, `ambiguity`, `stall`) and settled through the `escalate` checklist before you are asked. The default stays `guided`: Concierge still asks you what only you can answer. See [autonomy](autonomy.md#how-blockers-are-settled).
+
+**Unattended clients.** A direct answer from the entry agent normally has no `CONCIERGE-RESULT` line. In a run the prompt says is unattended, it ends with `CONCIERGE-RESULT: done answered`, which the documented client pattern still matches. See [SDK automation](sdk-automation.md).
+
 ## Consolidated implementation workers
 
-The current source replaces the built-in React, Node.js and GraphQL profiles with `copilot-concierge:worker`. Their `react-frontend`, `node-backend` and `graphql` skills remain separate and can be combined for one cohesive assignment. Product manager, Scout, independent reviewer and escalation remain separate roles. `models.specialist` still configures the worker; existing model configuration needs no rename.
+Version 0.9.0 replaced the built-in React, Node.js and GraphQL profiles with `copilot-concierge:worker`. Their `react-frontend`, `node-backend` and `graphql` skills remain separate and can be combined for one cohesive assignment. From 0.9.0 to 0.11.1, product manager, Scout, independent reviewer and escalation remained separate agents and `models.specialist` configured the worker; the [two-agent layout above](#from-the-011-three-tier-layout) retires those agents and that key.
 
 Update only routes that name the removed built-in IDs:
 
@@ -17,13 +57,13 @@ Update only routes that name the removed built-in IDs:
 
 Keep Role cells, including `enterprise-ux`, so their exact custom routes still match. Do not rewrite custom IDs such as `team-tools:graphql` or `team-designer`. The former built-in `enterprise-ux` skill is removed; use `plan` and applicable domain guidance rather than claiming that skill loaded. A separately discovered custom skill of that name is still custom guidance, not the removed built-in.
 
-Run `node scripts/check-custom.mjs` against the relevant project, personal and plugin folders. It warns about legacy built-in IDs and missing former skills but never edits routes or registers aliases. The orchestrator reports an explicit legacy substitution, retaining a delegated worker, required skills, approval state and exact user restrictions. Finish or stop active work before updating, then start a fresh session; source checks do not prove live host behavior. No installed plugin cache is rewritten by this migration.
+Run `node scripts/check-custom.mjs` against the relevant project, personal and plugin folders. It warns about legacy built-in IDs and missing former skills but never edits routes or registers aliases. The worker reports an explicit legacy substitution, retaining required skills, approval state and exact user restrictions. Finish or stop active work before updating, then start a fresh session; source checks do not prove live host behavior. No installed plugin cache is rewritten by this migration.
 
 ## From Concierge 0.6.1
 
 Version 0.7.0 removes the Ship it specialist and its two-step draft PR/MR offer. Ask for commits, pushes or pull requests directly instead ("commit this on a new branch and open a draft PR"), in a request, a follow-up or a plan step. Copilot's tool permissions decide each command; there is no separate Concierge consent step. If a `copilot-concierge-routing` table routes the `ship-it` role, remove that row: `node scripts/check-custom.mjs` reports it as an agent that was not found.
 
-Results now end with up to three suggested next steps, and each follow-up you send is reported as applied, deferred or unchanged. Each objective's checklist is also mirrored into the session's todo tables for Copilot's plan and todo views. Start a fresh session after updating.
+Since 0.7.0, results end with up to three suggested next steps, and each follow-up you send is reported as applied, deferred or unchanged. Each objective's checklist is also mirrored into the session's todo tables for Copilot's plan and todo views. Start a fresh session after updating.
 
 ## From 0.5.0 project notes to memory and knowledge
 

@@ -105,15 +105,20 @@ test('duplicate agent IDs and skill names are reported because Copilot keeps onl
 
 test('custom files cannot silently take over Concierge skill or agent names', async t => {
   const root = await project(t, {
+    '.github/agents/worker.agent.md': agent('"Team worker."'),
     '.github/agents/scout.agent.md': agent('"Team scout."'),
     '.github/skills/review/SKILL.md': skill('review'),
+    '.github/skills/brief/SKILL.md': skill('brief'),
   });
   const result = await checkRoots([root]);
   assert.match(result.errors.join('\n'), /"review" is a Concierge skill name/);
-  assert.match(result.errors.join('\n'), /agent ID "scout" is a Concierge agent name/);
+  assert.match(result.errors.join('\n'), /"brief" is a Concierge skill name/);
+  assert.match(result.errors.join('\n'), /agent ID "worker" is a Concierge agent name/);
+  // Retired built-in names are free again for a team's own agents.
+  assert.doesNotMatch(result.errors.join('\n'), /agent ID "scout"/);
   const shipped = await project(t, {
     'plugin.json': JSON.stringify({ name: 'copilot-concierge' }),
-    'com.github.copilot/agents/scout.agent.md': agent('"Scout."'),
+    'com.github.copilot/agents/worker.agent.md': agent('"Worker."'),
     'skills/review/SKILL.md': skill('review'),
   });
   const own = await checkRoots([shipped]);
@@ -127,7 +132,8 @@ test('routing role keys remain distinct from shipped agent IDs and skills', () =
     assert.ok(CONCIERGE_ROLES.includes(role), role);
     assert.ok(!CONCIERGE_WORKERS.includes(role), role);
   }
-  assert.ok(CONCIERGE_WORKERS.includes('worker'));
+  assert.deepEqual(CONCIERGE_WORKERS, ['worker']);
+  for (const role of ['scout', 'product-manager', 'reviewer', 'escalation']) assert.ok(CONCIERGE_ROLES.includes(role), role);
   assert.ok(!CONCIERGE_SKILLS.includes('enterprise-ux'));
   for (const skill of ['react-frontend', 'node-backend', 'graphql']) assert.ok(CONCIERGE_SKILLS.includes(skill), skill);
 });
@@ -149,6 +155,24 @@ test('legacy built-in IDs warn with an explicit worker and skill migration, with
   assert.doesNotMatch(result.warnings.join('\n'), /new role/);
   const { readFile } = await import('node:fs/promises');
   assert.equal(await readFile(path.join(root, '.github/skills/copilot-concierge-routing/SKILL.md'), 'utf8'), route);
+});
+
+test('built-ins retired with the three-tier layout warn with the skill that replaces each', async t => {
+  const retired = { scout: 'scout', 'product-manager': 'plan', reviewer: 'review', escalation: null };
+  const rows = Object.keys(retired).map(role => `| ${role} | copilot-concierge:${role} | team-rules | |`).join('\n');
+  const root = await project(t, {
+    '.github/skills/team-rules/SKILL.md': skill('team-rules'),
+    '.github/skills/copilot-concierge-routing/SKILL.md': `${skill('copilot-concierge-routing')}\n| Role | Agent | Skills | Use when |\n|---|---|---|---|\n${rows}\n| worker | copilot-concierge:worker | team-rules | |\n`,
+  });
+  const result = await checkRoots([root]);
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.warnings.length, 4, 'the shipped worker itself needs no warning');
+  for (const [role, replacement] of Object.entries(retired)) {
+    const warning = result.warnings.find(text => text.includes(`legacy agent "copilot-concierge:${role}"`));
+    assert.ok(warning?.includes('use "copilot-concierge:worker"'), role);
+    if (replacement) assert.ok(warning.includes(`add skill "${replacement}"`), role);
+    else assert.doesNotMatch(warning, /add skill/, role);
+  }
 });
 
 test('legacy role keys preserve exact custom IDs and do not demand new-role descriptions', async t => {

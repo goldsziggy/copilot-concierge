@@ -1,6 +1,14 @@
 # Sample prompts
 
-Start `copilot --agent copilot-concierge:concierge`, or choose **concierge** in the app, and describe your goal in plain language. You never need to name a specialist. The *verified* labels below refer only to historical Zilot 0.3.0 sessions; they are not current-version acceptance (see [runtime verification](../references/runtime-verification.md)).
+Start `copilot --agent copilot-concierge:concierge`, or choose **concierge** in the app, and describe your goal in plain language. You never need to name an agent or a skill. The *verified* labels below refer only to historical Zilot 0.3.0 sessions, which had an orchestrator and specialist agents; they are not acceptance of the current two-agent layout, which has not been run live (see [runtime verification](../references/runtime-verification.md)).
+
+## A simple question
+
+> What can you do, and how should I phrase a request?
+
+> What is the difference between a rebase and a merge?
+
+Concierge answers these itself: greetings, what it is and how to use it, and general questions that do not depend on your project. Anything about your own code, files or tickets goes to its worker instead, and Concierge may offer to check an answer against the project.
 
 ## A goal that needs a decision
 
@@ -18,7 +26,7 @@ You see a short plan and Concierge continues; with `planApproval` set to `ask` y
 
 > Make total([]) return 0, and add an accessible clearBasketButton contract to src/ui.mjs that reuses the existing enterprise-ui tokens. Run the focused tests.
 
-Independent pieces go to separate specialists, sometimes in parallel, followed by a review. The task list shows each piece. *Verified.*
+The worker does small pieces itself. It may hand independent pieces on disjoint files to sub-agents, at most three at once, and a meaningful or risky change gets a review. The task list shows each piece. *Parallel specialists and a review were verified in the historical sessions.*
 
 ## A ticket
 
@@ -48,7 +56,7 @@ Add an explicit `copilot-concierge-routing` row for your team agent (for example
 
 > Help me understand how this project is organized and which checks matter before I make a change.
 
-Scout gathers source evidence and may maintain `docs/concierge/knowledge.md` for future requests. It records confirmed facts with sources and dates, preserving other documentation. Say “Do not write any files” for discovery without memory or knowledge writes. This is an instruction contract, not a live acceptance result.
+The worker gathers source evidence with its `discovery` and `scout` skills and may maintain `docs/concierge/knowledge.md` for future requests. It records confirmed facts with sources and dates, preserving other documentation. Say “Do not write any files” for discovery without memory or knowledge writes. This is an instruction contract, not a live acceptance result.
 
 ## Personal preferences
 
@@ -70,13 +78,13 @@ You can inspect, correct, remove or disable saved preferences. “Forget all my 
 
 > Document why we use integer cents for prices.
 
-Scout checks the code, tests and existing design records. If the reason is supported, it records a confirmed decision and its sources in `docs/concierge/knowledge.md`; otherwise it asks for the missing rationale instead of inventing one. A description of what the code does is not proof of why it was chosen.
+The worker checks the code, tests and existing design records. If the reason is supported, it records a confirmed decision and its sources in `docs/concierge/knowledge.md`; otherwise it asks for the missing rationale instead of inventing one. A description of what the code does is not proof of why it was chosen.
 
 > Correct the checkout rule: shipping is free from 50, not 75. Check the current tests before updating the docs.
 
 > Remove the obsolete payment finding from Concierge's knowledge.
 
-Corrections must agree with current repository evidence. Removing a managed entry preserves other entries and user-written text. If committing is already part of the task, the implementer reviews the knowledge diff and includes the relevant update deliberately; Scout never commits it itself. See [memory and knowledge](../references/memory-and-knowledge.md).
+Corrections must agree with current repository evidence. Removing a managed entry preserves other entries and user-written text. If committing is already part of the task, the worker reviews the knowledge diff and includes the relevant update deliberately; the learning procedure never commits it itself. See [memory and knowledge](../references/memory-and-knowledge.md).
 
 ## Committing and opening a pull request
 
@@ -132,4 +140,4 @@ The reply ends with `CONCIERGE-RESULT: <status> <objective-id>`, which the clien
 
 > Please continue where you left off.
 
-Concierge asks its workers to stop and reports what finished; the host's own stop control (Esc, `/tasks`, or the app's stop and Cancel buttons) halts running agents immediately. When you continue, it first checks what already exists so nothing runs twice. *Verified.*
+Concierge asks the affected worker to stop and reports what finished; the host's own stop control (Esc, `/tasks`, or the app's stop and Cancel buttons) halts running agents immediately. When you continue, it first checks what already exists so nothing runs twice. *Verified.*

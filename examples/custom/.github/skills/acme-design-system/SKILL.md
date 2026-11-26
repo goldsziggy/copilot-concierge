@@ -5,7 +5,7 @@ description: Acme's design-system rules for UI work - which components, tokens a
 
 # Acme design system
 
-Replace this with your own guidance. Keep it to what a worker needs to do the job well:
+Replace this with your own guidance. Keep it to what an agent needs to do the job well:
 
 - Import components from `@acme/ui`; never style raw HTML elements directly.
 - Use tokens from `@acme/ui/tokens` for color, spacing and type; no literal values.

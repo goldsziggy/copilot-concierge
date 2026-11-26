@@ -2,19 +2,19 @@
 
 <img src="assets/concierge-copilot.png" alt="Concierge robot receptionist in navy, white and teal" width="128" align="right">
 
-Tell Concierge what you want done. It briefs a working lead, keeps you informed in one conversation, and comes back with a result you can check.
+Tell Concierge what you want done. It answers simple questions itself, briefs a worker for everything else, keeps you informed in one conversation, and comes back with a result you can check.
 
-Concierge is a native plugin for **GitHub Copilot CLI and the GitHub Copilot app**. It adds no service, no credentials and no permission bypass: it is agent profiles and skills that run on Copilot's own agents, tools and permissions.
+Concierge is a native plugin for **GitHub Copilot CLI and the GitHub Copilot app**. It adds no service, no credentials and no permission bypass: it is two agent profiles and 18 skills that run on Copilot's own agents, tools and permissions.
 
 The main branch tracks **0.11.1**. For a published build, see the [latest GitHub release](https://github.com/goldsziggy/copilot-concierge/releases/latest); main may contain changes not yet included there.
 
 ## Why choose Concierge
 
-**You talk to one agent, not a crowd.** Concierge takes your goal, asks only what it needs, and relays the plan and the result. The planning, coding and reviewing happen behind it, so your conversation stays short and readable.
+**You talk to one agent, not a crowd.** Concierge answers greetings, questions about itself and general questions directly. For anything that touches your project it writes a brief, hands it to its worker, and relays the plan and the result. The planning, coding and reviewing happen behind it, so your conversation stays short and readable.
 
-**Small work stays small.** A clear, bounded change takes a fast path: the working lead does it in one pass with no skill loaded and no extra agent. Larger work gets a plan, the relevant skills, and a specialist only when a separate context earns its cost.
+**Small work stays small.** A clear, bounded change takes a fast path: the worker does it in one pass with no skill loaded and no extra agent. Larger work gets a plan, the relevant skills, and a sub-agent only when a separate context earns its cost.
 
-**Results you can check.** A result says what changed, which checks ran and what they showed. Risky changes get an independent reviewer. When something only you can supply is missing, Concierge reports `blocked` with exactly what it needs instead of guessing or working around it.
+**Results you can check.** A result says what changed, which checks ran and what they showed. Risky changes get an independent review; if no separate reviewer is available, the worker reviews the change itself and says the review was not independent. When something only you can supply is missing, Concierge reports `blocked` with exactly what it needs instead of guessing or working around it.
 
 **You choose how involved to be.** By default it is `guided`: it asks, shows the plan and pauses between phases. Say "just handle it" and it runs to a verified result, then lists every choice it made under "Decided for you" so you can reverse one. Copilot's own tool permissions apply either way.
 
@@ -35,9 +35,9 @@ We compared 0.11.1 with 0.7.1 on the same two tasks, two runs each, through the 
 | Medium: four-file feature, tests, docs and review | 0.7.1 | 1 of 2 | 34 | 794k | 5m 17s |
 | Medium | 0.11.1 | 2 of 2 | 21–27 | 416k–564k | 3m 22s – 4m 58s |
 
-The medium figures for 0.7.1 are for its one completed run; the other gave up after its chained shell commands were denied. Where both versions finished, the code they produced was equivalent. This is a small sample under unattended conditions, which favor the current version. [Full method and results →](references/runtime-verification.md)
+The medium figures for 0.7.1 are for its one completed run; the other gave up after its chained shell commands were denied. Where both versions finished, the code they produced was equivalent. This is a small sample under unattended conditions, which favor the newer version. Both versions used the earlier three-tier layout (entry agent, orchestrator and specialists). The two-agent layout now on main has passed static source checks only; it has not been run live or measured. [Full method and results →](references/runtime-verification.md)
 
-**When not to use it.** For a quick question or a one-line edit you can describe exactly, ask Copilot directly. Concierge's smallest task still takes about eleven model calls and over a minute, because a lead plans, verifies and reports.
+**When not to use it.** For a quick question about your code or a one-line edit you can describe exactly, ask Copilot directly. Any request that touches your project goes through the worker, which plans, verifies and reports; in 0.11.1 the smallest such task took about eleven model calls and over a minute.
 
 ## Get started
 
@@ -55,28 +55,43 @@ Then give it a goal:
 
 **In the app:** open **Customize → Plugins**, add the `goldsziggy/copilot-concierge` marketplace and install **copilot-concierge**. Open your project, select **concierge** in the agent picker and **Copilot Fusion** in the model picker, then send your request. Restart the app if a CLI installation does not appear.
 
-**Models.** You need a signed-in Copilot account. Concierge prefers **Copilot Fusion** for the conversation (Copilot CLI 1.0.104 or later). Its working lead and specialists keep GPT-6.1 Sol and GPT-6 Luna, because Fusion does not route sub-agents. [Models →](references/install.md#models)
+**Models.** You need a signed-in Copilot account. Concierge prefers **Copilot Fusion** for the conversation (Copilot CLI 1.0.104 or later). Its worker keeps GPT-6.1 Sol, because Fusion does not route sub-agents. [Models →](references/install.md#models)
 
 Upgrading from 0.4? The entry agent is now **concierge**, replacing **frontdesk**. Update shortcuts and start a fresh session. [Install, update and migrate →](references/install.md)
 
 ## How it works
 
-![You talk to Concierge, which briefs Sol, the working lead. Sol takes a fast path for small work, plans and loads skills for larger work, and brings in specialists when a separate context pays. Every result is verified, lists what was decided for you, suggests next steps and ends with a result line. Guided mode, full autonomy and SDK automation use the same plugin.](assets/orchestration.svg)
+![You talk to Concierge, the front agent. It answers simple questions itself and briefs the worker, the back agent, for everything else. The worker takes a fast path for small work, plans and loads skills for larger work, and starts optional sub-agents when a separate context pays. Every result is verified, lists what was decided for you, suggests next steps and ends with a result line. Guided mode, full autonomy and SDK automation use the same plugin.](assets/orchestration.svg)
 
-**Concierge** is the agent you talk to. It writes a brief, starts a working lead for each objective, relays questions and plans, and reports the result. It never reads your repository or writes code itself.
+Concierge ships exactly two agents, and both are driven by skills.
 
-**Sol**, the working lead, owns the objective: the plan, the work, the checks and the claim that it is done. It picks the lightest path that finishes the job:
+**Concierge** (`copilot-concierge:concierge`) is the agent you talk to: a light chat front. It answers simple questions itself: greetings, what Concierge is and how to use it, general questions that do not depend on your project, and progress questions from the latest report. Everything that needs a file, repository, ticket, link, command, change, plan, review or memory request goes to the worker with a brief. Concierge never reads your repository or writes code itself. Its two skills are `brief` (writing the brief and dispatching) and `relay` (relaying the worker's reports).
 
-- **Fast path.** For a clear, bounded change it reads what it needs, makes the change, runs the named checks and reports. No skill is loaded and no worker is started.
-- **Plan and skills.** For larger or unclear work it states the outcome and its checks first, then loads the procedures the work needs: React, Node.js, GraphQL, debugging, planning, or a workflow you saved. One owner keeps a feature and its tests together across layers.
-- **Specialists.** It delegates when a separate context earns its cost: a **worker** for owned implementation, a **reviewer** for an independent check of meaningful or risky changes, a **scout** for substantial repository, document or ticket discovery, and an **escalation** role when more help is needed. Each gets a written handoff and returns evidence, which Sol checks before accepting it.
+**The worker** (`copilot-concierge:worker`) owns each objective: the plan, the work, the checks and the claim that it is done. It picks the lightest path that finishes the job:
+
+- **Fast path.** For a clear, bounded change it reads what it needs, makes the change, runs the named checks and reports. No skill is loaded and no sub-agent is started.
+- **Plan and skills.** For larger or unclear work it states the outcome and its checks first, then loads the procedures the work needs. One owner keeps a feature and its tests together across layers.
+- **Sub-agents, when they pay.** The worker does the work itself by default. It starts a sub-agent only for independent pieces on disjoint files, an investigation whose result compresses well, independent review of a meaningful or risky change, a long context at a task boundary, or a [routing row](references/routing-charters.md) you wrote. Concierge ships no specialist agents: the worker uses the agent your routing row names, otherwise a general-purpose agent the host offers, otherwise itself, with at most three sub-agents at once. Each gets a written handoff and returns evidence, which the worker checks before accepting it.
+
+The worker's skills:
+
+| Skill | Used for |
+| --- | --- |
+| `discovery` | A short summary of an unfamiliar repository: stack, commands and conventions |
+| `scout` | Tickets and other references, private memory and repository knowledge |
+| `plan`, `grill-plan` | Requirements and plans, and challenging a consequential plan |
+| `development`, `test` | Code changes, commits and pull requests, and choosing what to run |
+| `react-frontend`, `node-backend`, `graphql` | Domain conventions |
+| `debugging` | Reproducing a fault, testing competing explanations and verifying a minimal fix |
+| `review` | Reviewing a change |
+| `escalate` | Settling a question or blocker with the least risk, and deciding whether you are needed |
+| `orchestrate`, `orchestrate-reference` | Sub-agent handoffs, routing tables and other rarely needed rules |
+| `skill-builder` | Saving a workflow you want repeated |
+| `task-evaluation` | Comparing a baseline and a candidate on outcomes, constraints, time and usage. Live trials need an explicit budget. [Comparative evaluation →](references/comparative-evaluation.md) |
 
 Skills are procedures; they do not grant tools or permissions. Ticket access depends on your existing integrations: Concierge bundles no connector or credentials. [Handoff contract →](references/handoff.md)
 
-Two procedures are loaded only when asked for or needed:
-
-- **Debugging** reproduces a fault, tests competing explanations and verifies a minimal fix.
-- **Task evaluation** compares a baseline and a candidate on outcomes, constraints, time and usage. Live trials need an explicit budget. [Comparative evaluation →](references/comparative-evaluation.md)
+**Blockers are settled in a fixed order.** When the worker hits a question, a missing permission or dependency, a repeated failure, an ambiguity or a stall, it first tries to answer from a source, retry with a new hint, mock an unavailable service, or use CI. Under full autonomy it may also take the clearly safest reversible option and flag it. Only then does it ask you, or stop. [Autonomy →](references/autonomy.md)
 
 ## You're in control
 
@@ -101,7 +116,7 @@ Two procedures are loaded only when asked for or needed:
 
 **Memories are about how you like to work.** Say “Remember that I prefer a short summary, then details.” Concierge can use that preference in your other projects on the same computer. It keeps a small private file outside Git repositories, rather than saving conversations or a history of your tasks. It asks before saving a preference inferred from a pattern in your usage.
 
-**Knowledge is about the project.** Sol or Scout records verified tech stacks, conventions, business rules, findings and code decisions in `docs/concierge/knowledge.md`, with source references and dates. For example: “Document why we use integer cents for prices.” Knowledge stays with the repository and can be reviewed and included deliberately in a relevant commit when you ask for one. Existing documentation is preserved; Concierge changes only its own clearly marked section.
+**Knowledge is about the project.** The worker, following its `scout` skill, records verified tech stacks, conventions, business rules, findings and code decisions in `docs/concierge/knowledge.md`, with source references and dates. For example: “Document why we use integer cents for prices.” Knowledge stays with the repository and can be reviewed and included deliberately in a relevant commit when you ask for one. Existing documentation is preserved; Concierge changes only its own clearly marked section.
 
 **Workflows become skills.** Tell Concierge how you want a recurring kind of work done: “Remember how we review merge requests: migrations first, then the contract tests, then…” or “From now on, test like this.” It saves the steps as an ordinary Copilot skill, in the repository's `.github/skills/` for a team workflow or in `~/.copilot/skills/` for your own, and loads it in later sessions when the work matches. If you recommend a way of doing something while it works, Concierge follows it and offers once to save it; nothing is saved until you say yes. [Remembered workflows →](references/memory-and-knowledge.md#workflows-become-skills)
 
@@ -115,16 +130,18 @@ Add your organization's agents, skills and routing rules without changing Concie
 
 - [Customization quick start](references/customizing.md): add a team reviewer and rules in four steps, then share them as a team plugin.
 - [Custom agents](references/custom-agents.md): specialist profiles with a preferred model, tools and a charter.
-- [Routing charters](references/routing-charters.md): tell Concierge which agent and skills handle each role. A routing row is a delegation instruction that Sol does not bypass.
-- [Skills](references/custom-skills.md): reusable guidance for Sol, Concierge's workers or your own.
+- [Routing charters](references/routing-charters.md): tell Concierge which agent and skills handle each kind of work. A row that names your agent is a delegation instruction the worker does not bypass.
+- [Skills](references/custom-skills.md): reusable guidance for the worker and the sub-agents it starts.
 
-Roles specify a preferred model. When the host supports an alternative, an unavailable model need not block work; actual fallback behavior depends on the host and is not guaranteed. [Model configuration →](references/install.md#session-local-launcher)
+Both agents specify a preferred model: `auto` (Copilot Fusion) for Concierge and `gpt-6.1-sol` for the worker. When the host supports an alternative, an unavailable model need not block work; actual fallback behavior depends on the host and is not guaranteed. [Model configuration →](references/install.md#session-local-launcher)
 
 ## Verification and limits
 
 Source checks, installation checks and live model sessions are different kinds of evidence, and this project keeps them apart.
 
-**Run live** on Copilot CLI 1.0.98 and 1.0.109, mostly through the Copilot SDK under full autonomy:
+**The two-agent layout on main has not been run live.** It has passed the static source-contract checks only. The trials below ran releases 0.10.0 to 0.11.1, which had an entry agent, an orchestrator and specialist agents; they do not cover the current profiles and skills.
+
+**Run live on those earlier releases**, on Copilot CLI 1.0.98 and 1.0.109, mostly through the Copilot SDK under full autonomy:
 
 - small and medium tasks from request to verified result, including delegation to an independent reviewer;
 - two hard stops (a missing ticket and a missing credential), which ended `blocked` without a loop or a workaround;
@@ -132,7 +149,7 @@ Source checks, installation checks and live model sessions are different kinds o
 - a saved workflow, reused in a later session;
 - the result line and the "Decided for you" list.
 
-**Not yet run live:** a question that needs a person to answer, plan approval `ask` with a reply, a follow-up to a running objective, several objectives in parallel, rollover of a long objective, custom routing tables, and the interactive app with the current profiles. These are instruction contracts covered by source tests only.
+**Not yet run live in any release:** a question that needs a person to answer, plan approval `ask` with a reply, a follow-up to a running objective, several objectives in parallel, rollover of a long objective, custom routing tables, and the interactive app with the 0.11 or current profiles. New in the two-agent layout and also not run: direct answers from Concierge, the `progress` object, the `escalate` checklist and sub-agents started by the worker. These are instruction contracts covered by source tests only.
 
 **Known limits:**
 
@@ -155,7 +172,7 @@ npm run package
 
 These source checks make no model calls. Packaging creates a versioned ZIP and checksum under `dist/`. Live Copilot trials use your account's credits.
 
-[Install and remove](references/install.md) · [Sample requests](examples/requests.md) · [Handoff contract](references/handoff.md) · [Distribution](references/distribution.md) · [Release process](references/releasing.md) · [Migration from Zilot](references/migration.md)
+[Install and remove](references/install.md) · [Sample requests](examples/requests.md) · [Handoff contract](references/handoff.md) · [Distribution](references/distribution.md) · [Release process](references/releasing.md) · [Migration](references/migration.md)
 
 ## License
 

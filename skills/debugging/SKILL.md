@@ -5,7 +5,7 @@ description: Reproduce and isolate a fault using competing hypotheses, targeted 
 
 # Debugging
 
-Use this procedure as the current execution owner. Your agent profile determines identity, tools, model, delegation and reporting. Sol may work directly within approved scope; a specialist remains a leaf and returns findings or questions to Sol. This skill grants no new tool, write, deployment, spending or data-access authority. Follow applicable repository instructions and the user's current restrictions. A diagnosis-only request remains read-only except explicitly allowed learning.
+Use this procedure as the current execution owner. Your agent profile determines identity, tools, model, delegation and reporting. The worker may work directly within approved scope; a sub-agent remains a leaf and returns findings or questions to the worker. This skill grants no new tool, write, deployment, spending or data-access authority. Follow applicable repository instructions and the user's current restrictions. A diagnosis-only request remains read-only except explicitly allowed learning.
 
 ## Establish the failure
 
@@ -17,7 +17,7 @@ Use this procedure as the current execution owner. Your agent profile determines
 
 Keep a short hypothesis list in the current working context, not a new persistent service or dossier. For each plausible explanation, state supporting evidence, a disconfirming observation and the cheapest safe test that distinguishes it from alternatives. Prioritize tests by information gained and user impact, not by confidence language alone.
 
-Trace the behavior across relevant boundaries, such as UI state, API payload, validation, persistence and asynchronous jobs. Load the existing domain procedures as needed. Keep a tightly coupled fault with one owner; only Sol chooses whether an independent investigation warrants another agent. Use a known-good baseline or bounded diff comparison where available. Do not call correlation a root cause.
+Trace the behavior across relevant boundaries, such as UI state, API payload, validation, persistence and asynchronous jobs. Load the existing domain procedures as needed. Keep a tightly coupled fault with one owner; only the worker chooses whether an independent investigation warrants another agent. Use a known-good baseline or bounded diff comparison where available. Do not call correlation a root cause.
 
 Change one explanatory variable at a time when practical. Re-run the failing case after each informative change. Prefer existing logs, tests and local fixtures over production mutations. Never log secrets, private payloads or unnecessary personal data. Do not replay a timed-out or interrupted external action until its actual effects are reconciled; an error does not prove nothing happened. Respect cancellation, permissions and approved resource budgets.
 

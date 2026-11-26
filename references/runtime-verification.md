@@ -1,5 +1,11 @@
 # Runtime verification
 
+## Two-agent layout (unreleased) - 2026-11-26
+
+No live run. The two-agent, skill-driven layout (a `concierge` front agent with the `brief` and `relay` skills, and one `worker`) has passed static checks only, on Linux with Node 26.13.0: `npm test` ran 159 tests: 146 passed, 0 failed, 13 native Windows skips; `npm run validate` passed with 18 skills and 2 agents; `npm run catalog:check` passed.
+
+One bounded non-interactive trial of a direct answer was attempted with Copilot CLI 1.0.112 and `--plugin-dir`. It did not start: the environment could not resolve the Copilot API host, so no model was called. Nothing below this section covers this layout. Not yet observed: the entry agent loading `brief` and `relay` with its `skill` tool, a direct answer without a dispatch, a dispatch to `copilot-concierge:worker`, the `progress` object surviving a rollover, the worker starting a host agent as a sub-agent, and the `escalate` checklist under either autonomy mode.
+
 ## Concierge 0.11.1 compared with 0.7.1 - 2026-11-11
 
 Eight live runs: two per version per task. Each used `@github/copilot-sdk` 1.0.31 with Copilot CLI 1.0.109, session model `auto`, the plugin loaded from its release tag with `pluginDirectories`, a 30-credit session limit and a fresh clone of a disposable repository. The prompt was the same for both versions and stated full autonomy and no plan approval. The permission handler approved reads, writes inside the checkout, `npm test` and read-only `git status`/`diff`/`log`, and rejected everything else.

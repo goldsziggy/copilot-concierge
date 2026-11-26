@@ -63,7 +63,7 @@ test('evaluation guidance distinguishes fixtures from observed behavior and defi
 test('task evaluation is a self-contained on-demand procedure without new authority', async () => {
   const skill = await readFile(new URL('../skills/task-evaluation/SKILL.md', import.meta.url), 'utf8');
   assert.match(skill, /^---\nname: task-evaluation\ndescription: .+\n---/);
-  for (const phrase of ['on demand', 'current execution owner', 'never recruit agents', 'Sol retains objective ownership', 'No paid trials', 'Actual models observed', 'human approval wait', 'failed attempts', 'cost per accepted task', 'per-scenario', 'unknown', 'explicit scope', 'custom review routes remain authoritative']) assert.ok(skill.includes(phrase), phrase);
+  for (const phrase of ['on demand', 'current execution owner', 'never recruit agents', 'The worker retains objective ownership', 'No paid trials', 'Actual models observed', 'human approval wait', 'failed attempts', 'cost per accepted task', 'per-scenario', 'unknown', 'explicit scope', 'custom review routes remain authoritative']) assert.ok(skill.includes(phrase), phrase);
   assert.match(skill, /Evaluation alone does not authorize implementation/);
   assert.match(skill, /do not publish private memory/i);
   assert.doesNotMatch(skill, /\]\(\.\.\//);

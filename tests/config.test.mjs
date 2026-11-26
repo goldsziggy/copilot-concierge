@@ -7,20 +7,21 @@ import { resolveConfig, loadConfig, validateConfig } from '../scripts/lib/config
 
 test('narrow ask defeats broad auto, missing values inherit independently', () => {
   const layers = [
-    { source: 'user', value: { planApproval: 'auto', models: { specialist: 'chosen-leaf' } } },
-    { source: 'project', value: { planApproval: 'ask', models: { orchestrator: 'chosen-sol' } } },
+    { source: 'user', value: { planApproval: 'auto', models: { concierge: 'chosen-front' } } },
+    { source: 'project', value: { planApproval: 'ask', models: { worker: 'chosen-sol' } } },
     { source: 'session', value: {} },
   ];
   const result = resolveConfig(layers);
   assert.equal(result.value.planApproval, 'ask');
   assert.equal(result.source.planApproval, 'project');
-  assert.deepEqual(result.value.models, { concierge: 'auto', orchestrator: 'chosen-sol', specialist: 'chosen-leaf', escalation: 'gpt-6.1-sol' });
+  assert.deepEqual(result.value.models, { concierge: 'chosen-front', worker: 'chosen-sol' });
+  assert.deepEqual(resolveConfig().value.models, { concierge: 'auto', worker: 'gpt-6.1-sol' });
   assert.equal(resolveConfig(layers.slice(0, 1)).value.planApproval, 'auto');
   assert.equal(resolveConfig().value.planApproval, 'auto');
 });
 
 test('invalid config cannot silently enable auto approval or model fallback', () => {
-  for (const config of [{ extraDirectories: 'one' }, { extraDirectories: [''] }, { extraDirectories: ['a\nb'] }, { planApproval: true }, { planApproval: null }, { models: { orchestrator: 'Auto' } }, { models: { specialist: 'fusion' } }, { models: { unknown: 'x' } }, { autoApproveEdits: true }, { models: { specialist: 'x\nInjected instructions' } }]) {
+  for (const config of [{ extraDirectories: 'one' }, { extraDirectories: [''] }, { extraDirectories: ['a\nb'] }, { planApproval: true }, { planApproval: null }, { models: { worker: 'Auto' } }, { models: { orchestrator: 'Auto' } }, { models: { specialist: 'fusion' } }, { models: { unknown: 'x' } }, { autoApproveEdits: true }, { models: { specialist: 'x\nInjected instructions' } }]) {
     assert.throws(() => validateConfig(config));
   }
 });
@@ -41,10 +42,30 @@ test('legacy entry-model key resolves with normal scope precedence and rejects a
   assert.throws(() => validateConfig({ models: { frontdesk: 'one', concierge: 'two' } }), /not both/);
   assert.doesNotThrow(() => validateConfig({ models: { concierge: 'fusion' } }));
   assert.doesNotThrow(() => validateConfig({ models: { frontdesk: 'auto' } }));
-  for (const role of ['orchestrator', 'specialist', 'escalation']) {
+  for (const role of ['worker', 'orchestrator', 'specialist', 'escalation']) {
     assert.throws(() => validateConfig({ models: { [role]: 'Auto' } }), /applies only to the concierge role/);
     assert.throws(() => validateConfig({ models: { [role]: 'fusion' } }), /applies only to the concierge role/);
   }
+});
+
+// The three-tier layout had orchestrator, specialist and escalation roles.
+test('older model roles keep working: orchestrator is the worker, retired roles are ignored', () => {
+  const result = resolveConfig([
+    { source: 'user', value: { models: { worker: 'user-worker', specialist: 'old-leaf', escalation: 'old-strong' } } },
+    { source: 'project', value: { models: { orchestrator: 'legacy-project-sol' } } },
+  ]);
+  assert.deepEqual(result.value.models, { concierge: 'auto', worker: 'legacy-project-sol' });
+  assert.equal(result.source.models.worker, 'project');
+  assert.deepEqual(Object.keys(result.source.models).sort(), ['concierge', 'worker']);
+  const reverse = resolveConfig([
+    { source: 'user', value: { models: { orchestrator: 'legacy-user-sol' } } },
+    { source: 'project', value: { models: { worker: 'project-worker' } } },
+  ]);
+  assert.equal(reverse.value.models.worker, 'project-worker');
+  assert.throws(() => validateConfig({ models: { orchestrator: 'one', worker: 'two' } }), /use models\.worker or its deprecated models\.orchestrator alias, not both/);
+  // A retired role is still checked, so a broken old file is reported rather than half-read.
+  assert.throws(() => validateConfig({ models: { specialist: 'x\nInjected instructions' } }), /must name one model ID/);
+  assert.throws(() => validateConfig({ models: { reviewer: 'x' } }), /unknown model role reviewer/);
 });
 
 test('files resolve user → project → session → task; explicit missing config fails', async () => {

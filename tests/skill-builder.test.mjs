@@ -32,12 +32,12 @@ test('preferences, repository facts and workflows each have one home', async () 
   assert.match(skill, /Repository knowledge, through the `scout` skill/);
   assert.match(skill, /A skill, through this procedure/);
   assert.match(skill, /only for this task .* follow it now and save nothing/);
-  assert.match(scout, /is not a preference: return it to Sol, which saves it as a skill through `skill-builder`/);
+  assert.match(scout, /is not a preference: return it to the worker, which saves it as a skill through `skill-builder`/);
 });
 
 test('a workflow is saved only when the user asks or accepts, in every autonomy mode', async () => {
   const skill = await read('skills/skill-builder/SKILL.md');
-  const orchestrator = await read('com.github.copilot/agents/orchestrator.agent.md');
+  const orchestrator = await read('com.github.copilot/agents/worker.agent.md');
   const orchestration = await read('skills/orchestrate/SKILL.md');
   for (const pattern of [
     /Build it only when the user accepts/,
@@ -50,15 +50,16 @@ test('a workflow is saved only when the user asks or accepts, in every autonomy 
     /Never overwrite one silently, and never edit a skill that belongs to an installed plugin/,
     /Leave it uncommitted unless the user asked for a commit/,
   ]) assert.match(skill, pattern);
-  assert.match(orchestrator, /load `skill-builder` and follow it/);
+  assert.match(orchestrator, /\| The user asks to save a way of working, or accepts your offer to \| `skill-builder` \|/);
   assert.match(orchestrator, /followed now and offered once as a suggestion, never saved unasked/);
   assert.match(orchestration, /saving a way of working the user recommended during this objective as a reusable skill/);
 });
 
 test('a saved workflow lands where Copilot discovers skills and is reused by description', async () => {
   const skill = await read('skills/skill-builder/SKILL.md');
-  const orchestrator = await read('com.github.copilot/agents/orchestrator.agent.md');
-  const concierge = await read('com.github.copilot/agents/concierge.agent.md');
+  const orchestrator = await read('com.github.copilot/agents/worker.agent.md');
+  const concierge = await read('skills/brief/SKILL.md');
+  const handoffSkill = await read('skills/orchestrate/SKILL.md');
   assert.match(skill, /<repository root>\/\.github\/skills\/<name>\/SKILL\.md/);
   assert.match(skill, /~\/\.copilot\/skills\/<name>\/SKILL\.md/);
   assert.match(skill, /in the form "Load when …"/);
@@ -66,8 +67,7 @@ test('a saved workflow lands where Copilot discovers skills and is reused by des
   assert.match(skill, /applies from their next session/);
   const example = skill.match(/```markdown\n([\s\S]*?)\n```/)[1];
   assert.match(example, /^---\nname: team-code-review\ndescription: ".+"\n---\n/);
-  assert.match(orchestrator, /load those whose description covers this kind of work/);
-  assert.match(orchestrator, /name them under `skills to load` in any handoff/);
-  assert.match(concierge, /is routed the same way and is saved as a skill/);
-  assert.match(concierge, /“I saved your review steps as the skill `team-code-review`\.”/);
+  assert.match(orchestrator, /Load a saved workflow or a `copilot-concierge-routing` skill whose description covers this work before choosing how to do it/);
+  assert.match(handoffSkill, /^skills to load: <skills that apply, such as development, test, review or a domain or team skill; optional>$/m);
+  assert.match(concierge, /goes the same way and is saved as a skill/);
 });

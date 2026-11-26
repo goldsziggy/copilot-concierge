@@ -1,10 +1,12 @@
 # Install, start and remove Concierge
 
-You need GitHub Copilot CLI 1.0.93 or later and/or the GitHub Copilot app, signed in to an account that offers `gpt-6-luna` and `gpt-6.1-sol`. Use CLI 1.0.104 or later for Copilot Fusion, which Concierge prefers; run `copilot update` to update. Concierge adds no services, hooks or credentials. Availability and fallback behavior depend on the host and account; organization model policies can restrict availability. A fallback has not been verified for every host.
+You need GitHub Copilot CLI 1.0.93 or later and/or the GitHub Copilot app, signed in to an account that offers `gpt-6.1-sol`. Use CLI 1.0.104 or later for Copilot Fusion, which Concierge prefers; run `copilot update` to update. Concierge adds no services, hooks or credentials. Availability and fallback behavior depend on the host and account; organization model policies can restrict availability. A fallback has not been verified for every host.
 
 ## 0.11.0
 
-Version 0.11.0 adds a fast path for small work, leaner always-loaded prompts and a dependable "Decided for you" list, and removes external coding sessions. Version 0.10.0 added full autonomy for unattended runs, guidance for driving the plugin from a Copilot SDK client, and remembered workflows saved as skills. Ordinary installations remain guided. Sol still works directly or delegates selectively, and commits, pushes and pull requests remain ordinary requests. Start a fresh session after updating because existing sessions keep their loaded profiles. See [runtime verification](runtime-verification.md) for source checks and the limits of the existing live trials. For an older installation, see [migrating from 0.6.1](migration.md#from-concierge-061).
+Version 0.11.0 adds a fast path for small work, leaner always-loaded prompts and a dependable "Decided for you" list, and removes external coding sessions. Version 0.10.0 added full autonomy for unattended runs, guidance for driving the plugin from a Copilot SDK client, and remembered workflows saved as skills. Ordinary installations remain guided, and commits, pushes and pull requests remain ordinary requests. Start a fresh session after updating because existing sessions keep their loaded profiles. See [runtime verification](runtime-verification.md) for source checks and the limits of the existing live trials. For an older installation, see [migrating from 0.6.1](migration.md#from-concierge-061).
+
+The main branch, not yet released, replaces the 0.11 layout of an entry agent, an orchestrator and specialist agents with two agents: `copilot-concierge:concierge`, which you talk to, and `copilot-concierge:worker`, which does the work. It ships 18 skills. You start it the same way. This layout has passed the static source checks only and has not been run live. If you have a configuration file with `models`, a routing table or scripts that name the removed agents, see [migrating from the 0.11 three-tier layout](migration.md#from-the-011-three-tier-layout).
 
 ## Windows prerequisites
 
@@ -17,7 +19,7 @@ copilot --version
 
 Then sign in through Copilot and use the same marketplace commands below. Git must be available for Git-hosted marketplaces. The optional npm route for installing Copilot itself requires Node.js 22 or later. [Official CLI installation](https://docs.github.com/en/copilot/how-tos/copilot-cli/set-up-copilot-cli/install-copilot-cli).
 
-The plugin's source checks accept LF and CRLF. Windows Copilot orchestration and the optional Node session launcher have not been verified end to end; use the native CLI entry point below. Source packaging requires Node.js 20 or later and Python 3 available as `python3`.
+The plugin's source checks accept LF and CRLF. Concierge on Windows Copilot and the optional Node session launcher have not been verified end to end; use the native CLI entry point below. Source packaging requires Node.js 20 or later and Python 3 available as `python3`.
 
 ## Install
 
@@ -55,17 +57,17 @@ copilot --agent copilot-concierge:concierge
 
 Or run `/agent` in an open session and pick **concierge**.
 
-App: open a project, choose **concierge** in the agent picker under the message box, then choose **Copilot Fusion** in the model picker **before sending the first message**. Concierge's orchestrator and specialists keep their own pinned models either way.
+App: open a project, choose **concierge** in the agent picker under the message box, then choose **Copilot Fusion** in the model picker **before sending the first message**. Concierge's worker keeps its own pinned model either way.
 
 ### Models
 
 Concierge prefers **Copilot Fusion** for the agent you talk to. Its profile names `model: auto`, the ID Copilot stores for Fusion, so the conversation follows your Fusion choice and tier. In the CLI, start with `copilot --agent copilot-concierge:concierge --model fusion`, and set the effort level with `copilot config fusionTier standard|high|max` (CLI 1.0.106 or later) or `--fusion-tier`. Use `high` for substantial work. Fusion bills each model it uses at that model's rate; see [GitHub's Fusion guide](https://docs.github.com/en/copilot/concepts/models/copilot-fusion).
 
-The orchestrator and specialists keep explicit models: GPT-6.1 Sol for the orchestrator and escalation, GPT-6 Luna for the other specialists. GitHub says Fusion "works separately from subagents", and a live trial confirmed it. With every agent set to `auto`, only the entry agent's calls were Fusion-routed, and the orchestrator ran as plain GPT-6 Luna. A sub-agent set to `auto` would therefore lose its stronger model without gaining Fusion. The configured-copy launcher accepts `auto` or `fusion` only for the `concierge` role for the same reason.
+The worker keeps an explicit model, GPT-6.1 Sol (`gpt-6.1-sol`). There are no other shipped agents, so there is no separate specialist or escalation model. A sub-agent the worker starts uses the model its own profile or the host gives it. GitHub says Fusion "works separately from subagents", and a live trial of release 0.10.0 confirmed it: with every agent set to `auto`, only the entry agent's calls were Fusion-routed, and the sub-agent it started (then the orchestrator) ran as plain GPT-6 Luna. A sub-agent set to `auto` would therefore lose its stronger model without gaining Fusion. The configured-copy launcher accepts `auto` or `fusion` only for the `concierge` role for the same reason.
 
 On a CLI older than 1.0.104, `auto` is plain Auto model selection.
 
-Then describe the goal, ask a question or paste a ticket. A normal installation uses `guided` autonomy: Concierge asks focused questions when needed, shows a short plan and reports back. Plan approval defaults to `auto`; set it to `ask` to wait for your approval. A container or cloud host does not change these defaults. See [sample prompts](../examples/requests.md).
+Then describe the goal, ask a question or paste a ticket. Concierge answers simple questions itself, such as what it can do or a general question that does not depend on your project, and hands everything else to the worker. A normal installation uses `guided` autonomy: Concierge asks focused questions when needed, shows a short plan and reports back. Plan approval defaults to `auto`; set it to `ask` to wait for your approval. A container or cloud host does not change these defaults. See [sample prompts](../examples/requests.md).
 
 Copilot keeps its own tool permissions. To stop being asked before each command or edit, use `copilot --agent copilot-concierge:concierge --allow-all` (or `/allow-all`) in the CLI, or **Mode → Tool permissions → Approve all** in the app. That is separate from Concierge's plan approval.
 
@@ -73,7 +75,7 @@ Copilot keeps its own tool permissions. To stop being asked before each command 
 
 Version 0.6.1 includes the private preferences and repository knowledge developed for the 0.6.0 candidate. Version 0.5.0 used local Scout project notes; see the [migration guide](migration.md#from-050-project-notes-to-memory-and-knowledge).
 
-Persistence needs Node.js 20 or later and Git on the host where Scout runs. Scout uses the bundled helper; no service, database or background process is installed. If a prerequisite is missing, access is denied, or a safe path cannot be established, it continues with session-only context.
+Persistence needs Node.js 20 or later and Git on the host where the worker runs. Its `scout` skill uses the bundled helper; no service, database or background process is installed. If a prerequisite is missing, access is denied, or a safe path cannot be established, it continues with session-only context.
 
 On Windows, the helper uses the included adapter through **Windows PowerShell 5.1** and .NET Framework at the system path. This is separate from the PowerShell version used to run Copilot above; you do not select or install a PowerShell module for Concierge. Storage is limited to local fixed NTFS drives. Network shares, unsupported filesystems, linked paths and path aliases are rejected. The adapter checks Windows ownership and access rules rather than Unix permission bits. It does not elevate access, change execution policy or repair existing permissions. See [supported storage and Windows limits](memory-and-knowledge.md#supported-storage).
 
@@ -96,17 +98,21 @@ Concierge reads two optional files; nothing creates them for you:
 
 `ask` shows the plan and waits for your answer; `auto` (the default) shows the plan and continues. Saying "go ahead without asking" or "ask me first" in the conversation overrides the files for that request or session. The project file wins over the user file. Reading the user file may trigger one Copilot path prompt.
 
-The same files accept `"autonomy": "guided"` (the default) or `"full"`. The `COPILOT_CONCIERGE_AUTONOMY` environment variable overrides the files when Copilot permits the orchestrator's one-command shell read of it; otherwise the files decide. Your words override both. `full` is for unattended runs and leaves plan approval and permissions separate. See [autonomy](autonomy.md), and [SDK automation](sdk-automation.md) for running Concierge from a service.
+The same files accept `"autonomy": "guided"` (the default) or `"full"`. The `COPILOT_CONCIERGE_AUTONOMY` environment variable overrides the files when Copilot permits the worker's one-command shell read of it; otherwise the files decide. Your words override both. `full` is for unattended runs and leaves plan approval and permissions separate. See [autonomy](autonomy.md), and [SDK automation](sdk-automation.md) for running Concierge from a service.
 
 ### Your own agents and skills
 
-Add agents, skills and a `copilot-concierge-routing` table in the places Copilot already reads (the repository's `.github/`, `~/.copilot/`, or a team plugin), and Concierge's orchestrator will use them. See [adding your own agents and skills](customizing.md).
+Add agents, skills and a `copilot-concierge-routing` table in the places Copilot already reads (the repository's `.github/`, `~/.copilot/`, or a team plugin), and Concierge's worker will use them. See [adding your own agents and skills](customizing.md).
 
 ### Session-local launcher
 
-For different models or a scripted setup, `node scripts/launch.mjs --project /path/to/project` creates a configured copy of the plugin and starts the CLI with it. It reads the same files plus `--session-config FILE`, `--plan-approval ask|auto` and `--autonomy guided|full`, and accepts `models` (`concierge`, `orchestrator`, `specialist`, `escalation`) and `extraDirectories` in those files. `node scripts/configure.mjs --print-only` shows the resolved settings without launching. The launcher starts an interactive session only; unattended automation is a [Copilot SDK client](sdk-automation.md) that loads the plugin.
+For different models or a scripted setup, `node scripts/launch.mjs --project /path/to/project` creates a configured copy of the plugin and starts the CLI with it. It reads the same files plus `--session-config FILE`, `--plan-approval ask|auto` and `--autonomy guided|full`, and accepts `models` (`concierge`, default `auto`, and `worker`, default `gpt-6.1-sol`) and `extraDirectories` in those files. `node scripts/configure.mjs --print-only` shows the resolved settings without launching. The launcher starts an interactive session only; unattended automation is a [Copilot SDK client](sdk-automation.md) that loads the plugin.
 
-The deprecated `models.frontdesk` setting remains accepted as an input alias for `models.concierge`. Use only one of these keys in each configuration file; specifying both is an error. This setting compatibility does not preserve the old agent invocation.
+```json
+{ "models": { "concierge": "auto", "worker": "gpt-6.1-sol" } }
+```
+
+The deprecated `models.frontdesk` and `models.orchestrator` settings remain accepted as input aliases for `models.concierge` and `models.worker`. Use only one key of each pair in a configuration file; specifying both an alias and its role is an error. `models.specialist` and `models.escalation` are retired with their agents: an old file that sets them is still accepted and the values are checked, then ignored. This setting compatibility does not preserve the old agent invocations.
 
 ## Moving from Concierge 0.4.x
 

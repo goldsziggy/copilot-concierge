@@ -2,25 +2,37 @@
 
 ## Host facts this design depends on (Copilot CLI 1.0.98 and 1.0.109)
 
-Read from the installed CLI's help text, changelog and tool descriptions on 2026-11-10. They describe the host, not Concierge's behavior on it.
+Read from the installed CLI's help text, changelog and tool descriptions on 2026-11-10. They describe the host, not Concierge's behavior on it. The right-hand column describes the current two-agent layout (the `concierge` entry agent and the `worker`), which has passed static source checks only and has not been run live.
 
 | Fact | Source | What Concierge does with it |
 | --- | --- | --- |
-| `task` takes `mode` `sync` or `background`; only a background agent accepts `write_agent` | Tool schema and error text | The entry agent starts each orchestrator in the background so follow-ups reach it. |
-| A message to a running background agent steers its active turn | Changelog 1.0.92 | `USER FOLLOW-UP` and `COMPLETION CHECK` can be sent while the orchestrator works. |
+| `task` takes `mode` `sync` or `background`; only a background agent accepts `write_agent` | Tool schema and error text | The entry agent starts each worker in the background so follow-ups reach it. |
+| A message to a running background agent steers its active turn | Changelog 1.0.92 | `USER FOLLOW-UP` and `COMPLETION CHECK` can be sent while the worker works. |
 | `read_agent` takes `wait` and `timeout` (default 30, at most 180 seconds) and `since_turn`; completion notifications are automatic | Tool schema and description | The entry agent ends its turn and is woken by the notification. It does not poll. |
-| A non-interactive run waits for background agents, up to `COPILOT_TASK_WAIT_TIMEOUT_SECONDS`, then warns and exits | Changelog 1.0.33, 1.0.88 and the prompt-mode code path | The non-interactive trials relied on this; set the variable for long tasks. |
+| A non-interactive run waits for background agents, up to `COPILOT_TASK_WAIT_TIMEOUT_SECONDS`, then warns and exits | Changelog 1.0.33, 1.0.88 and the prompt-mode code path | The non-interactive trials of earlier releases relied on this; set the variable for long tasks. |
 | `--no-ask-user` removes the question tool | `copilot --help` | The optional interactive launcher adds it under `full` autonomy. |
-| `--max-ai-credits` must be at least 30, and is a soft limit per response | Observed error; GitHub's command reference | The trials used 30. It does not cap a whole run. |
+| `--max-ai-credits` must be at least 30, and is a soft limit per response | Observed error; GitHub's command reference | The earlier trials used 30. It does not cap a whole run. |
 | Copilot Fusion is the `auto` model, with `fusion` as a CLI alias since 1.0.104 and a `fusionTier` setting (`standard`, `high`, `max`) since 1.0.106 | `copilot help config` and changelog (CLI 1.0.109) | The entry agent names `model: auto`. |
-| Fusion routes the session's own model, not sub-agents | GitHub's Fusion guide; SDK trial B (orchestrator on `auto` ran on GPT-6 Luna with `isAuto: false`) | The orchestrator and specialists keep explicit models. |
-| Sub-agent nesting depth defaults to 4, with a concurrency limit | Changelog 1.0.71, 1.0.66 | Concierge nests two levels below the entry agent; specialists never start agents. Many parallel objectives can meet the concurrency limit. |
-| Sub-agents keep their parent's tool restrictions | Changelog 1.0.67 | The orchestrator declares no tool list, so its workers are not narrowed. |
+| Fusion routes the session's own model, not sub-agents | GitHub's Fusion guide; SDK trial B on 0.10.0 (its orchestrator sub-agent on `auto` ran on GPT-6 Luna with `isAuto: false`) | The worker keeps an explicit model, `gpt-6.1-sol`. |
+| Sub-agent nesting depth defaults to 4, with a concurrency limit | Changelog 1.0.71, 1.0.66 | Concierge nests at most two levels below the entry agent: the worker, then any sub-agent it starts. Handoffs tell sub-agents not to start agents, and the worker runs at most three at once. Many parallel objectives can meet the concurrency limit. |
+| Sub-agents keep their parent's tool restrictions | Changelog 1.0.67 | The worker declares no tool list, so its sub-agents are not narrowed. |
 | `include-custom-instructions`, `reasoning-effort` and a single `model` are supported agent frontmatter | Changelog 1.0.86, 1.0.88, 1.0.83 | Used as written in the profiles. |
 | Skills are discovered from `.github/skills`, `.agents/skills`, `~/.copilot/skills` and plugins, at session start | Changelog and the skills guide | Saved workflows are written to the first or third of these and apply from the next session. |
 | In non-interactive runs, repository hooks and workspace MCP servers load only in a trusted folder; `COPILOT_ALLOW_ALL=true` also trusts the folder | `copilot help environment`, changelog 1.0.40, 1.0.49 | Prefer narrow `--allow-tool` flags, or a narrow SDK permission handler. |
 
+## Two-agent layout (unreleased)
+
+Concierge now ships exactly two agents and 18 skills. `copilot-concierge:concierge` is a thin front: it answers simple questions itself and hands everything else to `copilot-concierge:worker` with a brief, using its `brief` and `relay` skills. The worker owns each objective and does the work with the skills it needs: `discovery`, `scout`, `plan`, `grill-plan`, `development`, `test`, `react-frontend`, `node-backend`, `graphql`, `debugging`, `review`, `escalate`, `orchestrate`, `orchestrate-reference`, `skill-builder` and `task-evaluation`. The `orchestrator`, `scout`, `product-manager`, `reviewer` and `escalation` profiles and the old leaf `worker` are removed.
+
+The worker starts a sub-agent only when a separate context earns its cost or a routing row names an agent, and never more than three at once. Concierge ships no specialist agents: the worker uses the agent a routing row names, otherwise a general-purpose agent the host offers through `task`, otherwise itself. When no independent reviewer is available, it reviews with the `review` skill and says the review was not independent. Whether a host offers a general-purpose agent to a plugin sub-agent has not been checked for this layout.
+
+Each report carries one `progress` JSON object, the worker's whole memory of the objective, which the entry agent passes back verbatim on rollover or resume. Typed blockers are settled through the `escalate` skill. Plan approval, autonomy, the control messages and the `CONCIERGE-RESULT` line are unchanged.
+
+These are instruction contracts. They pass the static source checks; no live Copilot CLI, app or SDK session has run this layout. Every observation below this section describes an earlier release with an orchestrator and specialist agents and is not evidence for the current profiles. See [migration](migration.md#from-the-011-three-tier-layout).
+
 ## Concierge 0.10.0: autonomy and SDK automation
+
+This section records the 0.10.0 release, in which an orchestrator agent sat between the entry agent and the specialists. The autonomy rules are unchanged; the worker now does what the orchestrator did.
 
 `autonomy` is `guided` (default) or `full`, set by the user's words, the `COPILOT_CONCIERGE_AUTONOMY` environment variable (when a permitted shell read can see it) or the configuration files. A plugin install stays guided unless explicitly configured otherwise; the host being a container or cloud service never selects `full`. `full` is designed for unattended runs: the orchestrator settles ordinary questions and records them, sends no `needs_input` or plan checkpoint, and stops only for a hard stop, `needs_approval` under `ask`, or a result. The entry agent ends its turn while the background orchestrator works, is woken by the host's completion notification, never calls `ask_user`, checks the result against the acceptance criteria once, and ends with a `CONCIERGE-RESULT` line.
 
@@ -30,13 +42,15 @@ External coding sessions are no longer supported: the 0.7.1 return protocol desc
 
 Three bounded non-interactive trials on Copilot CLI 1.0.98 exercised `full` autonomy from a project file and from the variable through a launcher-configured copy, and a saved workflow. Three further trials covered two hard stops, which ended `blocked` without a loop or a workaround, and a `guided` run with its plan checkpoint. Questions that need a person, plan approval `ask`, the completion check and an SDK client were not run; see [runtime verification](runtime-verification.md) and [autonomy](autonomy.md).
 
-## Concierge 0.7.1 external-session returns
+## Historical Concierge 0.7.1 external-session returns
+
+This protocol was removed in 0.11.0. In this section and the 0.7.0 section below, "Sol" is the 0.7 orchestrator, the role the worker now fills.
 
 Native workers retain direct returns. External coding sessions require a collector with actual result access and a verified route to the current objective owner. If only the root can collect, it relays evidence to Sol; Sol accepts it and owns completion. Stable objective IDs, unique attempt IDs, actual session IDs and receipt state survive recovery, cancellation and owner rollover in the existing handover. Idle and successful relay are not completion.
 
 These are source contracts. The entry agent's control tools are unchanged; the plugin does not add cross-host access, callbacks or a transport service. An unavailable return capability produces a precise blocked state. No live external-session roundtrip or two-objective relay acceptance is claimed; see [runtime verification](runtime-verification.md).
 
-## Concierge 0.7.0 scope
+## Historical Concierge 0.7.0 scope
 
 Concierge remains the control-only conversation and objective-routing layer. Sol is the working objective lead: it can read sources, load skills, plan, implement and verify within approved scope and Copilot permissions, while following applicable project instructions. Task tracking does not require agent creation. A cohesive feature and its tests can stay with one owner across stack layers.
 

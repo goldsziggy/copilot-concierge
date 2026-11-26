@@ -9,7 +9,7 @@ const FUSION = new Set(['auto', 'fusion']);
 export const DEFAULTS = Object.freeze({
   planApproval: 'auto',
   autonomy: 'guided',
-  models: Object.freeze({ concierge: 'auto', orchestrator: 'gpt-6.1-sol', specialist: 'gpt-6-luna', escalation: 'gpt-6.1-sol' }),
+  models: Object.freeze({ concierge: 'auto', worker: 'gpt-6.1-sol' }),
   extraDirectories: Object.freeze([]),
 });
 
@@ -17,6 +17,13 @@ export const DEFAULTS = Object.freeze({
 // it without editing a file. Add a mode here and in the agent profiles together.
 export const AUTONOMY_MODES = Object.freeze(['guided', 'full']);
 export const AUTONOMY_ENV = 'COPILOT_CONCIERGE_AUTONOMY';
+
+// Older configuration files keep working: frontdesk and orchestrator are
+// deprecated names for the two roles, and the specialist and escalation roles
+// were retired with their agents, so their values are checked and then ignored.
+const ROLE_ALIASES = Object.freeze({ frontdesk: 'concierge', orchestrator: 'worker' });
+const RETIRED_ROLES = Object.freeze(['specialist', 'escalation']);
+const canonicalRole = role => ROLE_ALIASES[role] ?? role;
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const modelPattern = /^[a-zA-Z0-9][a-zA-Z0-9._/-]{0,99}$/;
@@ -34,15 +41,17 @@ export function validateConfig(config, source = 'configuration') {
   }
   if ('models' in config) {
     if (!object(config.models)) throw new Error(`${source}: models must be an object`);
-    if (Object.hasOwn(config.models, 'frontdesk') && Object.hasOwn(config.models, 'concierge')) {
-      throw new Error(`${source}: use models.concierge or its deprecated models.frontdesk alias, not both`);
+    for (const [alias, role] of Object.entries(ROLE_ALIASES)) {
+      if (Object.hasOwn(config.models, alias) && Object.hasOwn(config.models, role)) {
+        throw new Error(`${source}: use models.${role} or its deprecated models.${alias} alias, not both`);
+      }
     }
     for (const [role, model] of Object.entries(config.models)) {
-      if (!Object.hasOwn(DEFAULTS.models, role) && role !== 'frontdesk') throw new Error(`${source}: unknown model role ${role}`);
+      if (!Object.hasOwn(DEFAULTS.models, role) && !Object.hasOwn(ROLE_ALIASES, role) && !RETIRED_ROLES.includes(role)) throw new Error(`${source}: unknown model role ${role}`);
       if (typeof model !== 'string' || !modelPattern.test(model)) throw new Error(`${source}: ${role} must name one model ID`);
       // Copilot Fusion routes only the session's own model; a sub-agent pinned to
       // auto resolves to a single model instead, so only the entry role may use it.
-      if (FUSION.has(model.toLowerCase()) && role !== 'concierge' && role !== 'frontdesk') {
+      if (FUSION.has(model.toLowerCase()) && canonicalRole(role) !== 'concierge') {
         throw new Error(`${source}: ${role} must name one explicit model ID; Copilot Fusion (auto or fusion) applies only to the concierge role`);
       }
     }
@@ -71,11 +80,11 @@ export function resolveConfig(layers = []) {
       source.autonomy = layer.source;
     }
     for (const [role, model] of Object.entries(layer.value.models ?? {})) {
-      // Normalize the old entry-role key per layer so nearest-scope precedence
+      // Normalize the old role keys per layer so nearest-scope precedence
       // remains the same for existing configuration files.
-      const canonicalRole = role === 'frontdesk' ? 'concierge' : role;
-      value.models[canonicalRole] = model;
-      source.models[canonicalRole] = layer.source;
+      if (RETIRED_ROLES.includes(role)) continue;
+      value.models[canonicalRole(role)] = model;
+      source.models[canonicalRole(role)] = layer.source;
     }
     for (const dir of layer.value.extraDirectories ?? []) {
       const resolved = layer.base ? path.resolve(layer.base, dir.replace(/^~(?=$|\/)/, os.homedir())) : dir;
