@@ -4,7 +4,7 @@
 
 No live comparative runs have been performed for this protocol. These are scenario seeds, an unexecuted record template and a manual evaluation procedure. Passing their static tests is not evidence that a model completes the scenarios, renders approval choices correctly or improves cost or latency. See [runtime verification](runtime-verification.md) for actual recorded checks.
 
-The comparison isolates the move from coordination-only Sol to a working Sol with selective delegation. It does not test a new service, scheduler or alternate agent framework. Keep the Concierge conversation layer, ten-turn continuity policy, permissions, learning helper, model pins and publication contract comparable.
+The protocol was written for the 0.7.0 move from a coordination-only orchestrator to an objective owner that works directly and delegates selectively. That owner is now the worker; the scenarios have not been run for any layout. It does not test a new service, scheduler or alternate agent framework. Keep the Concierge conversation layer, ten-turn continuity policy, permissions, learning helper, model pins and publication contract comparable.
 
 For on-demand use by an execution owner or assigned evaluator, load the self-contained [task-evaluation skill](../skills/task-evaluation/SKILL.md). It also supports evaluating one completed objective from existing evidence without starting model trials.
 
@@ -62,6 +62,6 @@ Report accepted runs divided by all attempted runs, with failures, blocked runs,
 
 For comparable, completely measured usage, cost per accepted task is the total cost of all attempts in the arm, including failures and retries, divided by its accepted tasks. With no accepted tasks the ratio is undefined, not zero. Partial or unavailable cost must remain labeled; do not claim a cheaper arm from incomplete accounting. Show token, credit and dollar comparisons separately and in matching units.
 
-The production-pin comparison changes both execution location and which model performs some work: direct Sol execution may replace Luna specialist execution. An optional matched-model arm can help isolate topology, but it requires a separate recorded configuration and budget. Do not silently change product model pins to manufacture a favorable comparison.
+The production-pin comparison changes both execution location and which model performs some work: direct execution by the objective owner on GPT-6.1 Sol may replace execution by a separate specialist agent on GPT-6 Luna, as in the releases this protocol was written for. An optional matched-model arm can help isolate topology, but it requires a separate recorded configuration and budget. Do not silently change product model pins to manufacture a favorable comparison.
 
 Retain the candidate when required behavior is preserved and observed completion, delay, cost or context retention improves without hidden per-scenario regressions. Three repetitions are an initial exploratory sample, not statistical proof. Until actual trials exist, report the architectural change and static verification only; make no speed, quality or savings claim.

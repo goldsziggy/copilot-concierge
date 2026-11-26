@@ -37,7 +37,7 @@ for (const [name, eol] of [['LF', '\n'], ['CRLF', '\r\n']]) {
     const directory = await fixture(t, eol);
     const result = validate(directory);
     assert.equal(result.status, 0, result.error?.message ?? result.stderr);
-    assert.match(result.stdout, /Package checks passed: 12 skills, 7 agents/);
+    assert.match(result.stdout, /Package checks passed: 18 skills, 2 agents/);
   });
 }
 
@@ -47,14 +47,24 @@ test('CRLF frontmatter accepts a preferred model without a required policy', asy
   assert.equal(result.status, 0, result.stderr);
 });
 
-test('validator rejects a missing renamed entry or a second visible agent', async t => {
+test('validator rejects a missing renamed entry, a second visible agent, a narrowed worker or a third agent', async t => {
   const directory = await fixture(t, '\n');
   const entry = path.join(directory, 'com.github.copilot/agents/concierge.agent.md');
   const original = await readFile(entry, 'utf8');
   await writeFile(entry, original.replace('name: concierge', 'name: frontdesk'));
   assert.match(validate(directory).stderr, /Expected one Concierge entry agent/);
   await writeFile(entry, original);
-  const worker = path.join(directory, 'com.github.copilot/agents/scout.agent.md');
-  await writeFile(worker, (await readFile(worker, 'utf8')).replace('user-invocable: false', 'user-invocable: true'));
+  const worker = path.join(directory, 'com.github.copilot/agents/worker.agent.md');
+  const back = await readFile(worker, 'utf8');
+  await writeFile(worker, back.replace('user-invocable: false', 'user-invocable: true'));
   assert.match(validate(directory).stderr, /only Concierge may be user-invocable/);
+  // The worker passes its tools to sub-agents, so a tool list on it is rejected.
+  await writeFile(worker, back.replace('user-invocable: false', 'user-invocable: false\ntools: [view, bash]'));
+  assert.match(validate(directory).stderr, /worker must not restrict tools/);
+  await writeFile(worker, back);
+  // A third shipped agent would bring back a tier; a new capability is a skill.
+  await writeFile(path.join(directory, 'com.github.copilot/agents/reviewer.agent.md'), back.replace('name: worker', 'name: reviewer'));
+  const third = validate(directory).stderr;
+  assert.match(third, /Concierge ships two agents, concierge and worker/);
+  assert.match(third, /Expected 18 skills and 2 agents; found 18 and 3/);
 });

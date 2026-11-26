@@ -9,7 +9,7 @@ description: Review changes using the assigned repository's existing conventions
 2. Check correctness, compatibility and the focused tests relevant to the change.
 3. For each actionable finding, cite a file/line, explain its impact and suggest
    the smallest useful correction. Keep assumptions separate from verified facts.
-4. Respect the worker's assigned mode and tools. Loading this skill does not grant
+4. Respect your assigned mode and tools. Loading this skill does not grant
    write, execution, persistence or publication permission.
-5. Return useful repository findings to the orchestrator for Scout to verify;
+5. Return useful repository findings to the Concierge worker to verify and record;
    never copy private preferences, conversations or secrets into shared docs.

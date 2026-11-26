@@ -71,19 +71,21 @@ try {
         }
         const model = field(text, 'model');
         // Only the entry agent follows the session's Copilot Fusion choice; Fusion
-        // does not route sub-agents, so they keep exact models.
+        // does not route sub-agents, so the worker keeps an exact model.
         if (!model || (model.toLowerCase() === 'auto' && name !== 'concierge')) fail(`${relative}: exact model required`);
         if (name === 'concierge' && model !== 'auto') fail(`${relative}: the entry agent prefers Copilot Fusion (model: auto)`);
         // Copilot gives a nested agent only tools its parent agent also has
-        // (verified in CLI 1.0.93), so the orchestrator must not narrow its list.
+        // (verified in CLI 1.0.93), so the worker must not narrow its list.
         const hasTools = /^tools:/m.test(text.split('\n---')[0]);
         const tools = hasTools ? field(text, 'tools') : null;
         const controls = /\b(task|list_agents|read_agent|write_agent|update_todo|exit_plan_mode|ask_user)\b/;
-        if (name === 'orchestrator' && hasTools) fail(`${relative}: orchestrator must not restrict tools; specialists inherit through it`);
+        if (name === 'worker' && hasTools) fail(`${relative}: worker must not restrict tools; its sub-agents inherit through it`);
         if (name === 'concierge') {
           if (!hasTools || /\b(view|rg|grep|glob|bash|powershell|apply_patch|edit|create|web_fetch)\b/.test(tools)) fail(`${relative}: Concierge entry must list only control tools`);
-          for (const control of ['task', 'read_agent', 'write_agent', 'ask_user', 'update_todo']) if (!new RegExp(`\\b${control}\\b`).test(tools)) fail(`${relative}: Concierge entry needs ${control}`);
-        } else if (hasTools && controls.test(tools)) fail(`${relative}: specialist has agent-control tools`);
+          // The entry agent's procedures are the brief and relay skills.
+          for (const control of ['skill', 'task', 'read_agent', 'write_agent', 'ask_user', 'update_todo']) if (!new RegExp(`\\b${control}\\b`).test(tools)) fail(`${relative}: Concierge entry needs ${control}`);
+        } else if (shipped && name !== 'worker') fail(`${relative}: Concierge ships two agents, concierge and worker`);
+        else if (!shipped && hasTools && controls.test(tools)) fail(`${relative}: example agent has agent-control tools`);
         if (tools?.includes('*')) fail(`${relative}: tool wildcard not allowed; omit tools instead`);
       } catch (error) { fail(`${relative}: ${error.message}`); }
     }
@@ -94,7 +96,7 @@ try {
       catch { fail(`${relative}: missing local link ${target}`); }
     }
   }
-  if (skills !== 12 || agents !== 7) fail(`Expected 12 skills and 7 agents; found ${skills} and ${agents}`);
+  if (skills !== 18 || agents !== 2) fail(`Expected 18 skills and 2 agents; found ${skills} and ${agents}`);
   if (entryAgents !== 1) fail(`Expected one Concierge entry agent; found ${entryAgents}`);
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`Package checks passed: ${skills} skills, ${agents} agents, ${files.length} files. These are static checks, not runtime acceptance.`);

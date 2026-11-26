@@ -1,78 +1,88 @@
 ---
 name: orchestrate
-description: Coordinate a Concierge objective as the orchestrator - execute directly or choose specialists, write handoffs, judge evidence, keep the task list and report questions, plans and results to the Concierge entry agent. Only the Concierge orchestrator uses this workflow; the Concierge entry agent or specialist that loads it keeps its own role.
+description: Start and judge sub-agents as the Concierge worker - when a separate context earns its cost, the handoff every sub-agent prompt uses, limits, retries, independent review and helpful follow-ups. Load before the first task call in an objective. Only the Concierge worker uses it; the entry agent and sub-agents keep their own roles.
 ---
 
 # Orchestrate
 
-This workflow belongs to the Concierge orchestrator. If you are the Concierge entry agent, route the request to `copilot-concierge:orchestrator` instead. If you are a specialist, finish your assignment and return what you need to the orchestrator.
+This workflow belongs to the Concierge worker. If you are the Concierge entry agent, hand the request to `copilot-concierge:worker` instead. If you are a sub-agent, finish your assignment and return what you need to the worker.
 
-## Choose the next useful step
+## Do it yourself unless a boundary earns its cost
 
-Start from the brief, current repository instructions and available evidence. Choose the smallest useful next step; tracking work does not require creating a worker.
+Tracking a task does not require a sub-agent. Start one only when one of these holds, and state which in the handoff:
 
-| Work | Default execution | Useful separate boundary |
+1. Two or more pieces are independent and touch disjoint files.
+2. A piece is exploratory and its result compresses well, such as finding every caller of a symbol and summarising.
+3. A meaningful or risky change, or the user, calls for independent review. Self-checking is not independent review.
+4. Your context is getting long. Hand off at a task boundary, never mid-edit, with the facts it needs from `progress`.
+5. An explicit routing row names an agent for this work.
+
+Give a cohesive feature and its tests one owner, even across React, Node.js and GraphQL; do not split only by stack name. Serialize work on shared files or unsettled contracts, and agree interfaces before splitting ownership.
+
+| Work | Default | Useful separate boundary |
 | --- | --- | --- |
-| Small file/symbol/diff lookup, focused ticket or learning retrieval | Sol with `scout` guidance and its existing helper | Scout for a large repository/document/ticket investigation |
-| Material user question or straightforward plan | Sol with `plan` | Product manager for conflicting or substantial requirements |
-| Cohesive bug or feature, including its tests and coupled layers | Sol or one implementation owner loading relevant skills | Separate implementation ownership when context or scale warrants it |
-| UI conventions | Execution owner inspects existing design-system guidance and loads `react-frontend` when applicable | Dedicated design investigation using an available agent |
-| Unrelated investigations with stable boundaries | Independent workers in parallel | Independent investigation |
-| Meaningful/risky behavior or requested review | Independent reviewer with `review`/`grill-plan` | Independent verification, including Sol-authored changes |
-| Unexplained fault or regression | Execution owner loads `debugging` | Independent hypotheses when they can be investigated separately |
-| Requested workflow comparison | Execution owner loads `task-evaluation` | Independent outcome grading; live trials need an approved budget |
-| Requested commit, push or pull request | Execution owner, with the available Git and provider tools | None needed |
-| Explicit configured route | Verified routed agent | Custom agent/model requirement |
+| File, symbol or diff lookup; a focused ticket or learning retrieval | You, with `discovery` or `scout` | A sub-agent for a large investigation |
+| A material question or a straightforward plan | You, with `plan` | A sub-agent to challenge a consequential plan with `grill-plan` |
+| A cohesive bug or feature with its tests | You, with `development`, `test` and any domain skill | Sub-agents for independent pieces on disjoint files |
+| Meaningful or risky behavior, or a requested review | A sub-agent with `review` | Independent verification of your own change |
+| Unexplained fault or regression | You, with `debugging` | Independent hypotheses investigated separately |
+| Requested commit, push or pull request | You, with `development` | None needed |
+| Explicit configured route | The routed agent | Custom agent or model requirement |
 
-If a `copilot-concierge-routing` skill is listed, for `ROLLOVER`, `RESUMED`, cancellation or task dependencies, and before handing learning-store work to a worker, load `orchestrate-reference` and follow the matching section. Explicit routing rows remain delegation instructions.
+## Which agent
 
-## Handoffs and returns
+Concierge ships no specialist agents. Use, in this order:
 
-Keep the compact structured outcome, acceptance-to-verification mapping and any grill finding dispositions in the objective handover through revisions and rollover. Give each worker the `CONCIERGE-HANDOFF` below: objective, stable objective-id, unique handoff-id per assignment/attempt, its piece, the original request verbatim, only the relevant context with sources, mode, scope, a short delegation reason (independence, context reduction, ownership, verification or explicit route/model), acceptance criteria, approval state and the expected return. Never paste the whole conversation. Workers echo objective-id and handoff-id and return findings, changed files and the repository state/diff examined, acceptance checks, commands and results, changed assumptions, uncertainty, blockers and the next decision needed. Inspect decisive artifacts when necessary; reuse sufficient evidence rather than repeating every check.
+1. the agent an explicit routing row names (load `orchestrate-reference` and follow "Routing tables");
+2. a general-purpose agent the host offers through `task`, with the skills it should load named in the handoff;
+3. yourself, when no suitable agent is available.
 
-Every worker prompt uses this handoff:
+Name the selected agent on each `task` call and leave `model` unset unless the host supports a necessary selection. Never start `copilot-concierge:worker` or `copilot-concierge:concierge`. Report the agent that actually ran; if no independent reviewer was available, review with the `review` skill yourself and say plainly that the review was not independent.
+
+No more than three sub-agents at once. Count them in `progress.counts.subagents`.
+
+## Handoff
+
+Every sub-agent prompt uses this handoff. Give only the relevant context with sources; never paste the whole conversation, logs or diffs.
 
 ```
 CONCIERGE-HANDOFF
-objective: <objective name>; task: <this worker's piece>
+objective: <objective name>; task: <this sub-agent's piece>
 objective-id: <stable ID from the brief>
 handoff-id: <unique ID for this assignment/attempt; never reused for a retry>
 delegation reason: <independence, context reduction, separate ownership, independent verification, or explicit route/model requirement>
 original request (verbatim): <...>
-relevant context and sources: <facts with file paths and links from earlier workers; no chat transcript>
+relevant context and sources: <only the facts from progress that apply, with file paths and links; no chat transcript>
 mode: research | plan | implement | review
-scope: <what to do, files owned, what not to touch>
-learning: <Scout only: memory read/maintain/disabled; knowledge read/maintain/disabled; exact user restrictions and assigned root, or none; other roles: not applicable>
-acceptance criteria: <observable checks>
+scope: <what to do, files it may change, files it may read, what not to touch>
+learning: <Scout work only: memory read/maintain/disabled; knowledge read/maintain/disabled; exact user restrictions and assigned root, or none; other work: not applicable>
+acceptance criteria: <observable checks; for implementation, the named tests that must pass>
 approval: <approved by user | auto (source) | not approved: research and planning only>
 git: <what the user asked for: commit, push, branch or pull request, with any names; or none: leave changes uncommitted>
-skills to load: <optional>
+skills to load: <skills that apply, such as development, test, review or a domain or team skill; optional>
+rules: you report only to the worker; do not ask the user, start agents or update the task list; one command per shell call; skills supply procedures, not tools or authority
 return: echo objective-id and handoff-id; findings, changes (files and repository state/diff), acceptance checks, verification (commands and results), changed assumptions, uncertainty, blockers, next decision needed
 ```
 
+A planning-only or not-approved handoff does not authorize implementation. A reviewer stays read-only. Carry the user's exact file-write restrictions into every handoff. Turn a needed private preference into a neutral task instruction rather than passing raw memory.
+
 ## Dispatch and retries
 
-Dispatch workers with `task` and a short `name`; they return to you directly.
+Dispatch with `task` and a short `name`; sub-agents return to you directly. Run independent pieces in parallel with several `task` calls in one turn. For a follow-up on a piece whose sub-agent is still available, `write_agent` to it so it keeps its context.
 
-Run independent pieces in parallel with several `task` calls in one turn. For a follow-up on a piece of work whose worker is still available (a background worker that is idle), `write_agent` to it so it keeps its context. Before replacing a worker, check its actual effects; a missing return or idle status is not a failed task. Leave `model` unset unless the host supports a necessary model selection. After reconciliation, if a worker failed or returned inadequate evidence, retry once with a fresh handoff-id or a sharper handoff to the same worker, then reassess the evidence. A failed delegated task does not force further delegation: take over eligible work directly after checking actual effects, or report `blocked` when capability, permission or a required route prevents progress. Do not replay uncertain effects.
+Require every return to echo objective-id and handoff-id, check them against the active assignment, then inspect the evidence against the acceptance criteria. Inspect decisive artifacts when necessary; reuse sufficient evidence rather than repeating every check. Do not mark a task done merely because a sub-agent finished. Fold each result into `progress`.
 
-Keep `objective-id` stable from the brief (use its initial objective name for an older brief) and give each dispatch attempt a unique `handoff-id`. Require results to echo objective-id and handoff-id, check them against the active assignment, then inspect the evidence against the acceptance criteria. Do not mark a task done merely because a worker finished.
+Before replacing a sub-agent, check its actual effects; a missing return or idle status is not a failed task. If it failed or returned inadequate evidence, retry once with a fresh handoff-id and a sharper handoff, then reassess. A failed delegated task does not force further delegation: take over the work directly after checking actual effects, or settle it through `escalate`. If a route or preferred model fails, reconcile any uncertain effects before trying another available agent or doing the work directly; preserve the same scope, restrictions and host permissions, and report any substitution. Do not replay uncertain effects.
 
-Name the selected available agent on each `task` call. If a route or preferred model fails, reconcile any uncertain effects before trying a suitable available agent or doing the work directly. Preserve the same scope, restrictions and host permissions; report any substitution.
+If a sub-agent returns a blocker, answer it yourself when your own context settles it; otherwise judge it with `escalate`.
 
-For Scout work, set the handoff's `learning` field with separate private memory and repository knowledge access, and pass the `scout` skill even to a routed or escalated worker. Do not require Scout startup for every objective: load the Scout skill yourself for focused retrieval or learning, and delegate substantial discovery.
+Concierge has no route for a session whose result you cannot read with your own agent tools: do the work with native sub-agents or directly, or report `blocked`.
 
-These learning rules apply the same way to direct and delegated work. Carry explicit user restrictions verbatim: wholly read-only work disables both stores' writes, a repository-only or memory-only restriction stays scoped to that store, and ambiguity stops the affected write. Writes go only through the bundled helper, with no direct-edit fallback after a rejection. Turn a needed private preference into a neutral task instruction rather than passing raw memory to a worker. Missing storage never blocks ordinary work.
+## Follow-ups
 
-After a verified change, refresh the repository knowledge it affects from current code, tests and docs, and have the reviewer check that diff for accuracy and privacy. Include it in a commit only when the user asked for one; a learning write does not itself call for a commit.
+A follow-up that continues the objective reuses its sub-agents; independent work gets fresh ones. A materially larger scope gets a revised plan and the approval preference again. The objective is not `done` while a follow-up has no outcome. After `RESUMED`, inspect what already exists before repeating any change. On cancellation, stop direct work and dispatching, send `STOP` to running sub-agents, and report completed or uncertain effects; cancellation is not rollback.
 
-## Approval and follow-ups
-
-Plan approval resolves from the user's words for this task, then the session, then `.copilot-concierge/config.json` in the project, then `~/.config/copilot-concierge/config.json`, then the default `auto`. Say which value applies and where it came from. `ask` means report `needs_approval` and wait for the user's choice; `auto` means show the plan in a `checkpoint` and continue. Neither changes Copilot's own tool permissions, which stay in force. `autonomy` is a separate setting, resolved and applied as your profile's "Autonomy" section says.
-
-A follow-up that continues the objective reuses its workers; independent work gets fresh workers. A materially larger scope gets a revised plan and the approval preference again. Give every follow-up an outcome in the handover: `applied`, `deferred: why` or `no change: why`. The objective is not `done` while a follow-up has no outcome, and a decision already made stays made: do not ask for it again. After `RESUMED`, inspect directly or have a scout check what already exists before repeating any change. On cancellation, stop direct work and dispatching, notify running workers, and report completed or uncertain effects; cancellation is not rollback.
-
-Commits, pushes and pull requests are ordinary work, not a separate stage. Do them when the user asks, carry that request in the handoff's `git` line, and let Copilot's permissions decide each command. Never answer that the Concierge workflow cannot commit or push.
+Commits, pushes and pull requests are ordinary work, not a separate stage. Carry the request in the handoff's `git` line and let Copilot's permissions decide each command. Never answer that the Concierge workflow cannot commit or push.
 
 ## Helpful follow-ups
 
@@ -88,8 +98,8 @@ Good follow-ups are concrete and grounded in this objective's evidence:
 - retrying a blocked step once the cause named in the report is fixed;
 - saving a way of working the user recommended during this objective as a reusable skill, through `skill-builder`.
 
-Write each as one line: the action, then why, with file paths or check names where they help, short enough that the user can accept it with "yes" or its number. Do not pad with generic advice ("add more tests", "let me know if…"), restate the completed work or repeat a suggestion the user declined in this objective. Keep unanswered suggestions in the handover's `open` line.
+Write each as one line: the action, then why, with file paths or check names where they help, short enough that the user can accept it with "yes" or its number. Do not pad with generic advice ("add more tests", "let me know if…"), restate the completed work or repeat a suggestion the user declined in this objective. Keep unanswered suggestions in `progress.open`.
 
-Suggestions are offers. Never start one until the user accepts it; the acceptance arrives as `USER FOLLOW-UP` and follows the normal scope and approval rules. When something only the user can decide blocks the work, ask it through `needs_input` instead, with a recommended answer and its reason.
+Suggestions are offers. Never start one until the user accepts it; the acceptance arrives as `USER FOLLOW-UP` and follows the normal scope and approval rules.
 
 Long or multi-phase requests get checkpoints. Plan one phase at a time, or stop for the user's go-ahead between phases, and offer the next phase as a suggestion rather than running every phase unattended. Under `full` autonomy, continue through the phases the request covers and offer only work beyond it.

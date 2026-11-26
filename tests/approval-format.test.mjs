@@ -5,10 +5,12 @@ import { readFile } from 'node:fs/promises';
 // Native agent instructions are the implementation. These source-contract
 // regressions do not simulate an LLM, tool execution or rendered Copilot UI.
 const read = async file => (await readFile(new URL(`../${file}`, import.meta.url), 'utf8')).replace(/\r\n/g, '\n');
-const orchestrator = await read('com.github.copilot/agents/orchestrator.agent.md');
-const concierge = await read('com.github.copilot/agents/concierge.agent.md');
+// The plan shape lives in the `plan` skill and the decision rules in the worker
+// profile; the entry agent's side is the `relay` skill.
+const orchestrator = `${await read('com.github.copilot/agents/worker.agent.md')}\n${await read('skills/plan/SKILL.md')}\n${await read('skills/development/SKILL.md')}`;
+const concierge = await read('skills/relay/SKILL.md');
 const guide = await read('references/approval-preference.md');
-const approval = concierge.match(/^3\. `needs_approval`: (.+)$/m)?.[1];
+const approval = concierge.match(/^2\. `needs_approval`: (.+)$/m)?.[1];
 
 test('approval plans require separated plain-text sections, actions, checks and material risks', () => {
   assert.match(orchestrator, /sections `Plan`, `Scope`, `Steps`, `Checks` and optional `Watch-outs`/);
@@ -22,7 +24,7 @@ test('approval plans require separated plain-text sections, actions, checks and 
 });
 
 test('report template and user example retain section spacing and numbered steps', () => {
-  for (const [name, source] of [['report', orchestrator], ['guide', guide]]) {
+  for (const [name, source] of [['plan skill', orchestrator], ['guide', guide]]) {
     const plan = source.match(/```text\n(Plan:[\s\S]*?)\n```/)?.[1];
     assert.ok(plan, `${name}: plain-text plan example`);
     assert.match(plan, /^Plan: [^\n]+\n\nScope: [^\n]+\n\nSteps:\n1\. [^\n]+\n2\. [^\n]+\n3\. [^\n]+\n\nChecks: [^\n]+\n\nWatch-outs: [^\n]+/);
@@ -37,7 +39,7 @@ test('Concierge preserves the plan in the supported question field or immediatel
   assert.match(approval, /Include the structured plan in the approval question when the existing `ask_user` schema supports it; otherwise show it immediately before the short question/);
   assert.match(approval, /Ask "Approve this plan\?" with choices "Approve", "Change something", "Cancel"/);
   assert.match(approval, /Do not invent schema fields or rely on Markdown tables or cards rendering/);
-  assert.match(approval, /Send `PLAN DECISION: <exact choice and any text>` back to the same orchestrator, associated with the displayed plan/);
+  assert.match(approval, /Send `PLAN DECISION: <exact choice and any text>` back to the same worker, associated with the displayed plan/);
 });
 
 test('Approve alone authorizes the displayed plan; missing or ambiguous replies do not', () => {
@@ -59,7 +61,8 @@ test('Change something keeps work unapproved and a revision requires fresh appro
 
 test('Cancel is relayed through PLAN DECISION and stops the objective', () => {
   assert.match(approval, /"Cancel" cancels that objective without authorizing work/);
-  assert.match(orchestrator, /`PLAN DECISION: Cancel` cancels the objective: stop direct work and dispatching, send `STOP` to running workers and report `cancelled`/);
+  assert.match(orchestrator, /`PLAN DECISION: Cancel` cancels the objective/);
+  assert.match(orchestrator, /`CANCEL`: stop direct work and dispatching, send `STOP` to running sub-agents, and report `cancelled`/);
 });
 
 test('without ask_user the same multiline plan, exact question and choices wait for a reply', () => {

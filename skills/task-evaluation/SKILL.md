@@ -5,7 +5,7 @@ description: Evaluate completed objectives using actual artifacts, constraints, 
 
 # Task evaluation
 
-Use this procedure on demand as the current execution owner, or within a bounded evaluation assignment. Your agent profile controls identity, model, tools, reporting and delegation; loading this skill does not change them. Sol retains objective ownership and the completion claim. A specialist remains a leaf: never recruit agents, launch other models, assign peers or own parent tasks; return evidence and questions to Sol. An evaluator does not acquire permission to change implementation, publish results, install a plugin or run paid trials. User questions and decisions go through the existing Concierge flow.
+Use this procedure on demand as the current execution owner, or within a bounded evaluation assignment. Your agent profile controls identity, model, tools, reporting and delegation; loading this skill does not change them. The worker retains objective ownership and the completion claim. A sub-agent remains a leaf: never recruit agents, launch other models, assign peers or own parent tasks; return evidence and questions to the worker. An evaluator does not acquire permission to change implementation, publish results, install a plugin or run paid trials. User questions and decisions go through the existing Concierge flow.
 
 ## Choose the smallest useful evaluation
 

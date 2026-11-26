@@ -104,10 +104,11 @@ test('launcher uses the requested project and configured native role/model witho
   const paths = await fixture(t);
   await writeFile(paths.userConfig, JSON.stringify({
     planApproval: 'ask',
-    models: { concierge: 'fixture-luna-root', orchestrator: 'fixture-old-sol', specialist: 'fixture-old-leaf' },
+    models: { concierge: 'fixture-luna-root', worker: 'fixture-old-sol', specialist: 'fixture-retired-leaf' },
   }));
+  // An older project file still names the orchestrator role.
   await writeFile(paths.projectConfig, JSON.stringify({ models: { orchestrator: 'fixture-sol-middle' } }));
-  await writeFile(paths.sessionConfig, JSON.stringify({ models: { specialist: 'fixture-luna-leaf' } }));
+  await writeFile(paths.sessionConfig, JSON.stringify({ planApproval: 'ask' }));
 
   const result = launch(paths, [
     '--project', path.relative(paths.cwd, paths.project),
@@ -124,9 +125,10 @@ test('launcher uses the requested project and configured native role/model witho
   assert.equal(path.dirname(pluginDirectory), paths.output, 'Generated plugin must stay in the requested fixture directory');
   assert.equal(JSON.parse(await readFile(path.join(pluginDirectory, 'plugin.json'), 'utf8')).name, 'copilot-concierge');
   const effective = JSON.parse(await readFile(path.join(pluginDirectory, 'effective-config.json'), 'utf8'));
-  assert.deepEqual(effective.value.models, {
-    concierge: 'fixture-luna-root', orchestrator: 'fixture-sol-middle', specialist: 'fixture-luna-leaf', escalation: 'gpt-6.1-sol',
-  });
+  assert.deepEqual(effective.value.models, { concierge: 'fixture-luna-root', worker: 'fixture-sol-middle' });
+  const back = await readFile(path.join(pluginDirectory, 'com.github.copilot/agents/worker.agent.md'), 'utf8');
+  assert.match(back, /^model: "fixture-sol-middle"$/m);
+  assert.deepEqual((await readdir(path.join(pluginDirectory, 'com.github.copilot/agents'))).sort(), ['concierge.agent.md', 'worker.agent.md']);
   assert.equal(effective.value.planApproval, 'auto');
   const entry = await readFile(path.join(pluginDirectory, 'com.github.copilot/agents/concierge.agent.md'), 'utf8');
   assert.match(entry, /^model: "fixture-luna-root"$/m);
@@ -187,7 +189,7 @@ test('invalid configuration and unsupported launch options never start Copilot',
   const cases = [
     { name: 'malformed JSON', config: '{ broken' },
     { name: 'invalid approval value', config: JSON.stringify({ planApproval: true }) },
-    { name: 'Fusion for a sub-agent role', config: JSON.stringify({ models: { orchestrator: 'Auto' } }) },
+    { name: 'Fusion for the worker role', config: JSON.stringify({ models: { worker: 'Auto' } }) },
     { name: 'unknown setting', config: JSON.stringify({ allowAllTools: true }) },
     { name: 'missing explicit session file', extra: paths => ['--session-config', path.join(paths.root, 'missing.json')] },
     { name: 'permission bypass flag', extra: () => ['--allow-all-tools'] },

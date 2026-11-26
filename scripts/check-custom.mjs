@@ -10,10 +10,13 @@ import path from 'node:path';
 // Routing role keys describe work, not necessarily a separately shipped agent.
 // Keep the established keys so a team's exact custom routes remain meaningful.
 export const CONCIERGE_ROLES = ['scout', 'product-manager', 'worker', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer', 'escalation'];
-export const CONCIERGE_SKILLS = ['orchestrate', 'plan', 'grill-plan', 'scout', 'react-frontend', 'node-backend', 'graphql', 'review', 'debugging', 'task-evaluation', 'skill-builder', 'orchestrate-reference'];
-export const CONCIERGE_WORKERS = ['scout', 'product-manager', 'worker', 'reviewer', 'escalation'];
-const LEGACY_AGENTS = { 'enterprise-ux': 'plan', 'react-frontend': 'react-frontend', 'node-backend': 'node-backend', graphql: 'graphql' };
-const CONCIERGE_AGENTS = ['concierge', 'orchestrator', ...CONCIERGE_WORKERS];
+export const CONCIERGE_SKILLS = ['brief', 'relay', 'discovery', 'development', 'test', 'escalate', 'orchestrate', 'orchestrate-reference', 'plan', 'grill-plan', 'scout', 'react-frontend', 'node-backend', 'graphql', 'review', 'debugging', 'task-evaluation', 'skill-builder'];
+// The one shipped agent a routing row may name. It means the worker does that
+// work itself with the row's skills.
+export const CONCIERGE_WORKERS = ['worker'];
+// Retired built-in agents and the skill that now carries their procedure.
+export const LEGACY_AGENTS = { 'enterprise-ux': 'plan', 'react-frontend': 'react-frontend', 'node-backend': 'node-backend', graphql: 'graphql', scout: 'scout', 'product-manager': 'plan', reviewer: 'review', escalation: null, orchestrator: null };
+const CONCIERGE_AGENTS = ['concierge', ...CONCIERGE_WORKERS];
 const BUILTIN_PREFIX = 'copilot-concierge:';
 
 // Where Copilot reads agents and skills for each kind of root: a project
@@ -95,10 +98,10 @@ export async function checkRoots(roots) {
         const where = path.relative(process.cwd(), file) || file;
         if (!parsed) { errors.push(`${where}: missing frontmatter`); continue; }
         for (const problem of parsed.problems) errors.push(`${where}: ${problem}`);
-        if (!parsed.fields.description) errors.push(`${where}: add a description; the orchestrator chooses agents by it`);
+        if (!parsed.fields.description) errors.push(`${where}: add a description; the worker chooses agents by it`);
         if (!parsed.fields.model) warnings.push(`${where}: no preferred model; the host may choose one`);
         else if (parsed.fields.model.startsWith('[')) warnings.push(`${where}: a model list falls back silently when the first model is unavailable`);
-        if (/\b(task|write_agent|ask_user|update_todo)\b/.test(parsed.fields.tools ?? '')) warnings.push(`${where}: workers should report to the orchestrator, not dispatch agents, ask the user or own the task list`);
+        if (/\b(task|write_agent|ask_user|update_todo)\b/.test(parsed.fields.tools ?? '')) warnings.push(`${where}: sub-agents should report to the worker, not dispatch agents, ask the user or own the task list`);
         const localId = agentId(agentsDir, file);
         const id = rootLocations.pluginName && dir !== '.github/agents' ? `${rootLocations.pluginName}:${localId}` : localId;
         if (rootLocations.pluginName !== 'copilot-concierge' && CONCIERGE_AGENTS.includes(id)) errors.push(`${where}: agent ID "${id}" is a Concierge agent name; Copilot keeps only one agent per ID and loads plugin agents after personal and project agents, so choose a distinct team name`);
@@ -134,7 +137,7 @@ export async function checkRoots(roots) {
       if (!row.role || !row.agent) { errors.push(`${where}: each row needs a role and an agent`); continue; }
       const oldRole = row.agent.startsWith(BUILTIN_PREFIX) ? row.agent.slice(BUILTIN_PREFIX.length) : undefined;
       if (Object.hasOwn(LEGACY_AGENTS, oldRole ?? '')) {
-        warnings.push(`${where}: legacy agent "${row.agent}" is no longer shipped; keep role "${row.role}", use "copilot-concierge:worker" and add skill "${LEGACY_AGENTS[oldRole]}" while retaining the row's other skills. The checker does not rewrite routes or grant permission`);
+        warnings.push(`${where}: legacy agent "${row.agent}" is no longer shipped; keep role "${row.role}", use "copilot-concierge:worker"${LEGACY_AGENTS[oldRole] ? ` and add skill "${LEGACY_AGENTS[oldRole]}"` : ''} while retaining the row's other skills. The checker does not rewrite routes or grant permission`);
       } else if (!knownAgent(row.agent)) warnings.push(`${where}: agent "${row.agent}" was not found in these folders; it must come from a plugin or another location Copilot loads`);
       if (!CONCIERGE_ROLES.includes(row.role) && !row.when) warnings.push(`${where}: new role "${row.role}" needs a "Use when" description`);
       for (const skill of row.skills) {

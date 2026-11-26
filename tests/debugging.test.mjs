@@ -8,7 +8,7 @@ test('debugging is a role-neutral bounded procedure with causal and regression e
   for (const pattern of [
     /^name: debugging$/m,
     /Your agent profile determines identity/,
-    /a specialist remains a leaf/,
+    /a sub-agent remains a leaf/,
     /diagnosis-only request remains read-only/,
     /expected versus observed behavior/,
     /disconfirming observation/,

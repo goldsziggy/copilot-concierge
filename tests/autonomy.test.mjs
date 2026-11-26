@@ -74,7 +74,7 @@ test('the environment variable swaps the mode over files, and the flag overrides
 test('generated profiles carry the resolved mode and its source', () => {
   const profile = '---\nname: example\nmodel: authored-model\ntools: [task]\n---\nDo only assigned work.\n';
   const config = resolveConfig([{ source: `environment: ${AUTONOMY_ENV}`, value: { autonomy: 'full' } }]);
-  for (const file of ['concierge.agent.md', 'orchestrator.agent.md', 'worker.agent.md']) {
+  for (const file of ['concierge.agent.md', 'worker.agent.md']) {
     const output = configureProfile(profile, file, config);
     assert.ok(output.includes('"autonomy": "full"'));
     assert.ok(output.includes(`"autonomySource": "environment: ${AUTONOMY_ENV}"`));
@@ -92,85 +92,103 @@ test('full autonomy disables the question tool but never adds a permission flag'
 });
 
 // Instruction contracts only: these do not show that a live model follows them.
-test('the brief and report carry autonomy consistently across profiles and the reference', async () => {
-  const concierge = await read('com.github.copilot/agents/concierge.agent.md');
-  const orchestrator = await read('com.github.copilot/agents/orchestrator.agent.md');
+const skill = name => read(`skills/${name}/SKILL.md`);
+
+test('the brief and report carry autonomy consistently across the skills, profile and reference', async () => {
+  const worker = await read('com.github.copilot/agents/worker.agent.md');
+  const brief = await skill('brief');
   const handoff = await read('references/handoff.md');
-  assert.equal((concierge.match(/^autonomy stated by user: /gm) ?? []).length, 2, 'new and rollover briefs');
-  assert.equal((concierge.match(/^acceptance criteria: /gm) ?? []).length, 2, 'rollover keeps the acceptance criteria');
-  for (const text of [concierge, handoff]) assert.match(text, /^autonomy stated by user: /m);
-  for (const text of [orchestrator, handoff]) {
+  for (const text of [brief, handoff]) {
+    assert.match(text, /^autonomy stated by user: /m);
+    assert.match(text, /^acceptance criteria: /m);
+  }
+  // Rollover reuses the one brief template, so it cannot drop a field.
+  assert.equal((brief.match(/^CONCIERGE-BRIEF$/gm) ?? []).length, 1);
+  assert.match(brief, /acceptance criteria, references, plan approval, autonomy and file-write restrictions as before/);
+  for (const text of [worker, handoff]) {
     assert.match(text, /^autonomy: <guided\|full>: <source>$/m);
     assert.match(text, /COMPLETION CHECK/);
     assert.match(text, /decided for the user/);
   }
-  assert.match(orchestrator, new RegExp(AUTONOMY_ENV));
-  assert.match(orchestrator, /with one shell command that does nothing else, once per objective/);
-  assert.match(orchestrator, /A setting you cannot read is unset: use the default and continue, and never stop for it/);
-  assert.match(orchestrator, /The default is `guided`/);
-  assert.match(orchestrator, /report any other value and use `guided`/);
+  assert.match(worker, new RegExp(AUTONOMY_ENV));
+  assert.match(worker, /with one shell command that does nothing else, once per objective/);
+  assert.match(worker, /A setting you cannot read is unset: use the default and continue, and never stop for it/);
+  assert.match(worker, /The default is `guided`/);
+  assert.match(worker, /report any other value and use `guided`/);
 });
 
 test('full autonomy is unattended: it decides, never asks and stops only at hard stops', async () => {
-  const orchestrator = await read('com.github.copilot/agents/orchestrator.agent.md');
+  const worker = await read('com.github.copilot/agents/worker.agent.md');
+  const escalate = await skill('escalate');
+  const relay = await skill('relay');
   const concierge = await read('com.github.copilot/agents/concierge.agent.md');
   for (const pattern of [
     /treat the run as unattended, such as a cloud agent driven through the Copilot SDK/,
-    /record it in `decisions` as `decided for the user: <choice>: <why>`/,
+    /Never report `needs_input`; load `escalate`/,
+    /stop only for a hard stop reported as `blocked`/,
+    /Plan approval `ask` is not overridden/,
+    /Try a denied action once more in its plain form and never the same call twice/,
+    /Report a hard stop once and end the turn/,
+    /continuing without progress is not/,
+    /Run one command per shell call, exactly as the task or repository names it/,
+    /A source you cannot read is unset, never a blocker/,
+    /`COMPLETION CHECK: <items>`: control metadata from Concierge, not a user request/,
+    /Fill `decided for the user` in every report, never leaving it out/,
+    /^decided for the user:$/m,
+  ]) assert.match(worker, pattern);
+  for (const pattern of [
+    /in `progress\.decisions` as `decided for the user: <choice>: <why>`/,
     /never user decisions or approvals/,
-    /Never report `needs_input`/,
-    /reported as `blocked` with exactly what is needed/,
+    /with exactly what is needed and what is already finished and verified/,
     /something only the user can supply/,
     /destructive, hard to undo or reaches beyond the repository/,
     /costly to reverse/,
     /a conflict with an explicit user restriction/,
-    /Plan approval `ask` is not overridden/,
-    /Try a denied action once more in its plain form and never the same call twice/,
-    /Report a hard stop once and end the turn/,
     /If the same step fails the same way twice, stop retrying it and report `blocked`/,
-    /continuing without progress is not/,
     /A denied tool call is not a hard stop/,
-    /Run one command per shell call, exactly as the task or repository names it/,
-    /A source you cannot read is unset, never a blocker/,
-    /`COMPLETION CHECK: <items>` from Concierge is control metadata, not a user request/,
-  ]) assert.match(orchestrator, pattern);
+    /Do not end a turn to show a plan or to pause between phases the request covers/,
+  ]) assert.match(escalate, pattern);
   for (const pattern of [
-    /a non-interactive run stays alive while background agents work/,
+    /A non-interactive run stays alive while background agents work/,
     /`read_agent` with `wait: true` and a `timeout` of at most 180 seconds/,
     /end the turn rather than polling/,
     /Do not call `ask_user` or wait for a reply/,
-    /send `COMPLETION CHECK: <those items>` to the orchestrator once/,
-    /you still read no files and judge no code/,
-    /"Decided for you:"/,
+    /send `COMPLETION CHECK: <those items>` to the worker once/,
+    /you read no files and judge no code/,
+    /always write a "Decided for you:" line/,
+    /"Decided for you: nothing"/,
     /With `guided`, send no completion check/,
-    /Send at most one `COMPLETION CHECK` per objective/,
-    /After a `blocked` report under `full`, send nothing more/,
-    /do not send `CONTINUE` again; relay the latest report as `blocked`/,
-    /Never start a second orchestrator for an objective because the first one is blocked/,
-  ]) assert.match(concierge, pattern);
+  ]) assert.match(relay, pattern);
+  // The entry profile holds the rule that must apply before any skill loads.
+  assert.match(concierge, /When the user said the run is unattended or asked not to be consulted, never call `ask_user` or wait for a reply/);
+  assert.match(concierge, /The host wakes you when the worker reports; do not poll/);
 });
 
 test('autonomy changes who answers, not what is allowed', async () => {
-  const orchestrator = await read('com.github.copilot/agents/orchestrator.agent.md');
+  const worker = await read('com.github.copilot/agents/worker.agent.md');
+  const escalate = await skill('escalate');
+  const relay = await skill('relay');
+  const brief = await skill('brief');
   const concierge = await read('com.github.copilot/agents/concierge.agent.md');
-  assert.match(orchestrator, /Scope, plan approval, Git requests, file-write restrictions, learning scopes, proportional review, the retry-once rule and Copilot's permissions are unchanged/);
-  assert.match(orchestrator, /never justifies a permission bypass/);
-  assert.match(orchestrator, /not saved to memory without the user's confirmation/);
-  assert.match(concierge, /never plan approval `ask`, scope, Git requests, file-write restrictions or Copilot's permissions/);
-  assert.match(concierge, /never sets autonomy/);
+  assert.match(worker, /Autonomy changes who answers, not what is allowed/);
+  assert.match(escalate, /Scope, plan approval, Git requests, file-write restrictions, learning scopes, proportional review, the retry-once rule and Copilot's permissions are unchanged/);
+  assert.match(escalate, /never justifies a permission bypass/);
+  assert.match(escalate, /not saved to memory without the user's confirmation/);
+  assert.match(relay, /never plan approval `ask`, scope, Git requests, file-write restrictions or Copilot's permissions/);
+  assert.match(brief, /never sets autonomy/);
   // The guided default keeps its existing plan checkpoint.
-  assert.match(orchestrator, /With `auto`, report a `checkpoint` that shows the plan and source, and continue on `CONTINUE`/);
-  // Live trial 6: the host offered the skill tool to the entry agent anyway.
-  assert.match(concierge, /no loading of skills even when the host offers them/);
-  // Concierge stays control-only in every mode.
+  assert.match(worker, /With `auto`, report a `checkpoint` that shows the plan and source, and continue on `CONTINUE`/);
+  // The entry agent loads only its own two skills and stays control-only in every mode.
+  assert.match(concierge, /Load no other skill/);
   const tools = concierge.match(/^tools: \[(.+)\]$/m)[1].split(',').map(tool => tool.trim()).sort();
-  assert.deepEqual(tools, ['ask_user', 'list_agents', 'read_agent', 'task', 'update_todo', 'write_agent']);
+  assert.deepEqual(tools, ['ask_user', 'list_agents', 'read_agent', 'skill', 'task', 'update_todo', 'write_agent']);
 });
 
 test('the result line the entry agent writes is the one an SDK client reads', async () => {
   const concierge = await read('com.github.copilot/agents/concierge.agent.md');
   const sdk = await read('references/sdk-automation.md');
-  // Live trial 2: the line was dropped when it was not unambiguously last.
+  // Live trial 2 on 0.10.0: the line was dropped when it was not unambiguously last.
+  // It stays in the always-loaded profile so it does not depend on a skill load.
   assert.match(concierge, /the very last line of your reply, after any suggestions, is exactly/);
   assert.match(concierge, /in plain text with no formatting, quoting or list marker/);
   assert.match(concierge, /never omit it or put text after it/);
@@ -180,6 +198,10 @@ test('the result line the entry agent writes is the one an SDK client reads', as
   const pattern = new RegExp(sdk.match(/^const RESULT = \/(.+)\/;$/m)[1]);
   for (const status of statuses) assert.equal(pattern.exec(`CONCIERGE-RESULT: ${status} objective-1`)?.[1], status);
   assert.equal(pattern.exec('- CONCIERGE-RESULT: done objective-1'), null);
+  // A direct answer in an unattended run still ends with a line the client matches.
+  const answered = concierge.match(/it ends with `(CONCIERGE-RESULT: done answered)`/)[1];
+  assert.equal(pattern.exec(answered)?.[1], 'done');
+  assert.match(concierge, /A direct answer has no such line, except in a run the user said is unattended/);
   assert.match(sdk, /Leave out `onUserInputRequest`/);
   assert.match(sdk, /Do not rely on `sendAndWait`'s return value for the result/);
   assert.match(sdk, /`auto` for the session, which is Copilot Fusion/);

@@ -5,24 +5,24 @@ You can teach Concierge your team's way of working without editing the installed
 | File | What it does | Guide |
 | --- | --- | --- |
 | `<name>.agent.md` | A specialist: its model, tools and charter | [Custom agents](custom-agents.md) |
-| `copilot-concierge-routing/SKILL.md` | Concierge's routing charter: which agent and skills handle each role | [Routing charters](routing-charters.md) |
-| `<name>/SKILL.md` | Reusable guidance a worker loads | [Skills](custom-skills.md) |
+| `copilot-concierge-routing/SKILL.md` | Concierge's routing charter: which agent and skills handle each kind of work | [Routing charters](routing-charters.md) |
+| `<name>/SKILL.md` | Reusable guidance the worker or a sub-agent loads | [Skills](custom-skills.md) |
 
-Copilot discovers agents and skills in its normal locations. Concierge's orchestrator reads the routing charter and hands work to the agents it names, after verifying each one. A routing row does not register an agent, install a plugin, add tools or bypass Copilot's permissions. Ordinary `AGENTS.md` or `.github/copilot-instructions.md` files can describe repository conventions, but they do not create a Concierge route.
+Copilot discovers agents and skills in its normal locations. Concierge ships two agents: the `concierge` entry agent you talk to and the `worker` that does the work. The worker reads the routing charter and hands work to the agents it names, after confirming each one is available. A routing row does not register an agent, install a plugin, add tools or bypass Copilot's permissions. Ordinary `AGENTS.md` or `.github/copilot-instructions.md` files can describe repository conventions, but they do not create a Concierge route.
 
 Start with the routing overview below, then use the quick start to add its example files.
 
-## The routing skill the orchestrator uses
+## The routing skill the worker uses
 
-The orchestrator's built-in `orchestrate` skill defines Concierge's coordination workflow. Your extension point is a separate skill named **`copilot-concierge-routing`**. Do not replace or shadow `orchestrate` to add your team's routes.
+The worker's built-in `orchestrate` and `orchestrate-reference` skills define how it starts sub-agents and reads routing tables. Your extension point is a separate skill named **`copilot-concierge-routing`**. Do not replace or shadow Concierge's own skills to add your team's routes.
 
-At the start of each objective, before choosing specialists, the orchestrator loads `copilot-concierge-routing` and every available `copilot-concierge-routing-<suffix>` skill listed by its skill tool. It follows their routing tables when selecting workers. Without a matching custom route, Sol works directly or delegates to a suitable worker when a separate context helps. These rules are defined in the [orchestrator profile](../com.github.copilot/agents/orchestrator.agent.md).
+At the start of each objective, before choosing how to do the work, the worker loads `copilot-concierge-routing` and every available `copilot-concierge-routing-<suffix>` skill listed by its skill tool. It follows their routing tables when selecting agents. Without a matching custom route, the worker does the work itself, or starts a general-purpose agent the host offers when a separate context earns its cost. These rules are defined in the [worker profile](../com.github.copilot/agents/worker.agent.md) and its [`orchestrate-reference` skill](../skills/orchestrate-reference/SKILL.md).
 
-### Keep each worker's charter in its agent file
+### Keep each specialist's charter in its agent file
 
-Use a native `.agent.md` file for a stable specialist. Its frontmatter defines its model, tools and invocation settings; its Markdown body is the worker's charter: expertise, boundaries, how to handle an assignment and what evidence to return. Set `user-invocable: false` for an internal worker that stays out of the human-facing agent picker while remaining dispatchable. Leave `disable-model-invocation` unset or `false`; setting it to `true` prevents the worker dispatch observed in Concierge's host probes. Hiding a worker is not a permission boundary. See [custom agents](custom-agents.md).
+Use a native `.agent.md` file for a stable specialist. Its frontmatter defines its model, tools and invocation settings; its Markdown body is the specialist's charter: expertise, boundaries, how to handle an assignment and what evidence to return. Set `user-invocable: false` for an internal agent that stays out of the human-facing agent picker while remaining dispatchable. Leave `disable-model-invocation` unset or `false`; setting it to `true` prevented dispatch in Concierge's host probes. Hiding an agent is not a permission boundary. See [custom agents](custom-agents.md).
 
-The routing skill addresses the **orchestrator**: whom to use, when to use them and which extra skills to pass. The agent charter addresses the **worker**: how to do its job. Shared skills hold reusable procedures or conventions. Concierge ships one reusable implementation worker, with separate React, Node.js and GraphQL skills. You do not need a separate charter file or one agent per checklist. For guidance-only changes, name a skill in the task or project instructions; add a routing row when delegation is intentional.
+The routing skill addresses the **worker**: whom to use, when to use them and which extra skills to pass. The agent charter addresses the **specialist**: how to do its job. Shared skills hold reusable procedures or conventions. Concierge ships no specialist agents; the worker does implementation itself with separate React, Node.js and GraphQL skills. You do not need a separate charter file or one agent per checklist. For guidance-only changes, name a skill in the task or project instructions, or add a row that names `copilot-concierge:worker` with that skill; route to a custom agent when delegation is intentional.
 
 ### Add a project routing charter
 
@@ -51,25 +51,25 @@ preferred model is unavailable, report the gap and preserve applicable skills,
 independent review, exact user restrictions and host permissions in any fallback.
 ```
 
-The `reviewer` row replaces the shipped reviewer with `team-reviewer`. The `node-backend` row selects the reusable worker with Node.js guidance and the shared review rules. Skills named in either row go into the selected worker's `CONCIERGE-HANDOFF` under `skills to load`; that worker needs the `skill` tool to load them. Leave the Skills cell empty when no additional skills are needed.
+The `reviewer` row sends review work to `team-reviewer`. The `node-backend` row names `copilot-concierge:worker`, so the worker does Node.js implementation itself with Node.js guidance and the shared review rules. Skills in a row that names another agent go into that agent's `CONCIERGE-HANDOFF` under `skills to load`; that agent needs the `skill` tool to load them. Leave the Skills cell empty when no additional skills are needed.
 
-A recognized Role selects a kind of work, even when no separate profile has that name. Domain roles remain valid keys for existing custom routes. Any other Role adds a specialist, whose **Use when** must clearly describe the work it covers. The Agent cell must use the exact discovered agent ID, not a display name or an invented alias. Keep one table with the four columns above. You may add short Markdown guidance below it about sequencing, what context to provide and what results to expect, consistent with Concierge's handoff and approval rules. A prose-only `ROUTING.md` is not an automatically discovered routing skill. See the [full routing reference](routing-charters.md) for supported roles and formatting.
+A recognized Role selects a kind of work; role keys such as `scout` and `reviewer` no longer name shipped agents. They remain valid keys for existing custom routes. Any other Role adds a specialist, whose **Use when** must clearly describe the work it covers. The Agent cell must use the exact discovered agent ID, not a display name or an invented alias. Keep one table with the four columns above. You may add short Markdown guidance below it about sequencing, what context to provide and what results to expect, consistent with Concierge's handoff and approval rules. A prose-only `ROUTING.md` is not an automatically discovered routing skill. See the [full routing reference](routing-charters.md) for supported roles and formatting.
 
 ### Resolution, fallback and verification
 
-Before dispatch, the orchestrator checks that the named agent is available to the host. A model pin is optional rather than an eligibility gate.
+Before dispatch, the worker checks that the named agent is available to the host. A model pin is optional rather than an eligibility gate.
 
-Honor an available exact custom route before choosing direct work. If a route or preferred model is unavailable, the orchestrator reports the gap and uses a suitable available worker or executes directly only when scope, exact user requirements and independent-review needs permit it. Keep domain and row skills and all restrictions. Old built-in domain IDs migrate explicitly to the reusable worker, not to direct execution; see [routing migration](routing-charters.md#domain-roles-and-old-built-in-ids). If no permitted capability can complete the work, report the blocker.
+Honor an available exact custom route before choosing direct work. If a route or preferred model is unavailable, the worker reports the gap and uses a suitable available agent or executes directly only when scope, exact user requirements and independent-review needs permit it. Keep domain and row skills and all restrictions. A row that names a retired built-in ID, such as `copilot-concierge:reviewer` or `copilot-concierge:node-backend`, is handled by the worker itself with the matching skill added and the migration reported; see [routing migration](routing-charters.md#domain-roles-and-old-built-in-ids). If no permitted capability can complete the work, report the blocker.
 
 For multiple charters, the unsuffixed `copilot-concierge-routing` wins over suffixed charters when rows conflict. There is no defined order between conflicting suffixed charters. Copilot also keeps only one loaded skill per name, so give team and personal charters distinct suffixes when they should combine with project routing. See [sharing beyond one repository](#share-beyond-one-repository).
 
-Routes select leaf workers, not a replacement Concierge entry agent or orchestrator. They preserve the user's scope, approval state and write restrictions. They do not grant tools or permissions. Routed Scout work retains its built-in skill and the [role-specific contracts below](#keep-custom-roles-within-concierges-contract). Domain workers load their applicable skills; review stays independent when required.
+Routes select sub-agents, not a replacement Concierge entry agent or worker. They preserve the user's scope, approval state and write restrictions. They do not grant tools or permissions. Routed Scout work retains its built-in skill and the [role-specific contracts below](#keep-custom-roles-within-concierges-contract). Domain work loads its applicable skills; review stays independent when required and available, and the result says so when it was not.
 
 After adding or editing routing, use a fresh session and the quick-start checks below: run `check-custom.mjs`, inspect `/skills info copilot-concierge-routing`, and confirm the actual agent and model in the result and `/tasks`. The source checker is not a live routing test; current example and app-verification limits remain as documented in [runtime verification](runtime-verification.md).
 
 ## Quick start
 
-This adds a team reviewer that applies your review rules, and gives the reusable worker both Node.js guidance and those rules. It uses the starter in [`examples/customization-starter`](../examples/customization-starter/.github). You need an existing Concierge installation and, for the checker, Node.js 20+ with a Concierge source checkout or extracted release.
+This adds a team reviewer that applies your review rules, and gives the worker both Node.js guidance and those rules. It uses the starter in [`examples/customization-starter`](../examples/customization-starter/.github). You need an existing Concierge installation and, for the checker, Node.js 20+ with a Concierge source checkout or extracted release.
 
 ### 1. Add the three files
 
@@ -115,9 +115,9 @@ copilot --agent copilot-concierge:concierge
 
 Ask: "Review this small change using our team reviewer. Do not write any files. Tell me which agent and model handled it."
 
-Concierge's report should name `team-reviewer` and its model. If it used Concierge's own reviewer instead, the report names the route gap; see [routing troubleshooting](routing-charters.md#troubleshooting). In the CLI, `/skills info copilot-concierge-routing` shows which charter loaded and `/tasks` shows the agent tree. The reviewer is hidden from `/agent` and the app's picker because it is an internal worker.
+Concierge's report should name `team-reviewer` and its model. If another agent or the worker itself reviewed instead, the report names the route gap; see [routing troubleshooting](routing-charters.md#troubleshooting). In the CLI, `/skills info copilot-concierge-routing` shows which charter loaded and `/tasks` shows the agent tree. The reviewer is hidden from `/agent` and the app's picker because it is an internal agent.
 
-These starter files pass Concierge's source checks. They have not been exercised in a live CLI or app session. Historical Zilot 0.3.0 CLI sessions verified the same kind of repository agent, skill and routing table; see [runtime verification](runtime-verification.md).
+These starter files pass Concierge's source checks. They have not been exercised in a live CLI or app session. Historical Zilot 0.3.0 CLI sessions, which had an orchestrator and specialist agents, verified the same kind of repository agent, skill and routing table; see [runtime verification](runtime-verification.md).
 
 ## Share beyond one repository
 
@@ -189,23 +189,23 @@ Then open a fresh Concierge session in the target project and repeat the check f
 
 ## Direct work and explicit routes
 
-Sol can use relevant skills directly for focused work within approved scope. The skill supplies a procedure, not a separate identity or permission. Keep cohesive features and their tests with one execution owner where their contracts must evolve together.
+The worker does the work itself by default and loads relevant skills directly within approved scope. The skill supplies a procedure, not a separate identity or permission. Keep cohesive features and their tests with one execution owner where their contracts must evolve together.
 
-A matching routing row is still a delegation instruction, including a row that keeps a shipped agent and adds skills. Sol honors it rather than silently substituting direct work. Use a skill named in the task or applicable project instructions when guidance alone is sufficient; use a route when a separate agent or model is intentional. Each delegated assignment records a short useful reason, such as independent review or an explicit custom route.
+A matching routing row that names a custom agent is a delegation instruction. The worker honors it rather than silently substituting direct work. A row that names `copilot-concierge:worker` keeps the work with the worker and adds the row's skills. Use a skill named in the task or applicable project instructions when guidance alone is sufficient; use a custom agent when a separate agent or model is intentional. Each delegated assignment records a short useful reason, such as independent review or an explicit custom route.
 
 ## Keep custom roles within Concierge's contract
 
-Custom agents are leaf workers. They receive the same [handoff](handoff.md), assigned scope, approval state and reporting duties as Concierge's specialists. A skill or route does not turn a worker into another orchestrator or give it learning writes.
+Custom agents are sub-agents of the worker. They receive the same [handoff](handoff.md), assigned scope, approval state and reporting duties as any sub-agent the worker starts. A skill or route does not let a sub-agent start agents, own the objective or write to the learning stores.
 
-Routed Scout agents, and escalations doing Scout work, also receive the built-in `scout` skill. They keep its separate private-memory and repository-knowledge scopes, its bundled helper, its path and revision checks and the user's no-write instructions. A custom Scout needs an existing authorized way to run that helper; otherwise it returns session-only findings. Do not copy the helper into your skill, edit learning files directly or create another note store. The learning procedure never stages or commits. A separately authorized execution assignment may deliberately include reviewed, relevant repository knowledge. See [memory and knowledge](memory-and-knowledge.md).
+Routed Scout agents also receive the built-in `scout` skill. They keep its separate private-memory and repository-knowledge scopes, its bundled helper, its path and revision checks and the user's no-write instructions. A custom Scout needs an existing authorized way to run that helper; otherwise it returns session-only findings. Do not copy the helper into your skill, edit learning files directly or create another note store. The learning procedure never stages or commits. A separately authorized execution assignment may deliberately include reviewed, relevant repository knowledge. See [memory and knowledge](memory-and-knowledge.md).
 
-Private preferences can guide presentation and workflow style. They never supply repository facts, override current user instructions or model pins, grant approvals, or justify copying personal data into shared docs. Workers receive only a relevant preference, without its personal provenance or the private file.
+Private preferences can guide presentation and workflow style. They never supply repository facts, override current user instructions or model pins, grant approvals, or justify copying personal data into shared docs. Sub-agents receive only a relevant preference, turned into a neutral task instruction, without its personal provenance or the private file.
 
 Routed implementers follow the handoff's `git` line: they commit, push or open a pull request only when the user asked for it.
 
 ## Remove a customization
 
-Remove only the files you own and their matching routing rows, then start a fresh session. Removing a route returns that work to Sol's normal direct-or-delegated decision for future objectives; it does not stop a worker that is already running. For the team-plugin example, uninstall the plugin before removing its catalog:
+Remove only the files you own and their matching routing rows, then start a fresh session. Removing a route returns that work to the worker's normal decision for future objectives; it does not stop an agent that is already running. For the team-plugin example, uninstall the plugin before removing its catalog:
 
 ```sh
 copilot plugin uninstall team-concierge-tools@team-concierge-marketplace
@@ -218,7 +218,7 @@ Neither command deletes project docs, private memories or your source files. Zil
 
 Start with the checker, then a fresh session, then the component guide:
 
-- An agent is unknown, ignored or replaced by Concierge's own role: [custom agents](custom-agents.md#troubleshooting).
+- An agent is unknown, ignored or replaced by the worker or another agent: [custom agents](custom-agents.md#troubleshooting).
 - A route or charter is ignored, or two charters disagree: [routing charters](routing-charters.md#troubleshooting).
 - A skill is missing, shadowed or not applied: [skills](custom-skills.md#troubleshooting).
 - A custom Scout cannot save learning: keep its findings session-only, report the helper or access gap, and do not widen permissions or bypass the helper.

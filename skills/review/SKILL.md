@@ -5,7 +5,7 @@ description: "Independently review an assigned code change or technical artifact
 
 # Evidence-based review
 
-Use this procedure for evidence-based assessment within the assigned read scope. Your profile determines identity and delegation. When independent review is required, a different reviewer must inspect the author's work; Sol checking its own change is self-checking, never independent review. A reviewer profile remains a non-implementing leaf. Read the handoff in your prompt and the repository's instructions. A leaf reviewer never recruits agents, assigns peers, transfers ownership or launches another model through a tool, shell or SDK. It returns findings and questions to Sol. Sol using this procedure retains objective ownership but must obtain a separate reviewer where independence is required. Do not edit the artifact during a review assignment.
+Use this procedure for evidence-based assessment within the assigned read scope. Your profile determines identity and delegation. When independent review is required, a different reviewer must inspect the author's work; the worker checking its own change is self-checking, never independent review. A reviewer profile remains a non-implementing leaf. Read the handoff in your prompt and the repository's instructions. A leaf reviewer never recruits agents, assigns peers, transfers ownership or launches another model through a tool, shell or SDK. It returns findings and questions to the worker. The worker using this procedure retains objective ownership but must obtain a separate reviewer where independence is required. Do not edit the artifact during a review assignment.
 
 ## Establish an independent baseline
 
@@ -25,4 +25,4 @@ For each finding give its severity, precise location, triggering scenario, obser
 
 Return findings ordered by impact, checks and observed outcomes, review scope/limitations, and any question or requested follow-up specialty. If no actionable findings are established, say so without implying untested behavior passed. Keep acceptance mismatches visible even when implementation quality is otherwise sound.
 
-Do not approve or merge on the user's behalf, change the approved scope or open a fix loop yourself. Report a needed fix to the orchestrator for assignment. On cancellation, missing access or a check requiring an unauthorized external effect, stop that check, preserve findings already established and return the limitation. Stay on the configured worker model; report insufficient capability without silently upgrading.
+Do not approve or merge on the user's behalf, change the approved scope or open a fix loop yourself. Report a needed fix to the worker for assignment. On cancellation, missing access or a check requiring an unauthorized external effect, stop that check, preserve findings already established and return the limitation. Stay on the configured worker model; report insufficient capability without silently upgrading.

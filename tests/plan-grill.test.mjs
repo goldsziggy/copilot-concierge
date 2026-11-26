@@ -42,8 +42,8 @@ test('planning preserves outcome continuity and the existing presentation and ap
     /`Plan`, `Scope`, `Steps`, `Checks` and optional `Watch-outs`/,
     /does not replace that format or the existing `ask`\/`auto` approval behavior/,
     /Retain unchanged criteria, settled decisions and unresolved findings/,
-    /existing handover for resume or rollover/,
-    /a leaf returns it to Sol and does not edit parent state/,
+    /into handoffs and `progress` for resume or rollover/,
+    /a leaf returns it to the worker and does not edit parent state/,
     /Preserve the original request and amendment history/,
     /Never treat planning completion as implementation completion/,
   ]) assert.match(text, pattern);
@@ -61,7 +61,7 @@ test('grill findings include consequence-based severity, evidence, resolution an
     /the evidence that would demonstrate resolution/,
     /open, resolved with evidence, or accepted\/deferred by the authorized owner/,
     /Do not invent a resolution or acceptance that has not occurred/,
-    /Sol owns finding disposition/,
+    /The worker owns finding disposition/,
     /not authorization to implement it or waive a user requirement/,
   ]) assert.match(text, pattern);
 });
@@ -87,7 +87,7 @@ test('plan and grill retain profile identity, leaf limits and self-contained gui
   const grill = await skill('grill-plan');
   assert.match(plan, /Your agent profile controls identity, model, tools, reporting and delegation/);
   assert.match(plan, /Planning\/review scope does not authorize implementation/);
-  assert.match(plan, /A leaf planner does not update the parent checklist, approve the plan, recruit workers or dispatch implementation/);
+  assert.match(plan, /A leaf planner does not update the parent checklist, approve the plan, recruit agents or dispatch implementation/);
   assert.match(grill, /Your profile determines identity and delegation/);
   assert.match(grill, /self-checking, never independent review/);
   assert.match(grill, /Do not implement fixes during assessment/);

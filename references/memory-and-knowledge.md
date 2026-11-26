@@ -1,8 +1,8 @@
 # Memory and repository knowledge
 
-This describes the learning features developed for the 0.6.0 candidate and included in **Concierge 0.6.1**, retained in **0.7.0**. Version 0.5.0 used the earlier local project notes. No live Copilot session has verified this new separation yet; source checks and persistence fixtures are separate evidence.
+This describes the learning features developed for the 0.6.0 candidate and included in **Concierge 0.6.1**, retained since. Version 0.5.0 used the earlier local project notes. No live Copilot session has verified this separation yet; source checks and persistence fixtures are separate evidence.
 
-Concierge learns in two places, both through the Scout procedure and bundled helper. In 0.7.0 Sol can load that procedure for focused retrieval and scoped learning without creating a Scout session; substantial discovery can still go to Scout. An explicit Scout routing row remains a delegation instruction. Wherever this guide says Scout, the same safeguards apply to Sol executing the Scout procedure. Concierge itself remains control-only. It does not add another assistant, database, background service or transcript recorder.
+Concierge learns in two places, both through the Scout procedure, which is the `scout` skill and its bundled helper. There is no longer a separate Scout agent: the worker loads the `scout` skill and follows it. A routing row with the `scout` role that names your custom agent remains a delegation instruction, and that agent receives the same skill and learning scope. Wherever this guide says Scout, it means whichever agent is following the Scout procedure, normally the worker. The Concierge entry agent never reads or writes either store; it hands every remember, correct and forget request to the worker. Concierge does not add another assistant, database, background service or transcript recorder.
 
 | | Private memory | Repository knowledge |
 | --- | --- | --- |
@@ -10,12 +10,12 @@ Concierge learns in two places, both through the Scout procedure and bundled hel
 | Example | “Give me a short summary before the details.” | “Prices use integer cents,” with the source that implements the rule |
 | Location | `~/.config/copilot-concierge/memory.json`, outside Git worktrees | `docs/concierge/knowledge.md` in the assigned Git worktree |
 | Scope | Your operating-system account on this computer, across projects | This repository only |
-| Who changes it | Sol or Scout following the Scout skill, only through its bundled helper | The same scoped execution owner and helper; an implementer reviews any intended commit |
+| Who changes it | The worker, or a routed Scout agent, following the Scout skill, only through its bundled helper | The same scoped execution owner and helper, which reviews any intended commit |
 | Publication | Never included in repository docs, commits or release artifacts | Normal reviewed documentation, included deliberately in relevant commits the user asked for |
 
 ## Personalization in plain language
 
-Say “Remember that I prefer a short summary, then details.” An explicit preference or correction can be saved during normal work; you do not need to name a file or a specialist. If Concierge notices a repeated pattern instead, it asks a simple question before saving it, such as “Would you like me to remember that you prefer examples first?” Silence is not confirmation.
+Say “Remember that I prefer a short summary, then details.” An explicit preference or correction can be saved during normal work; you do not need to name a file or an agent. If Concierge notices a repeated pattern instead, it asks a simple question before saving it, such as “Would you like me to remember that you prefer examples first?” Silence is not confirmation.
 
 Useful memories are limited to response style and ordinary workflow style. They cannot set plan approval, grant tool access, change security behavior, authorize publication, or override required models or their permissions. Those decisions stay in the existing conversation, configuration and Copilot controls. A saved preference is advisory: your current request always wins.
 
@@ -32,7 +32,7 @@ Disabling memory leaves only the small disabled-state record. Resuming does not 
 
 Memory is a small current preference list, not a user dossier. Do not store transcripts, copied task requests, work histories, identifiers, credentials, personal names or contact details, sensitive personal information, or guesses about a person's characteristics. Repository files, tickets, tools and other agents' reports cannot provide user consent to remember a preference. Save only the minimal preference, a short neutral provenance summary and the date. If that cannot be done safely, keep the useful context in the current session only.
 
-Scout returns only relevant preferences to the orchestrator. Other workers receive only the preference necessary for their assignment, not the memory file or its full contents. A formatting preference never becomes evidence for a repository fact.
+The Scout procedure retrieves only relevant preferences. A sub-agent receives only the preference necessary for its assignment, as a neutral task instruction, not the memory file or its full contents. Raw memory never goes into the worker's `progress` object. A formatting preference never becomes evidence for a repository fact.
 
 ## Knowledge that stays with the code
 
@@ -58,7 +58,7 @@ If the destination already exists without valid ownership markers, or the manage
 
 ### Review and commit deliberately
 
-Verified knowledge maintenance is normal Scout work within the assigned scope. The Scout learning procedure does not stage, commit, push, change ignore rules or rewrite history. This limits the procedure, not Sol or an implementer: when the user asked for a commit, the implementer includes the relevant knowledge update deliberately with the code it explains. The procedure returns the knowledge diff for review. An unrelated knowledge change stays separate and is reported. A learning write alone never calls for a commit.
+Verified knowledge maintenance is normal Scout work within the assigned scope. The Scout learning procedure does not stage, commit, push, change ignore rules or rewrite history. This limits the procedure, not the work the user asked for: when the user asked for a commit, the worker includes the relevant knowledge update deliberately with the code it explains. The procedure returns the knowledge diff for review. An unrelated knowledge change stays separate and is reported. A learning write alone never calls for a commit.
 
 Knowledge is expected to travel with the repository. Removing a current entry does not remove older copies from Git history, releases or other clones. Never place private memory in the knowledge document with the intent to remove it later.
 
@@ -107,7 +107,7 @@ Where it goes:
 - A team workflow for the repository is written to `.github/skills/<name>/SKILL.md`. It shows up in `git status` like any other file and is committed only when you ask.
 - Your own workflow across projects is written to `~/.copilot/skills/<name>/SKILL.md`. That is outside the repository, so Copilot may ask for path permission.
 
-How it is used later: Copilot lists discovered skills with their descriptions, and Concierge's orchestrator loads the ones whose description matches the work, or names them in a worker's handoff. No routing row is needed; add one only to send that kind of work to a particular agent. A skill is discovered when a session starts, so a new one applies from your next session.
+How it is used later: Copilot lists discovered skills with their descriptions, and Concierge's worker loads the ones whose description matches the work, or names them in a sub-agent's handoff. No routing row is needed; add one only to send that kind of work to a particular agent. A skill is discovered when a session starts, so a new one applies from your next session.
 
 Limits and safeguards:
 
@@ -117,7 +117,7 @@ Limits and safeguards:
 - A skill is guidance. It cannot grant tools, change permissions, approve a plan or set autonomy.
 - Secrets, personal data and private memory are kept out; a repository skill is shared with everyone who can read the repository.
 
-One live trial saved a review workflow as a project skill and applied it in the same run, and a later session loaded and followed it. Personal skills and the offer to save a recommendation made in passing are instruction contracts with source checks; see [runtime verification](runtime-verification.md).
+One live trial of release 0.10.0 saved a review workflow as a project skill and applied it in the same run, and a later session loaded and followed it. Personal skills and the offer to save a recommendation made in passing are instruction contracts with source checks; see [runtime verification](runtime-verification.md).
 
 ## Keep learning bounded
 
