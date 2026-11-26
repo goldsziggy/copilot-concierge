@@ -23,7 +23,7 @@ Only `concierge` is selectable; do not start `copilot-concierge:worker` directly
 
 **Skills.** Six skills are new, and their names are now reserved along with the existing twelve: `brief` and `relay` (used only by the entry agent, to write the brief and dispatch, and to relay reports), and `discovery`, `development`, `test` and `escalate` (used by the worker). If you have a project or personal skill with one of these names, rename it; `check-custom.mjs` reports the collision as an error. Only `concierge` and `worker` remain reserved agent IDs.
 
-**Model configuration.** The `models` roles are now `concierge` (default `auto`, Copilot Fusion) and `worker` (default `gpt-6.1-sol`).
+**Model configuration.** The `models` roles are now `concierge` (default `auto`, Copilot Fusion) and `worker` (default `gpt-6.1-sol` in 0.12.0, `auto` from 0.12.1).
 
 | Old key | Now |
 | --- | --- |

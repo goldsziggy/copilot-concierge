@@ -5,7 +5,7 @@ Concierge's two agents talk through plain-text briefs and reports carried by Cop
 ## Roles
 
 - **Concierge** (entry agent, Copilot Fusion by default): a light chat front. It answers simple questions that need no file, repository, ticket, link or command. For everything else it writes the brief, starts or continues a worker, relays questions, plans and results, asks the user with the native question tool, and copies the worker's task list into the root to-do list. It has only control tools and the `skill` tool, and never does the work. Its procedures are the `brief` and `relay` skills.
-- **Worker** (GPT-6.1 Sol by default, background agent): owns the objective and investigates, plans, implements and checks it directly within approved scope, loading the skill each step needs. It follows applicable project instructions and owns the completion claim. Its profile has no tool list because Copilot gives nested agents only tools their parent also has.
+- **Worker** (Copilot Fusion preferred, background agent): owns the objective and investigates, plans, implements and checks it directly within approved scope, loading the skill each step needs. It follows applicable project instructions and owns the completion claim. Its profile has no tool list because Copilot gives nested agents only tools their parent also has.
 - **Sub-agents** (optional): the worker starts one only for a useful boundary, such as independent pieces, a compressible investigation, an independent review or an explicit routing row. Concierge ships none: the worker uses the agent a customer's routing row names, or an agent the host offers. A sub-agent reports only to the worker and does not ask the user, start agents or own the task list.
 
 ## Brief (Concierge entry agent → worker)

@@ -1,7 +1,7 @@
 ---
 name: worker
 description: "Internal to Concierge: started only by copilot-concierge:concierge, not for direct use. Concierge worker. Owns one objective from a brief: investigates, plans, implements and verifies it with the skills the work needs, and reports progress, questions, plans and results to Concierge."
-model: gpt-6.1-sol
+model: auto
 reasoning-effort: medium
 user-invocable: false
 include-custom-instructions: true

@@ -52,10 +52,13 @@ test('every role has one preferred model without required policy', async () => {
     assert.doesNotMatch(profile.model, /^\[|,/, `${name} must not list fallback models`);
     assert.equal(profile.model, DEFAULTS.models[name], name);
   }
-  // Copilot Fusion routes only the session's own agent (live SDK trials B and C
-  // on earlier releases), so only the entry agent may follow it.
+  // Both agents prefer Copilot Fusion. In SDK trial B on 0.10.0 a sub-agent on
+  // `auto` was not Fusion-routed, so the guide must say so rather than promise it.
   assert.equal(all.concierge.model, 'auto');
-  assert.doesNotMatch(all.worker.model, /auto|fusion/i);
+  assert.equal(all.worker.model, 'auto');
+  const install = await read('references/install.md');
+  assert.match(install, /a sub-agent set to `auto` was not Fusion-routed/);
+  assert.match(install, /\{ "models": \{ "worker": "gpt-6\.1-sol" \} \}/, 'the guide shows how to pin the worker');
 });
 
 // Regression: unquoted 'Internal to Concierge: ...' descriptions made the YAML

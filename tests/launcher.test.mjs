@@ -189,7 +189,6 @@ test('invalid configuration and unsupported launch options never start Copilot',
   const cases = [
     { name: 'malformed JSON', config: '{ broken' },
     { name: 'invalid approval value', config: JSON.stringify({ planApproval: true }) },
-    { name: 'Fusion for the worker role', config: JSON.stringify({ models: { worker: 'Auto' } }) },
     { name: 'unknown setting', config: JSON.stringify({ allowAllTools: true }) },
     { name: 'missing explicit session file', extra: paths => ['--session-config', path.join(paths.root, 'missing.json')] },
     { name: 'permission bypass flag', extra: () => ['--allow-all-tools'] },

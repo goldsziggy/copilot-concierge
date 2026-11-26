@@ -6,7 +6,7 @@ Tell Concierge what you want done. It answers simple questions itself, briefs a 
 
 Concierge is a native plugin for **GitHub Copilot CLI and the GitHub Copilot app**. It adds no service, no credentials and no permission bypass: it is two agent profiles and 18 skills that run on Copilot's own agents, tools and permissions.
 
-The main branch tracks **0.12.0**. For a published build, see the [latest GitHub release](https://github.com/goldsziggy/copilot-concierge/releases/latest); main may contain changes not yet included there.
+The main branch tracks **0.12.1**. For a published build, see the [latest GitHub release](https://github.com/goldsziggy/copilot-concierge/releases/latest); main may contain changes not yet included there.
 
 ## Why choose Concierge
 
@@ -55,7 +55,7 @@ Then give it a goal:
 
 **In the app:** open **Customize → Plugins**, add the `goldsziggy/copilot-concierge` marketplace and install **copilot-concierge**. Open your project, select **concierge** in the agent picker and **Copilot Fusion** in the model picker, then send your request. Restart the app if a CLI installation does not appear.
 
-**Models.** You need a signed-in Copilot account. Concierge prefers **Copilot Fusion** for the conversation (Copilot CLI 1.0.104 or later). Its worker keeps GPT-6.1 Sol, because Fusion does not route sub-agents. [Models →](references/install.md#models)
+**Models.** You need a signed-in Copilot account. Both agents prefer **Copilot Fusion** (Copilot CLI 1.0.104 or later). Fusion may not route the worker, which runs as a sub-agent; you can pin its model. [Models →](references/install.md#models)
 
 Upgrading from 0.4? The entry agent is now **concierge**, replacing **frontdesk**. Update shortcuts and start a fresh session. [Install, update and migrate →](references/install.md)
 
@@ -139,7 +139,7 @@ Add your organization's agents, skills and routing rules without changing Concie
 - [Constitution](references/constitution.md): the eleven Articles and how to cite them.
 - [SOPs](references/sops.md): reusable workflows you run by name, and how to save your own.
 
-Both agents specify a preferred model: `auto` (Copilot Fusion) for Concierge and `gpt-6.1-sol` for the worker. When the host supports an alternative, an unavailable model need not block work; actual fallback behavior depends on the host and is not guaranteed. [Model configuration →](references/install.md#session-local-launcher)
+Both agents prefer `auto` (Copilot Fusion). A sub-agent on `auto` was not Fusion-routed in an earlier live trial, so the worker may run on a host-chosen model; set `models.worker` to pin one. When the host supports an alternative, an unavailable model need not block work; actual fallback behavior depends on the host and is not guaranteed. [Model configuration →](references/install.md#session-local-launcher)
 
 ## Verification and limits
 

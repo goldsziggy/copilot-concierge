@@ -13,6 +13,7 @@ Read README.md, references/capability-matrix.md, references/runtime-verification
 - The worker keeps no notes file. Its memory of an objective is the `progress` object in every report; the entry agent passes the latest one back verbatim on rollover and resume and never edits or summarises it.
 - The worker never guesses past a blocker. It names the kind and settles it through `escalate`; under `guided` a question for the user is `needs_input`, under `full` it is `blocked`.
 - Copilot gives a nested agent only the tools its parent agent also has. The worker must not narrow its tool list; the Concierge entry agent stays control-only apart from `skill`. `npm test` guards this.
+- Both agents prefer Copilot Fusion (`model: auto`), and `npm run validate` requires it of shipped profiles. A sub-agent on `auto` was not Fusion-routed in the 0.10.0 trial, so never document the worker as Fusion-routed until that is observed; `models.worker` pins an explicit model.
 - Keep a preferred model per role (`concierge`, `worker`); permit supported host fallback when it is unavailable and report substitutions. `models.orchestrator` is a deprecated alias for `models.worker`; the retired `specialist` and `escalation` roles are accepted and ignored. Host permissions remain authoritative.
 - Quote frontmatter values that contain `: `; Copilot silently drops an agent whose frontmatter is not valid YAML.
 - Keep skills self-contained: links to files outside a skill's directory make workers read outside the user's project.

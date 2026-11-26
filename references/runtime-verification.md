@@ -1,5 +1,9 @@
 # Runtime verification
 
+## Concierge 0.12.1: worker prefers Fusion - 2026-11-26
+
+No live run. The worker's profile changed from `gpt-6.1-sol` to `model: auto`. Static checks on Linux with Node 26.13.0: `npm test` ran 170 tests: 157 passed, 0 failed, 13 native Windows skips; `npm run validate`, `npm run catalog:check` and `npm run package` passed. Not observed: which model the worker actually runs on, and whether its calls are Fusion-routed. The only evidence is SDK trial B on 0.10.0, where a sub-agent set to `auto` ran on GPT-6 Luna without Fusion routing.
+
 ## Concierge 0.12.0: two-agent layout - 2026-11-26
 
 No live run. The two-agent, skill-driven layout (a `concierge` front agent with the `brief` and `relay` skills, and one `worker`) has passed static checks only, on Linux with Node 26.13.0: `npm test` ran 171 tests: 158 passed, 0 failed, 13 native Windows skips; `npm run validate` passed with 20 skills and 2 agents, including the shape of the five bundled SOPs and the eleven Articles; `npm run catalog:check` and `npm run package` passed. CI ran the same checks on Ubuntu and Windows with Node 20 and 22 for the layout before SOPs were added.
