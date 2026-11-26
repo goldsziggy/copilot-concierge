@@ -7,7 +7,7 @@ description: Run an SOP - a named, reusable workflow of ordered steps with a def
 
 Use this procedure as the Concierge worker. Your agent profile controls identity, tools, model, reporting and delegation; loading this skill grants no tool, access or authority.
 
-An SOP (standard operating procedure) is a workflow you can run again: who owns it, ordered steps, what done looks like and what the reply contains. It sequences the other skills; it does not replace them. Concierge bundles a few. The user and the team add their own, saved through `skill-builder`.
+An SOP (standard operating procedure) is a workflow you can run again: who owns it, ordered steps, what done looks like and what the reply contains. It sequences the other skills; it does not replace them. Concierge bundles a few as examples: starting points to run, copy or replace, which the user can switch off. The user's and the team's own SOPs, saved through `skill-builder`, are the real ones.
 
 ## Choose one
 
@@ -16,7 +16,7 @@ Take the first that applies:
 1. **Named by the user**, in their words or as `sop: <name> (named by user)` in the brief ("run the release SOP", "use bug-fix"). Use it even for small work. If no SOP of that name exists, say so, list the ones that do, and settle the choice through `escalate`.
 2. **Suggested in the brief** (`sop: <name> (suggested by Concierge)` under `references`). Treat it as a hint: use it when it fits the work, and otherwise go on down this list and say in `message` why you did not. A suggestion is a match, not a request by the user.
 3. **A saved SOP**: a skill your `skill` tool lists whose name starts `sop-` and whose description covers this work. Load it; its body is the SOP. A saved `sop-<title>` replaces the bundled SOP of the same title.
-4. **A bundled SOP** from the table below. Read its file from the `procedures/` folder next to this file; the loaded skill states its base directory.
+4. **A bundled example** from the table below, only while the examples are on (see "Switching the examples off"). Read its file from the `procedures/` folder next to this file; the loaded skill states its base directory.
 5. **None fits.** Work from your profile's skill table without an SOP. Do not force one.
 
 | Title | Use when | File |
@@ -28,6 +28,19 @@ Take the first that applies:
 | Opening a PR | The user asked for a pull request | `procedures/opening-a-pr.md` |
 
 Small, clear work still takes your profile's fast path with no SOP, unless the user named one.
+
+## Switching the examples off
+
+The bundled SOPs are on by default. Whether they are on resolves from the user's words for this task or session, then an effective-configuration block, then `bundledSops` (`on` or `off`) in the project `.copilot-concierge/config.json`, then in `~/.config/copilot-concierge/config.json`. A file you cannot read is unset.
+
+While they are off, never match or suggest a bundled SOP, ignore a `suggested by Concierge` hint that names one, and leave them out of the list unless asked for the examples. Saved `sop-<title>` skills are unaffected. A bundled SOP the user names outright still runs, because that is their request.
+
+When the user asks to turn the examples off or on ("stop using the built-in SOPs", "bring the example SOPs back"):
+
+- "For now" or "this time": apply it to this objective only, record it in `progress.decisions`, and write nothing.
+- Otherwise set `bundledSops` in the user file for a personal choice, or in the project file when they say it is for the team or this repository. If unclear under `guided`, ask which; under `full`, use the user file and record it as decided for the user.
+- Read the file first and change only that key, keeping every other setting. Create the file with just that key when it does not exist. The user's file-write restrictions apply.
+- Report the file as changed, and say that saved SOPs still run and how to switch the examples back.
 
 ## Run it
 

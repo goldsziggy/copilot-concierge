@@ -98,7 +98,7 @@ export function sopProblems(text) {
 }
 
 // The constitution's Articles are cited by number, so the numbers are fixed.
-export const ARTICLE_COUNT = 10;
+export const ARTICLE_COUNT = 11;
 
 export function routingRows(text) {
   const rows = [];

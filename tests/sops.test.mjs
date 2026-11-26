@@ -109,13 +109,13 @@ test('the entry agent looks for an SOP to use and one to create, and runs neithe
   const section = concierge.match(/## SOPs\n([\s\S]*?)\n## Always/)[1];
   for (const pattern of [
     /Look for two things in every request for work, and follow `brief` for both/,
-    /\*\*One to use\.\*\*.+a saved `sop-<title>` skill in your `skill` tool's list or a bundled one/,
+    /\*\*One to use\.\*\*.+a saved `sop-<title>` skill in your `skill` tool's list or a bundled example/,
     /Never load or run an SOP yourself/,
     /\*\*One to create\.\*\*.+offer once to save it as an SOP/,
     /Save nothing they did not ask for or accept/,
   ]) assert.match(section, pattern);
   for (const title of BUNDLED_SOPS) assert.ok(section.toLowerCase().includes(title.replace(/-/g, ' ')), `entry profile names bundled ${title}`);
-  assert.match(concierge, /every request to run, list or save an SOP/);
+  assert.match(concierge, /every request to run, list, save or switch off an SOP/);
   for (const pattern of [
     /add `sop: <name> \(named by user\)` to `references`/,
     /add `sop: <name> \(suggested by Concierge\)`/,
@@ -130,6 +130,39 @@ test('the entry agent looks for an SOP to use and one to create, and runs neithe
   assert.match(router, /\*\*Suggested in the brief\*\* \(`sop: <name> \(suggested by Concierge\)` under `references`\)\. Treat it as a hint/);
   assert.match(router, /A suggestion is a match, not a request by the user/);
   assert.deepEqual([...router.matchAll(/^(\d)\. \*\*/gm)].map(match => match[1]), ['1', '2', '3', '4', '5']);
+});
+
+test('bundled SOPs are examples the user can switch off by asking', async () => {
+  const router = await read('skills/sops/SKILL.md');
+  const brief = await read('skills/brief/SKILL.md');
+  const concierge = await read('com.github.copilot/agents/concierge.agent.md');
+  const guide = await read('references/sops.md');
+  assert.match(router, /Concierge bundles a few as examples: starting points to run, copy or replace, which the user can switch off/);
+  assert.match(router, /\*\*A bundled example\*\* from the table below, only while the examples are on/);
+  const section = router.match(/## Switching the examples off\n([\s\S]*?)\n## Run it/)[1];
+  for (const pattern of [
+    /on by default/,
+    /the user's words for this task or session, then an effective-configuration block, then `bundledSops` \(`on` or `off`\) in the project `\.copilot-concierge\/config\.json`, then in `~\/\.config\/copilot-concierge\/config\.json`/,
+    /never match or suggest a bundled SOP, ignore a `suggested by Concierge` hint that names one/,
+    /Saved `sop-<title>` skills are unaffected/,
+    /A bundled SOP the user names outright still runs/,
+    /apply it to this objective only, record it in `progress\.decisions`, and write nothing/,
+    /change only that key, keeping every other setting/,
+    /The user's file-write restrictions apply/,
+    /Report the file as changed/,
+  ]) assert.match(section, pattern);
+  assert.match(concierge, /every request to run, list, save or switch off an SOP/);
+  assert.match(brief, /once they have switched them off in this conversation, suggest only saved SOPs/);
+  assert.match(guide, /"Stop using the built-in SOPs\."/);
+  // The setting the skill writes is one the configuration accepts, in both values.
+  const { DEFAULTS, resolveConfig, validateConfig } = await import('../scripts/lib/config.mjs');
+  assert.equal(DEFAULTS.bundledSops, 'on');
+  assert.deepEqual(validateConfig(JSON.parse(guide.match(/```json\n(\{ "bundledSops": "off" \})\n```/)[1])), { bundledSops: 'off' });
+  for (const value of ['Off', 'false', false, null, 'none']) assert.throws(() => validateConfig({ bundledSops: value }), /bundledSops must be on or off/, String(value));
+  const resolved = resolveConfig([{ source: 'user', value: { bundledSops: 'off' } }, { source: 'project', value: { bundledSops: 'on' } }, { source: 'session', value: {} }]);
+  assert.equal(resolved.value.bundledSops, 'on');
+  assert.equal(resolved.source.bundledSops, 'project');
+  assert.equal(resolveConfig([{ source: 'user', value: { bundledSops: 'off' } }]).value.bundledSops, 'off');
 });
 
 test('the builder saves an SOP only on request and its template passes the checker', async t => {

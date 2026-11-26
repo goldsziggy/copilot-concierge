@@ -8,7 +8,7 @@ Before reporting a result, and before trusting or reporting any number.
 
 ## Do
 
-- Exercise the actual behavior the user asked for and record the command and its output.
+- Exercise the actual behavior the user asked for, once, and record the command and its output. That is the proof; more checks of the same thing add nothing.
 - Before trusting a measurement, know what limits it and rule out that it measured something else.
 - Say plainly what was not verified.
 

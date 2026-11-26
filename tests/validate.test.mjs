@@ -72,10 +72,10 @@ test('validator rejects a missing renamed entry, a second visible agent, a narro
   const bugFix = path.join(directory, 'skills/sops/procedures/bug-fix.md');
   await writeFile(bugFix, (await readFile(bugFix, 'utf8')).replace('## Done when', '## Finished'));
   assert.match(validate(directory).stderr, /bug-fix\.md: add a "## Done when" section/);
-  await writeFile(bugFix, (await readFile(bugFix, 'utf8')).replace('## Finished', '## Done when').replace('Article 5', 'Article 11'));
-  assert.match(validate(directory).stderr, /bug-fix\.md: cites unknown Article 11/);
-  await rm(path.join(directory, 'skills/constitution/articles/10-guard-attention.md'));
-  assert.match(validate(directory).stderr, /Expected 10 Articles; found 9/);
+  await writeFile(bugFix, (await readFile(bugFix, 'utf8')).replace('## Finished', '## Done when').replace('Article 5', 'Article 12'));
+  assert.match(validate(directory).stderr, /bug-fix\.md: cites unknown Article 12/);
+  await rm(path.join(directory, 'skills/constitution/articles/11-enough-then-stop.md'));
+  assert.match(validate(directory).stderr, /Expected 11 Articles; found 10/);
   await writeFile(path.join(directory, 'skills/sops/procedures/deploy.md'), '# Deploy\n');
   assert.match(validate(directory).stderr, /Bundled SOPs differ from BUNDLED_SOPS/);
 });

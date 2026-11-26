@@ -108,8 +108,8 @@ try {
     for (const problem of sopProblems(await readFile(path.join(bundled, `${title}.md`), 'utf8'))) fail(`skills/sops/procedures/${title}.md: ${problem}`);
     if (!router.includes(`\`procedures/${title}.md\``)) fail(`skills/sops/SKILL.md: table does not list procedures/${title}.md`);
   }
-  // Articles are cited by number from SOPs and saved skills: exactly ten, numbered
-  // 01 to 10, each with the Article shape and a row in the constitution's table.
+  // Articles are cited by number from SOPs and saved skills: a fixed count, numbered
+  // from 01, each with the Article shape and a row in the constitution's table.
   const articlesDir = path.join(root, 'skills/constitution/articles');
   const articles = (await readdir(articlesDir)).filter(name => name.endsWith('.md')).sort();
   const constitution = await readFile(path.join(root, 'skills/constitution/SKILL.md'), 'utf8');

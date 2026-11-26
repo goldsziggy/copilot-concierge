@@ -78,7 +78,7 @@ The worker's skills:
 | Skill | Used for |
 | --- | --- |
 | `sops` | Running a named, reusable workflow step by step. [SOPs →](references/sops.md) |
-| `constitution` | Ten Articles of engineering judgment that SOPs and your skills cite by number. [Constitution →](references/constitution.md) |
+| `constitution` | Eleven Articles of engineering judgment that SOPs and your skills cite by number. [Constitution →](references/constitution.md) |
 | `discovery` | A short summary of an unfamiliar repository: stack, commands and conventions |
 | `scout` | Tickets and other references, private memory and repository knowledge |
 | `plan`, `grill-plan` | Requirements and plans, and challenging a consequential plan |
@@ -136,7 +136,7 @@ Add your organization's agents, skills and routing rules without changing Concie
 - [Custom agents](references/custom-agents.md): specialist profiles with a preferred model, tools and a charter.
 - [Routing charters](references/routing-charters.md): tell Concierge which agent and skills handle each kind of work. A row that names your agent is a delegation instruction the worker does not bypass.
 - [Skills](references/custom-skills.md): reusable guidance for the worker and the sub-agents it starts.
-- [Constitution](references/constitution.md): the ten Articles and how to cite them.
+- [Constitution](references/constitution.md): the eleven Articles and how to cite them.
 - [SOPs](references/sops.md): reusable workflows you run by name, and how to save your own.
 
 Both agents specify a preferred model: `auto` (Copilot Fusion) for Concierge and `gpt-6.1-sol` for the worker. When the host supports an alternative, an unavailable model need not block work; actual fallback behavior depends on the host and is not guaranteed. [Model configuration →](references/install.md#session-local-launcher)

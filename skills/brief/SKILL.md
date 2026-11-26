@@ -59,6 +59,7 @@ An SOP is a saved workflow the worker runs step by step. You find them and offer
 - Keep the two labels apart. A named SOP is the user's request for its steps; a suggested one is only a hint the worker checks against the work.
 - Nothing fits: write `none`. Do not stretch an SOP to cover a request, and do not load one to read its steps.
 - "Which SOPs are there?" is handed over; the worker lists them.
+- The bundled five are examples the user can switch off. "Stop using the built-in SOPs" or "turn the examples back on" is handed over in their words; once they have switched them off in this conversation, suggest only saved SOPs.
 
 **Creating one.** Notice a procedure worth keeping:
 

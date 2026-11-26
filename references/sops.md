@@ -15,7 +15,9 @@ This layout has passed static checks only. No SOP has been run against a live mo
 
 When an SOP runs, its steps become the task list, one task per step, in order. A step that does not apply stays on the list marked `n/a` with the reason, so you can see it was considered. The result message follows the SOP's `Reply` section. The SOP and its current step are recorded in the report's `progress`, so a follow-up, rollover or resume continues from the right step.
 
-## Bundled SOPs
+## Bundled examples
+
+The five bundled SOPs are examples: starting points to run as they are, copy into your own, or replace. Your own saved SOPs are the ones that matter.
 
 | Title | Use when | Ends with |
 | --- | --- | --- |
@@ -26,6 +28,18 @@ When an SOP runs, its steps become the task list, one task per step, in order. A
 | Opening a PR | You asked for a pull request | A pull request whose description states what was verified |
 
 They live in `skills/sops/procedures/` in the plugin, and cite the [constitution](constitution.md)'s Articles at the steps that rest on them.
+
+## Switching the examples off
+
+Ask Concierge: "Stop using the built-in SOPs." The worker sets `bundledSops` to `off` in `~/.config/copilot-concierge/config.json`, or in the project's `.copilot-concierge/config.json` when you say it is for the team or the repository, and tells you which file it changed. "Bring the example SOPs back" sets it to `on`. "Don't use them this time" applies to the current task and writes nothing.
+
+You can also set it by hand:
+
+```json
+{ "bundledSops": "off" }
+```
+
+While the examples are off, Concierge neither matches nor suggests them. Your saved SOPs keep working, and an example you name outright ("run the bug-fix SOP") still runs.
 
 ## Saving your own
 

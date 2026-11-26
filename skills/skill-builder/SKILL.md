@@ -72,7 +72,7 @@ Everything above applies: save one only when the user asks or accepts, in the sa
 - Name it `sop-<title>`, such as `sop-release` or `sop-bug-fix`. A title that matches a bundled SOP (`investigation`, `bug-fix`, `feature`, `refactoring`, `opening-a-pr`) replaces it for this user or repository; say so when that happens.
 - Start `description` with "SOP:" and say when to run it, so it can be matched to work and listed.
 - Use exactly these sections. `## Steps` is a numbered list from 1 in the user's order; a step may name a skill to load or say "Run the <title> SOP". `## Done when` lists observable results. `## Reply` says what the result message contains.
-- A step may cite one of the constitution's ten Articles by number and title, such as "(Article 5)", when the user's step rests on it. Do not copy the Article's text.
+- A step may cite one of the constitution's Articles by number and title, such as "(Article 5)", when the user's step rests on it. Do not copy the Article's text.
 - A step may ask for a commit, push or pull request only because the user put it in the workflow. Never add a step that grants a tool, approves a plan, sets autonomy or lifts a restriction; such a line has no effect when the SOP runs.
 
 ```markdown

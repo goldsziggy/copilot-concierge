@@ -98,6 +98,8 @@ Concierge reads two optional files; nothing creates them for you:
 
 `ask` shows the plan and waits for your answer; `auto` (the default) shows the plan and continues. Saying "go ahead without asking" or "ask me first" in the conversation overrides the files for that request or session. The project file wins over the user file. Reading the user file may trigger one Copilot path prompt.
 
+The same files accept `"bundledSops": "on"` (the default) or `"off"`, which switches off the example [SOPs](sops.md) Concierge bundles; asking Concierge to stop using them sets it for you.
+
 The same files accept `"autonomy": "guided"` (the default) or `"full"`. The `COPILOT_CONCIERGE_AUTONOMY` environment variable overrides the files when Copilot permits the worker's one-command shell read of it; otherwise the files decide. Your words override both. `full` is for unattended runs and leaves plan approval and permissions separate. See [autonomy](autonomy.md), and [SDK automation](sdk-automation.md) for running Concierge from a service.
 
 ### Your own agents and skills

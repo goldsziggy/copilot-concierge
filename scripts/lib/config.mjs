@@ -9,6 +9,7 @@ const FUSION = new Set(['auto', 'fusion']);
 export const DEFAULTS = Object.freeze({
   planApproval: 'auto',
   autonomy: 'guided',
+  bundledSops: 'on',
   models: Object.freeze({ concierge: 'auto', worker: 'gpt-6.1-sol' }),
   extraDirectories: Object.freeze([]),
 });
@@ -31,13 +32,17 @@ const modelPattern = /^[a-zA-Z0-9][a-zA-Z0-9._/-]{0,99}$/;
 export function validateConfig(config, source = 'configuration') {
   if (!object(config)) throw new Error(`${source}: expected a JSON object`);
   for (const key of Object.keys(config)) {
-    if (!['planApproval', 'autonomy', 'models', 'extraDirectories'].includes(key)) throw new Error(`${source}: unknown setting ${key}`);
+    if (!['planApproval', 'autonomy', 'bundledSops', 'models', 'extraDirectories'].includes(key)) throw new Error(`${source}: unknown setting ${key}`);
   }
   if ('planApproval' in config && !['ask', 'auto'].includes(config.planApproval)) {
     throw new Error(`${source}: planApproval must be ask or auto; omit it to inherit`);
   }
   if ('autonomy' in config && !AUTONOMY_MODES.includes(config.autonomy)) {
     throw new Error(`${source}: autonomy must be ${AUTONOMY_MODES.join(' or ')}; omit it to inherit`);
+  }
+  // The SOPs Concierge bundles are examples; a user or team can switch them off.
+  if ('bundledSops' in config && !['on', 'off'].includes(config.bundledSops)) {
+    throw new Error(`${source}: bundledSops must be on or off; omit it to inherit`);
   }
   if ('models' in config) {
     if (!object(config.models)) throw new Error(`${source}: models must be an object`);
@@ -67,8 +72,8 @@ export function validateConfig(config, source = 'configuration') {
 // Nearest scope wins for planApproval, autonomy and each model role. Extra directories
 // accumulate across scopes so a user's own agents and a project's agents both load.
 export function resolveConfig(layers = []) {
-  const value = { planApproval: DEFAULTS.planApproval, autonomy: DEFAULTS.autonomy, models: { ...DEFAULTS.models }, extraDirectories: [] };
-  const source = { planApproval: 'default', autonomy: 'default', models: Object.fromEntries(Object.keys(DEFAULTS.models).map(role => [role, 'default'])), extraDirectories: [] };
+  const value = { planApproval: DEFAULTS.planApproval, autonomy: DEFAULTS.autonomy, bundledSops: DEFAULTS.bundledSops, models: { ...DEFAULTS.models }, extraDirectories: [] };
+  const source = { planApproval: 'default', autonomy: 'default', bundledSops: 'default', models: Object.fromEntries(Object.keys(DEFAULTS.models).map(role => [role, 'default'])), extraDirectories: [] };
   for (const layer of layers) {
     validateConfig(layer.value, layer.source);
     if (Object.hasOwn(layer.value, 'planApproval')) {
@@ -78,6 +83,10 @@ export function resolveConfig(layers = []) {
     if (Object.hasOwn(layer.value, 'autonomy')) {
       value.autonomy = layer.value.autonomy;
       source.autonomy = layer.source;
+    }
+    if (Object.hasOwn(layer.value, 'bundledSops')) {
+      value.bundledSops = layer.value.bundledSops;
+      source.bundledSops = layer.source;
     }
     for (const [role, model] of Object.entries(layer.value.models ?? {})) {
       // Normalize the old role keys per layer so nearest-scope precedence
