@@ -77,6 +77,8 @@ The worker's skills:
 
 | Skill | Used for |
 | --- | --- |
+| `sops` | Running a named, reusable workflow step by step. [SOPs →](references/sops.md) |
+| `constitution` | Eleven Articles of engineering judgment that SOPs and your skills cite by number. [Constitution →](references/constitution.md) |
 | `discovery` | A short summary of an unfamiliar repository: stack, commands and conventions |
 | `scout` | Tickets and other references, private memory and repository knowledge |
 | `plan`, `grill-plan` | Requirements and plans, and challenging a consequential plan |
@@ -86,7 +88,7 @@ The worker's skills:
 | `review` | Reviewing a change |
 | `escalate` | Settling a question or blocker with the least risk, and deciding whether you are needed |
 | `orchestrate`, `orchestrate-reference` | Sub-agent handoffs, routing tables and other rarely needed rules |
-| `skill-builder` | Saving a workflow you want repeated |
+| `skill-builder` | Saving a workflow or an SOP you want repeated |
 | `task-evaluation` | Comparing a baseline and a candidate on outcomes, constraints, time and usage. Live trials need an explicit budget. [Comparative evaluation →](references/comparative-evaluation.md) |
 
 Skills are procedures; they do not grant tools or permissions. Ticket access depends on your existing integrations: Concierge bundles no connector or credentials. [Handoff contract →](references/handoff.md)
@@ -120,6 +122,8 @@ Skills are procedures; they do not grant tools or permissions. Ticket access dep
 
 **Workflows become skills.** Tell Concierge how you want a recurring kind of work done: “Remember how we review merge requests: migrations first, then the contract tests, then…” or “From now on, test like this.” It saves the steps as an ordinary Copilot skill, in the repository's `.github/skills/` for a team workflow or in `~/.copilot/skills/` for your own, and loads it in later sessions when the work matches. If you recommend a way of doing something while it works, Concierge follows it and offers once to save it; nothing is saved until you say yes. [Remembered workflows →](references/memory-and-knowledge.md#workflows-become-skills)
 
+**Repeatable workflows become SOPs.** An SOP is a saved workflow with ordered steps, a definition of done and a reply shape. Say “Make this an SOP called release: …”, then “Run the release SOP” in any later session or from an automation. Concierge itself looks for an SOP that fits your request and offers to save steps you repeat. It bundles SOPs for an investigation, a bug fix, a feature, a refactoring and opening a pull request, and yours can replace any of them. [SOPs →](references/sops.md)
+
 You can say “What do you remember about me?”, “Forget my preference for short answers”, “Stop remembering my preferences” or “Correct that project rule.” Current instructions and current source evidence always take precedence. Private preferences, personal information and secrets do not belong in repository knowledge. Approval and security settings stay in their existing controls, separate from memory.
 
 Say “Do not write any files” to keep both kinds of learning in the current session. Persistent learning needs Node.js 20+ and Git; when unavailable or access is denied, Concierge continues without saving. On Windows, persistence uses a bundled Windows PowerShell 5.1 adapter on local NTFS drives, and its native tests pass in CI. Windows client editions block that script under their default execution policy, so learning stays session-only there unless local scripts are already allowed. [Memory, knowledge and migration details →](references/memory-and-knowledge.md)
@@ -132,6 +136,8 @@ Add your organization's agents, skills and routing rules without changing Concie
 - [Custom agents](references/custom-agents.md): specialist profiles with a preferred model, tools and a charter.
 - [Routing charters](references/routing-charters.md): tell Concierge which agent and skills handle each kind of work. A row that names your agent is a delegation instruction the worker does not bypass.
 - [Skills](references/custom-skills.md): reusable guidance for the worker and the sub-agents it starts.
+- [Constitution](references/constitution.md): the eleven Articles and how to cite them.
+- [SOPs](references/sops.md): reusable workflows you run by name, and how to save your own.
 
 Both agents specify a preferred model: `auto` (Copilot Fusion) for Concierge and `gpt-6.1-sol` for the worker. When the host supports an alternative, an unavailable model need not block work; actual fallback behavior depends on the host and is not guaranteed. [Model configuration →](references/install.md#session-local-launcher)
 

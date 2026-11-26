@@ -37,7 +37,7 @@ for (const [name, eol] of [['LF', '\n'], ['CRLF', '\r\n']]) {
     const directory = await fixture(t, eol);
     const result = validate(directory);
     assert.equal(result.status, 0, result.error?.message ?? result.stderr);
-    assert.match(result.stdout, /Package checks passed: 18 skills, 2 agents/);
+    assert.match(result.stdout, /Package checks passed: 20 skills, 2 agents/);
   });
 }
 
@@ -66,5 +66,16 @@ test('validator rejects a missing renamed entry, a second visible agent, a narro
   await writeFile(path.join(directory, 'com.github.copilot/agents/reviewer.agent.md'), back.replace('name: worker', 'name: reviewer'));
   const third = validate(directory).stderr;
   assert.match(third, /Concierge ships two agents, concierge and worker/);
-  assert.match(third, /Expected 18 skills and 2 agents; found 18 and 3/);
+  assert.match(third, /Expected 20 skills and 2 agents; found 20 and 3/);
+  await rm(path.join(directory, 'com.github.copilot/agents/reviewer.agent.md'));
+  // A bundled SOP is run step by step, so a malformed or unlisted one fails the package.
+  const bugFix = path.join(directory, 'skills/sops/procedures/bug-fix.md');
+  await writeFile(bugFix, (await readFile(bugFix, 'utf8')).replace('## Done when', '## Finished'));
+  assert.match(validate(directory).stderr, /bug-fix\.md: add a "## Done when" section/);
+  await writeFile(bugFix, (await readFile(bugFix, 'utf8')).replace('## Finished', '## Done when').replace('Article 5', 'Article 12'));
+  assert.match(validate(directory).stderr, /bug-fix\.md: cites unknown Article 12/);
+  await rm(path.join(directory, 'skills/constitution/articles/11-enough-then-stop.md'));
+  assert.match(validate(directory).stderr, /Expected 11 Articles; found 10/);
+  await writeFile(path.join(directory, 'skills/sops/procedures/deploy.md'), '# Deploy\n');
+  assert.match(validate(directory).stderr, /Bundled SOPs differ from BUNDLED_SOPS/);
 });

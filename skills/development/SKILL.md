@@ -9,11 +9,12 @@ Use this procedure as the current execution owner within the approved scope. You
 
 ## How to change code
 
-- Read before you write: open the file and its tests before changing either.
-- Make the smallest change that meets the goal and the acceptance criteria. No drive-by refactors, renames or reformatting.
+- Read before you write: open the file and its tests before changing either. Read what the change needs and stop; do not survey the repository.
+- One system at a time: finish it before opening the next.
+- Make the smallest change that works. No speculative abstractions, no configuration for cases that do not exist, no framework before the second use. No drive-by refactors, renames or reformatting.
 - Follow the conventions in `progress.repo_summary`: formatter, lint rules, file layout, naming. Run the repository's formatter on changed files only.
 - Give a cohesive feature and its tests one owner, even across React, Node.js and GraphQL; load the domain skill only when its conventions matter.
-- Run the relevant checks after every edit (see the `test` skill), and add or update tests for every behavior you change.
+- Run the relevant checks after every edit (see the `test` skill), and add or update tests for the business logic you change, not for the machinery around it.
 - Preserve unrelated changes in the working tree.
 
 ## Dependencies

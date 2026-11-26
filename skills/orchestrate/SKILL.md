@@ -96,7 +96,7 @@ Good follow-ups are concrete and grounded in this objective's evidence:
 - the next phase of phased work;
 - committing, pushing or opening a pull request when changes are uncommitted and the user has not said otherwise;
 - retrying a blocked step once the cause named in the report is fixed;
-- saving a way of working the user recommended during this objective as a reusable skill, through `skill-builder`.
+- saving a way of working the user recommended during this objective as a reusable skill, or repeatable steps as an SOP, through `skill-builder`.
 
 Write each as one line: the action, then why, with file paths or check names where they help, short enough that the user can accept it with "yes" or its number. Do not pad with generic advice ("add more tests", "let me know if…"), restate the completed work or repeat a suggestion the user declined in this objective. Keep unanswered suggestions in `progress.open`.
 

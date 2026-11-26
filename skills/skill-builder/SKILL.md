@@ -35,7 +35,7 @@ The user's file-write restrictions apply. With "do not write any files" in force
 
 Read what is already there first. If a skill of that name exists, update it: keep the user's text that the new instruction does not change, and say what you replaced. Never overwrite one silently, and never edit a skill that belongs to an installed plugin.
 
-Choose a name that says what the workflow is for, such as `team-code-review` or `my-release-checks`. Do not reuse a Concierge skill name: `brief`, `relay`, `discovery`, `development`, `test`, `escalate`, `orchestrate`, `orchestrate-reference`, `plan`, `grill-plan`, `scout`, `react-frontend`, `node-backend`, `graphql`, `review`, `debugging`, `task-evaluation` or `skill-builder`. Project and personal skills load before plugin skills, so a clash would replace Concierge's own procedure. Names starting `copilot-concierge-routing` are reserved for routing tables.
+Choose a name that says what the workflow is for, such as `team-code-review` or `my-release-checks`. Do not reuse a Concierge skill name: `brief`, `relay`, `sops`, `constitution`, `discovery`, `development`, `test`, `escalate`, `orchestrate`, `orchestrate-reference`, `plan`, `grill-plan`, `scout`, `react-frontend`, `node-backend`, `graphql`, `review`, `debugging`, `task-evaluation` or `skill-builder`. Project and personal skills load before plugin skills, so a clash would replace Concierge's own procedure. Names starting `copilot-concierge-routing` are reserved for routing tables.
 
 ## Write it
 
@@ -62,6 +62,45 @@ Done when: <the observable result the user named>
 
 Do not: <what the user said to avoid, or remove this line>
 ```
+
+## SOPs
+
+An SOP is a saved skill in a fixed shape that the `sops` skill can run step by step: use it when the user wants a repeatable workflow with ordered steps and a definition of done ("make that an SOP", "save our release steps so I can run them"). Guidance without an order, such as review rules or conventions, stays an ordinary skill.
+
+Everything above applies: save one only when the user asks or accepts, in the same two places, with only what they said. In addition:
+
+- Name it `sop-<title>`, such as `sop-release` or `sop-bug-fix`. A title that matches a bundled SOP (`investigation`, `bug-fix`, `feature`, `refactoring`, `opening-a-pr`) replaces it for this user or repository; say so when that happens.
+- Start `description` with "SOP:" and say when to run it, so it can be matched to work and listed.
+- Use exactly these sections. `## Steps` is a numbered list from 1 in the user's order; a step may name a skill to load or say "Run the <title> SOP". `## Done when` lists observable results. `## Reply` says what the result message contains.
+- A step may cite one of the constitution's Articles by number and title, such as "(Article 5)", when the user's step rests on it. Do not copy the Article's text.
+- A step may ask for a commit, push or pull request only because the user put it in the workflow. Never add a step that grants a tool, approves a plan, sets autonomy or lifts a restriction; such a line has no effect when the SOP runs.
+
+```markdown
+---
+name: sop-release
+description: "SOP: cut a release of this service. Load when asked to release, or to run the release SOP."
+---
+
+# Release
+
+You own: <what the person running it is responsible for, in the user's words>
+
+## Steps
+
+1. <first step, in the user's words>
+2. <next step>
+3. <next step>
+
+## Done when
+
+- <an observable result the user named>
+
+## Reply
+
+<what the result message contains>
+```
+
+Read it back and confirm the three sections are present and the steps are numbered from 1; Concierge's customization checker reports the same problems. Tell the user how to run it: by name ("run the release SOP"), and from their next session also by description.
 
 ## Make sure it gets used
 

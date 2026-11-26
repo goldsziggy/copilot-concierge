@@ -3,6 +3,7 @@ import { readFile, readdir, lstat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { PACKAGE_FILES } from './lib/package.mjs';
+import { ARTICLE_COUNT, BUNDLED_SOPS, sopProblems } from './check-custom.mjs';
 
 const root = path.resolve(process.argv[2] ?? path.join(path.dirname(fileURLToPath(import.meta.url)), '..'));
 const errors = [];
@@ -96,7 +97,36 @@ try {
       catch { fail(`${relative}: missing local link ${target}`); }
     }
   }
-  if (skills !== 18 || agents !== 2) fail(`Expected 18 skills and 2 agents; found ${skills} and ${agents}`);
+  if (skills !== 20 || agents !== 2) fail(`Expected 20 skills and 2 agents; found ${skills} and ${agents}`);
+  // Bundled SOPs are run step by step, so each must have the SOP shape
+  // and be listed in the router's table.
+  const bundled = path.join(root, 'skills/sops/procedures');
+  const present = (await readdir(bundled)).filter(name => name.endsWith('.md')).map(name => name.slice(0, -3)).sort();
+  if (present.join() !== [...BUNDLED_SOPS].sort().join()) fail(`Bundled SOPs differ from BUNDLED_SOPS: ${present.join(', ')}`);
+  const router = await readFile(path.join(root, 'skills/sops/SKILL.md'), 'utf8');
+  for (const title of present) {
+    for (const problem of sopProblems(await readFile(path.join(bundled, `${title}.md`), 'utf8'))) fail(`skills/sops/procedures/${title}.md: ${problem}`);
+    if (!router.includes(`\`procedures/${title}.md\``)) fail(`skills/sops/SKILL.md: table does not list procedures/${title}.md`);
+  }
+  // Articles are cited by number from SOPs and saved skills: a fixed count, numbered
+  // from 01, each with the Article shape and a row in the constitution's table.
+  const articlesDir = path.join(root, 'skills/constitution/articles');
+  const articles = (await readdir(articlesDir)).filter(name => name.endsWith('.md')).sort();
+  const constitution = await readFile(path.join(root, 'skills/constitution/SKILL.md'), 'utf8');
+  if (articles.length !== ARTICLE_COUNT) fail(`Expected ${ARTICLE_COUNT} Articles; found ${articles.length}`);
+  articles.forEach((name, index) => {
+    const number = index + 1;
+    if (!name.startsWith(`${String(number).padStart(2, '0')}-`)) fail(`skills/constitution/articles/${name}: expected Article ${number} here`);
+    if (!constitution.includes(`| ${number} | `) || !constitution.includes(`\`articles/${name}\``)) fail(`skills/constitution/SKILL.md: table does not list articles/${name}`);
+  });
+  for (const name of articles) {
+    const text = (await readFile(path.join(articlesDir, name), 'utf8')).replace(/\r\n/g, '\n');
+    if (!new RegExp(`^# Article ${Number(name.slice(0, 2))}: .+\\n\\n.+\\n\\n## Applies when\\n[\\s\\S]+\\n## Do\\n\\n- [\\s\\S]+\\n## Check\\n\\n.+`).test(text)) fail(`skills/constitution/articles/${name}: needs a numbered title, a one-line rule, "## Applies when", "## Do" and "## Check"`);
+  }
+  for (const title of present) {
+    const text = await readFile(path.join(bundled, `${title}.md`), 'utf8');
+    for (const [, number] of text.matchAll(/Article (\d+)/g)) if (Number(number) < 1 || Number(number) > ARTICLE_COUNT) fail(`skills/sops/procedures/${title}.md: cites unknown Article ${number}`);
+  }
   if (entryAgents !== 1) fail(`Expected one Concierge entry agent; found ${entryAgents}`);
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`Package checks passed: ${skills} skills, ${agents} agents, ${files.length} files. These are static checks, not runtime acceptance.`);

@@ -59,6 +59,8 @@ export function configureProfile(content, filename, config) {
     planApprovalSource: config.source.planApproval,
     autonomy: config.value.autonomy,
     autonomySource: config.source.autonomy,
+    bundledSops: config.value.bundledSops,
+    bundledSopsSource: config.source.bundledSops,
     roleModel: config.value.models[role],
     roleModelSource: config.source.models[role],
   };

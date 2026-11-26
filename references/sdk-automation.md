@@ -60,6 +60,10 @@ await session.send({ prompt: task });
 const status = await Promise.race([result, deadline]); // your own timeout
 ```
 
+## Running an SOP
+
+A [SOP](sops.md) is a reusable workflow the worker runs step by step, which makes it a natural unit for an automation: name it in the prompt, for example "Run the release SOP for version 2.4.0", alongside the autonomy and plan-approval statements. The result line is unchanged. SOPs have not been run live.
+
 ## Follow-ups, approval and cancellation
 
 Send further messages to the same session. "Approve", "Change something: …" and "Cancel" answer a `needs_approval` plan exactly as a person would. Silence never approves. A new instruction to a running objective reaches its worker as a follow-up.

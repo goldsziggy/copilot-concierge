@@ -9,6 +9,10 @@ Use this procedure as the current execution owner. Your agent profile controls i
 
 Climb the ladder after every change. Stop at the first red step and fix it before going on. Take every command from `progress.repo_summary`; never guess one.
 
+## Keep it lean
+
+Test the business logic you changed: rules, calculations and decisions. Do not write tests for the machinery around it, such as wiring, getters, framework glue or mocks of your own code. Run each step once per change; a passing check is not re-run, and a second check that proves the same thing is not added.
+
 ## Ladder
 
 | Step | What | When |
