@@ -7,13 +7,13 @@ You own the diagnosis. Every changed line traces to evidence; a change that "mig
 ## Steps
 
 1. Reproduce the failure and record the exact command and output. If it will not reproduce, tighten the conditions or add a failing test that shows it.
-2. Find the cause: load `debugging`, form hypotheses, and rule them out with evidence until one survives.
+2. Find the cause: load `debugging`, form hypotheses, and rule them out with evidence until one survives (Article 5).
 3. State the cause and the smallest fix in two or three lines. Load `plan` when the fix crosses a module boundary or needs approval.
-4. Add or update a test that fails for the cause, then make the fix (`development`).
-5. Verify: the reproduction from step 1 now passes, then climb the ladder in `test`.
+4. Add or update a test that fails for the cause, then make the smallest fix (`development`, Article 1).
+5. Verify: the reproduction from step 1 now passes, then climb the ladder in `test` (Article 6).
 6. Revert anything a refuted hypothesis motivated.
 7. Have a meaningful or risky fix reviewed independently (`orchestrate`).
-8. Run the Opening a PR playbook.
+8. Run the Opening a PR SOP.
 
 ## Done when
 

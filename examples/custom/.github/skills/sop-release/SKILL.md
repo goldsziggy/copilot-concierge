@@ -1,6 +1,6 @@
 ---
-name: playbook-release
-description: "Playbook: cut a release of the Acme service. Load when asked to release, or to run the release playbook."
+name: sop-release
+description: "SOP: cut a release of the Acme service. Load when asked to release, or to run the release SOP."
 ---
 
 # Release
@@ -13,7 +13,7 @@ You own: a tagged release whose notes match what shipped.
 2. Run the full test suite and the contract tests.
 3. Update `CHANGELOG.md` with the changes since the last tag.
 4. Bump the version in `package.json` and commit both files.
-5. Run the Opening a PR playbook.
+5. Run the Opening a PR SOP.
 
 ## Done when
 

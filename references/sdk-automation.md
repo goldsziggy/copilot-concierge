@@ -60,9 +60,9 @@ await session.send({ prompt: task });
 const status = await Promise.race([result, deadline]); // your own timeout
 ```
 
-## Running a playbook
+## Running an SOP
 
-A [playbook](playbooks.md) is a reusable workflow the worker runs step by step, which makes it a natural unit for an automation: name it in the prompt, for example "Run the release playbook for version 2.4.0", alongside the autonomy and plan-approval statements. The result line is unchanged. Playbooks have not been run live.
+A [SOP](sops.md) is a reusable workflow the worker runs step by step, which makes it a natural unit for an automation: name it in the prompt, for example "Run the release SOP for version 2.4.0", alongside the autonomy and plan-approval statements. The result line is unchanged. SOPs have not been run live.
 
 ## Follow-ups, approval and cancellation
 

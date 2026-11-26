@@ -10,7 +10,7 @@ import path from 'node:path';
 // Routing role keys describe work, not necessarily a separately shipped agent.
 // Keep the established keys so a team's exact custom routes remain meaningful.
 export const CONCIERGE_ROLES = ['scout', 'product-manager', 'worker', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer', 'escalation'];
-export const CONCIERGE_SKILLS = ['brief', 'relay', 'playbooks', 'discovery', 'development', 'test', 'escalate', 'orchestrate', 'orchestrate-reference', 'plan', 'grill-plan', 'scout', 'react-frontend', 'node-backend', 'graphql', 'review', 'debugging', 'task-evaluation', 'skill-builder'];
+export const CONCIERGE_SKILLS = ['brief', 'relay', 'sops', 'constitution', 'discovery', 'development', 'test', 'escalate', 'orchestrate', 'orchestrate-reference', 'plan', 'grill-plan', 'scout', 'react-frontend', 'node-backend', 'graphql', 'review', 'debugging', 'task-evaluation', 'skill-builder'];
 // The one shipped agent a routing row may name. It means the worker does that
 // work itself with the row's skills.
 export const CONCIERGE_WORKERS = ['worker'];
@@ -70,12 +70,12 @@ export function agentId(agentsDir, file) {
   return path.relative(agentsDir, file).replace(/\.agent\.md$|\.md$/, '').split(path.sep).join('--');
 }
 
-// A playbook is a workflow the `playbooks` skill runs step by step, so its
+// An SOP is a workflow the `sops` skill runs step by step, so its
 // shape is checked rather than left to prose: numbered steps from 1, a
-// definition of done and a reply shape. Used for saved `playbook-<title>`
-// skills and for the playbooks Concierge bundles.
-export const BUNDLED_PLAYBOOKS = ['investigation', 'bug-fix', 'feature', 'refactoring', 'opening-a-pr'];
-export function playbookProblems(text) {
+// definition of done and a reply shape. Used for saved `sop-<title>`
+// skills and for the SOPs Concierge bundles.
+export const BUNDLED_SOPS = ['investigation', 'bug-fix', 'feature', 'refactoring', 'opening-a-pr'];
+export function sopProblems(text) {
   const problems = [];
   const body = text.replace(/\r\n/g, '\n').replace(/^---\n[\s\S]*?\n---\n/, '');
   const section = title => body.match(new RegExp(`^## ${title}\\n([\\s\\S]*?)(?=^## |(?![\\s\\S]))`, 'm'))?.[1].trim();
@@ -92,10 +92,13 @@ export function playbookProblems(text) {
   const reply = section('Reply');
   if (reply === undefined) problems.push('add a "## Reply" section');
   else if (!reply) problems.push('"## Reply" must say what the result message contains');
-  // A playbook is a procedure, never a permission.
-  if (/^allowed-tools:/m.test(text)) problems.push('remove allowed-tools; a playbook cannot grant tools');
+  // An SOP is a procedure, never a permission.
+  if (/^allowed-tools:/m.test(text)) problems.push('remove allowed-tools; an SOP cannot grant tools');
   return problems;
 }
+
+// The constitution's Articles are cited by number, so the numbers are fixed.
+export const ARTICLE_COUNT = 10;
 
 export function routingRows(text) {
   const rows = [];
@@ -115,7 +118,7 @@ export async function checkRoots(roots) {
   const agents = new Map();
   const skills = new Map();
   const routing = [];
-  const playbooks = [];
+  const sops = [];
   for (const root of roots) {
     const rootLocations = await locations(root);
     for (const dir of rootLocations.agents) {
@@ -155,12 +158,12 @@ export async function checkRoots(roots) {
         if (skills.has(entry.name)) warnings.push(`${where}: duplicate skill "${entry.name}" (also ${skills.get(entry.name)}); Copilot loads only one, following its documented loading order`);
         else skills.set(entry.name, where);
         if (/^copilot-concierge-routing(-|$)/.test(entry.name)) routing.push({ where, rows: routingRows(text) });
-        if (entry.name.startsWith('playbook-')) {
-          playbooks.push(entry.name);
-          for (const problem of playbookProblems(text)) errors.push(`${where}: playbook: ${problem}`);
-          if (!/^Playbook:/.test(parsed.fields.description ?? '')) warnings.push(`${where}: start the description with "Playbook:" so it is listed and matched as one`);
-          const title = entry.name.slice('playbook-'.length);
-          if (rootLocations.pluginName !== 'copilot-concierge' && BUNDLED_PLAYBOOKS.includes(title)) warnings.push(`${where}: replaces Concierge's bundled "${title}" playbook wherever this skill loads`);
+        if (entry.name.startsWith('sop-')) {
+          sops.push(entry.name);
+          for (const problem of sopProblems(text)) errors.push(`${where}: SOP: ${problem}`);
+          if (!/^SOP:/.test(parsed.fields.description ?? '')) warnings.push(`${where}: start the description with "SOP:" so it is listed and matched as one`);
+          const title = entry.name.slice('sop-'.length);
+          if (rootLocations.pluginName !== 'copilot-concierge' && BUNDLED_SOPS.includes(title)) warnings.push(`${where}: replaces Concierge's bundled "${title}" SOP wherever this skill loads`);
         }
       }
     }
@@ -181,7 +184,7 @@ export async function checkRoots(roots) {
       }
     }
   }
-  return { errors, warnings, agents: [...agents.keys()], skills: [...skills.keys()], routing: routing.map(r => r.where), playbooks };
+  return { errors, warnings, agents: [...agents.keys()], skills: [...skills.keys()], routing: routing.map(r => r.where), sops };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
@@ -190,7 +193,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   console.log(`Agents: ${result.agents.sort().join(', ') || 'none'}`);
   console.log(`Skills: ${result.skills.sort().join(', ') || 'none'}`);
   console.log(`Routing tables: ${result.routing.sort().join(', ') || 'none'}`);
-  console.log(`Playbooks: ${result.playbooks.sort().join(', ') || 'none'}`);
+  console.log(`SOPs: ${result.sops.sort().join(', ') || 'none'}`);
   for (const warning of result.warnings) console.log(`warning: ${warning}`);
   for (const error of result.errors) console.error(`error: ${error}`);
   if (result.errors.length) process.exitCode = 1;

@@ -8,11 +8,11 @@ You own behavior preservation. A refactor that changes what users observe is a d
 
 1. State what will change in structure and what must stay the same in behavior.
 2. Establish the safety net: run the existing tests and record the result. Where the code to be moved has no test, add one that pins its current behavior first.
-3. Remove dead code and unused paths before reshaping what remains.
-4. Make the change in small steps, running the tests after each (`development`, `test`).
-5. Migrate every caller of anything you replaced and delete the old form in the same change.
+3. Remove dead code and unused paths before reshaping what remains (Article 1).
+4. Make the change in small steps, running the tests after each (Article 7; `development`, `test`).
+5. Migrate every caller of anything you replaced and delete the old form in the same change (Article 2).
 6. Run the full suite and compare with the result from step 2.
-7. Run the Opening a PR playbook.
+7. Run the Opening a PR SOP.
 
 ## Done when
 

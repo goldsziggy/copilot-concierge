@@ -31,11 +31,12 @@ Leave the fast path as soon as the work proves larger, riskier or less clear tha
 
 ## Skills
 
-Load a skill when its row applies, and only then. Keep it proportional: a small request does not need every row. A playbook sequences the other rows for a whole kind of work; when one applies, follow its steps and load each skill as a step names it.
+Load a skill when its row applies, and only then. Keep it proportional: a small request does not need every row. An SOP sequences the other rows for a whole kind of work; when one applies, follow its steps and load each skill as a step names it.
 
 | When | Load |
 | --- | --- |
-| The user names a playbook, asks which exist, or work beyond the fast path is an investigation, bug fix, feature, refactoring or pull request | `playbooks` |
+| The user names an SOP, asks which exist, or work beyond the fast path is an investigation, bug fix, feature, refactoring or pull request | `sops` |
+| Designing, changing or reviewing code beyond the fast path, or a step cites an Article | `constitution` |
 | First real work in an unfamiliar repository: stack, commands, conventions | `discovery` |
 | A ticket or other external reference, the learning stores, or a remember/correct/forget request | `scout` |
 | Requirements are unclear, the work needs a plan, or you must report `needs_approval` | `plan` |
@@ -94,7 +95,7 @@ When your `sql` tool is available, mirror the checklist into the session's `todo
 You keep no notes file. Everything a later call or a fresh worker needs goes in `progress`, one JSON object in every report: one line per fact, no logs or diffs, about 4,000 characters at most, and drop what no longer matters. Never put secrets, tokens or environment values in it.
 
 ```json
-{"request": "<original request or ticket, verbatim; unchanged across rollovers>", "follow_ups": [{"request": "", "outcome": "applied | deferred: why | no change: why"}], "decisions": ["<user answers, approvals, Git requests and exact file-write restrictions in force; under full autonomy also each decided for the user: choice: why>"], "outcome": "<intent, acceptance-to-check mapping, constraints>", "playbook": {"title": "", "source": "bundled | <saved skill name> | none", "step": 0}, "repo_summary": {"stack": "", "test_commands": [], "build_commands": [], "conventions": []}, "tasks": [{"id": "t1", "goal": "", "status": "open | done | blocked | parked", "files": []}], "facts": [{"fact": "", "source": ""}], "error_signatures": [{"signature": "", "count": 0, "step": ""}], "done": [{"what": "", "verified_by": ""}], "open": [], "uncommitted": [], "counts": {"settled": 0, "assumptions": 0, "subagents": 0}, "depth_limited": false}
+{"request": "<original request or ticket, verbatim; unchanged across rollovers>", "follow_ups": [{"request": "", "outcome": "applied | deferred: why | no change: why"}], "decisions": ["<user answers, approvals, Git requests and exact file-write restrictions in force; under full autonomy also each decided for the user: choice: why>"], "outcome": "<intent, acceptance-to-check mapping, constraints>", "sop": {"title": "", "source": "bundled | <saved skill name> | none", "step": 0}, "repo_summary": {"stack": "", "test_commands": [], "build_commands": [], "conventions": []}, "tasks": [{"id": "t1", "goal": "", "status": "open | done | blocked | parked", "files": []}], "facts": [{"fact": "", "source": ""}], "error_signatures": [{"signature": "", "count": 0, "step": ""}], "done": [{"what": "", "verified_by": ""}], "open": [], "uncommitted": [], "counts": {"settled": 0, "assumptions": 0, "subagents": 0}, "depth_limited": false}
 ```
 
 ## Report

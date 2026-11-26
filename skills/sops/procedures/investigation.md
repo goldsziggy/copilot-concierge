@@ -9,7 +9,7 @@ You own the answer. Every claim in it traces to something you read or ran.
 1. State the question in one sentence and what would count as an answer.
 2. Gather context: load `discovery` for an unfamiliar repository and `scout` for a ticket or external reference.
 3. Trace the behavior through the code, tests and history that bear on the question. Start a sub-agent only for a large search whose result compresses well (`orchestrate`).
-4. Check the explanation against the real thing: run the code, a test or a command when one can confirm or refute it.
+4. Check the explanation against the real thing: run the code, a test or a command when one can confirm or refute it (Article 6).
 5. Separate what you observed from what you inferred and what is still unknown.
 
 ## Done when
