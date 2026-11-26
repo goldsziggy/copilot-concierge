@@ -3,6 +3,7 @@ import { readFile, readdir, lstat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { PACKAGE_FILES } from './lib/package.mjs';
+import { BUNDLED_PLAYBOOKS, playbookProblems } from './check-custom.mjs';
 
 const root = path.resolve(process.argv[2] ?? path.join(path.dirname(fileURLToPath(import.meta.url)), '..'));
 const errors = [];
@@ -96,7 +97,17 @@ try {
       catch { fail(`${relative}: missing local link ${target}`); }
     }
   }
-  if (skills !== 18 || agents !== 2) fail(`Expected 18 skills and 2 agents; found ${skills} and ${agents}`);
+  if (skills !== 19 || agents !== 2) fail(`Expected 19 skills and 2 agents; found ${skills} and ${agents}`);
+  // Bundled playbooks are run step by step, so each must have the playbook shape
+  // and be listed in the router's table.
+  const bundled = path.join(root, 'skills/playbooks/playbooks');
+  const present = (await readdir(bundled)).filter(name => name.endsWith('.md')).map(name => name.slice(0, -3)).sort();
+  if (present.join() !== [...BUNDLED_PLAYBOOKS].sort().join()) fail(`Bundled playbooks differ from BUNDLED_PLAYBOOKS: ${present.join(', ')}`);
+  const router = await readFile(path.join(root, 'skills/playbooks/SKILL.md'), 'utf8');
+  for (const title of present) {
+    for (const problem of playbookProblems(await readFile(path.join(bundled, `${title}.md`), 'utf8'))) fail(`skills/playbooks/playbooks/${title}.md: ${problem}`);
+    if (!router.includes(`\`playbooks/${title}.md\``)) fail(`skills/playbooks/SKILL.md: table does not list playbooks/${title}.md`);
+  }
   if (entryAgents !== 1) fail(`Expected one Concierge entry agent; found ${entryAgents}`);
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`Package checks passed: ${skills} skills, ${agents} agents, ${files.length} files. These are static checks, not runtime acceptance.`);

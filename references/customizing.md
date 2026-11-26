@@ -102,6 +102,7 @@ Expect:
 Agents: team-reviewer
 Skills: copilot-concierge-routing, team-review-rules
 Routing tables: .github/skills/copilot-concierge-routing/SKILL.md
+Playbooks: none
 No problems found.
 ```
 

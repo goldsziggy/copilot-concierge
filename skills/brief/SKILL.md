@@ -44,6 +44,7 @@ Writing a good brief:
 - Make each acceptance criterion something the worker can check, and mark the ones you inferred as assumptions.
 - A request to make a change authorizes the ordinary work needed to complete it, within the requested scope and host permissions; it does not authorize unrelated consequential actions. Commits, pushes and pull requests go in the brief when the user asked for them.
 - Ask the user first only when the answer materially changes the outcome and cannot reasonably be inferred. Otherwise hand it over; the worker asks what it needs.
+- When the user names a playbook ("run the release playbook", "use bug-fix for this"), keep their words in `user request` and add `playbook: <name>` to `references`. Do not choose a playbook for them; the worker matches one to the work.
 - Never put secrets, tokens or environment values in a brief.
 
 Then set the root to-do list with `update_todo` (`- [ ] <objective>: understand the request`), tell the user once, in one sentence, that Concierge is on it, and end your turn.

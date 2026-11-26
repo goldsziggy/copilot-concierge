@@ -136,6 +136,7 @@ The worker keeps no notes file. `progress` is one JSON object, about 4,000 chara
 | `follow_ups` | Later user requests in order, each with its outcome |
 | `decisions` | User answers, approvals, Git requests and file-write restrictions in force; under `full`, each choice decided for the user |
 | `outcome` | Intent, the acceptance-to-check mapping and constraints |
+| `playbook` | The playbook being run, where it came from and the current step (from `playbooks`) |
 | `repo_summary` | Stack, test and build commands, conventions (from `discovery`) |
 | `tasks` | Each task's id, goal, status (`open`, `done`, `blocked`, `parked`) and files |
 | `facts` | Facts with their sources |

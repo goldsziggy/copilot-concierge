@@ -10,7 +10,7 @@ import path from 'node:path';
 // Routing role keys describe work, not necessarily a separately shipped agent.
 // Keep the established keys so a team's exact custom routes remain meaningful.
 export const CONCIERGE_ROLES = ['scout', 'product-manager', 'worker', 'enterprise-ux', 'react-frontend', 'node-backend', 'graphql', 'reviewer', 'escalation'];
-export const CONCIERGE_SKILLS = ['brief', 'relay', 'discovery', 'development', 'test', 'escalate', 'orchestrate', 'orchestrate-reference', 'plan', 'grill-plan', 'scout', 'react-frontend', 'node-backend', 'graphql', 'review', 'debugging', 'task-evaluation', 'skill-builder'];
+export const CONCIERGE_SKILLS = ['brief', 'relay', 'playbooks', 'discovery', 'development', 'test', 'escalate', 'orchestrate', 'orchestrate-reference', 'plan', 'grill-plan', 'scout', 'react-frontend', 'node-backend', 'graphql', 'review', 'debugging', 'task-evaluation', 'skill-builder'];
 // The one shipped agent a routing row may name. It means the worker does that
 // work itself with the row's skills.
 export const CONCIERGE_WORKERS = ['worker'];
@@ -70,6 +70,33 @@ export function agentId(agentsDir, file) {
   return path.relative(agentsDir, file).replace(/\.agent\.md$|\.md$/, '').split(path.sep).join('--');
 }
 
+// A playbook is a workflow the `playbooks` skill runs step by step, so its
+// shape is checked rather than left to prose: numbered steps from 1, a
+// definition of done and a reply shape. Used for saved `playbook-<title>`
+// skills and for the playbooks Concierge bundles.
+export const BUNDLED_PLAYBOOKS = ['investigation', 'bug-fix', 'feature', 'refactoring', 'opening-a-pr'];
+export function playbookProblems(text) {
+  const problems = [];
+  const body = text.replace(/\r\n/g, '\n').replace(/^---\n[\s\S]*?\n---\n/, '');
+  const section = title => body.match(new RegExp(`^## ${title}\\n([\\s\\S]*?)(?=^## |(?![\\s\\S]))`, 'm'))?.[1].trim();
+  const steps = section('Steps');
+  if (steps === undefined) problems.push('add a "## Steps" section');
+  else {
+    const numbers = [...steps.matchAll(/^(\d+)\. \S/gm)].map(match => Number(match[1]));
+    if (numbers.length < 2) problems.push('"## Steps" needs at least two numbered steps');
+    else if (numbers.some((number, index) => number !== index + 1)) problems.push('number the steps 1, 2, 3 in order');
+  }
+  const done = section('Done when');
+  if (done === undefined) problems.push('add a "## Done when" section');
+  else if (!/^- \S/m.test(done)) problems.push('"## Done when" needs at least one "- " line');
+  const reply = section('Reply');
+  if (reply === undefined) problems.push('add a "## Reply" section');
+  else if (!reply) problems.push('"## Reply" must say what the result message contains');
+  // A playbook is a procedure, never a permission.
+  if (/^allowed-tools:/m.test(text)) problems.push('remove allowed-tools; a playbook cannot grant tools');
+  return problems;
+}
+
 export function routingRows(text) {
   const rows = [];
   for (const line of text.split(/\r?\n/)) {
@@ -88,6 +115,7 @@ export async function checkRoots(roots) {
   const agents = new Map();
   const skills = new Map();
   const routing = [];
+  const playbooks = [];
   for (const root of roots) {
     const rootLocations = await locations(root);
     for (const dir of rootLocations.agents) {
@@ -127,6 +155,13 @@ export async function checkRoots(roots) {
         if (skills.has(entry.name)) warnings.push(`${where}: duplicate skill "${entry.name}" (also ${skills.get(entry.name)}); Copilot loads only one, following its documented loading order`);
         else skills.set(entry.name, where);
         if (/^copilot-concierge-routing(-|$)/.test(entry.name)) routing.push({ where, rows: routingRows(text) });
+        if (entry.name.startsWith('playbook-')) {
+          playbooks.push(entry.name);
+          for (const problem of playbookProblems(text)) errors.push(`${where}: playbook: ${problem}`);
+          if (!/^Playbook:/.test(parsed.fields.description ?? '')) warnings.push(`${where}: start the description with "Playbook:" so it is listed and matched as one`);
+          const title = entry.name.slice('playbook-'.length);
+          if (rootLocations.pluginName !== 'copilot-concierge' && BUNDLED_PLAYBOOKS.includes(title)) warnings.push(`${where}: replaces Concierge's bundled "${title}" playbook wherever this skill loads`);
+        }
       }
     }
   }
@@ -146,7 +181,7 @@ export async function checkRoots(roots) {
       }
     }
   }
-  return { errors, warnings, agents: [...agents.keys()], skills: [...skills.keys()], routing: routing.map(r => r.where) };
+  return { errors, warnings, agents: [...agents.keys()], skills: [...skills.keys()], routing: routing.map(r => r.where), playbooks };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
@@ -155,6 +190,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   console.log(`Agents: ${result.agents.sort().join(', ') || 'none'}`);
   console.log(`Skills: ${result.skills.sort().join(', ') || 'none'}`);
   console.log(`Routing tables: ${result.routing.sort().join(', ') || 'none'}`);
+  console.log(`Playbooks: ${result.playbooks.sort().join(', ') || 'none'}`);
   for (const warning of result.warnings) console.log(`warning: ${warning}`);
   for (const error of result.errors) console.error(`error: ${error}`);
   if (result.errors.length) process.exitCode = 1;

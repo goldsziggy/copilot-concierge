@@ -182,7 +182,7 @@ test('progress is one JSON object that carries the objective across calls, rollo
   const brief = await skill('brief');
   const relay = await skill('relay');
   const template = JSON.parse(worker.body.match(/```json\n(\{"request"[\s\S]*?)\n```/)[1]);
-  const keys = ['request', 'follow_ups', 'decisions', 'outcome', 'repo_summary', 'tasks', 'facts', 'error_signatures', 'done', 'open', 'uncommitted', 'counts', 'depth_limited'];
+  const keys = ['request', 'follow_ups', 'decisions', 'outcome', 'playbook', 'repo_summary', 'tasks', 'facts', 'error_signatures', 'done', 'open', 'uncommitted', 'counts', 'depth_limited'];
   assert.deepEqual(Object.keys(template), keys);
   for (const key of keys) assert.ok(handoff.includes(`\`${key}\``), `handoff reference documents ${key}`);
   assert.deepEqual(Object.keys(template.repo_summary), ['stack', 'test_commands', 'build_commands', 'conventions']);
