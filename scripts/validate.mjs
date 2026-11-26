@@ -71,10 +71,10 @@ try {
           if (value && !/^["'[]/.test(value) && /: | #/.test(value)) fail(`${relative}: quote the value of "${line.split(':')[0]}"`);
         }
         const model = field(text, 'model');
-        // Only the entry agent follows the session's Copilot Fusion choice; Fusion
-        // does not route sub-agents, so the worker keeps an exact model.
-        if (!model || (model.toLowerCase() === 'auto' && name !== 'concierge')) fail(`${relative}: exact model required`);
-        if (name === 'concierge' && model !== 'auto') fail(`${relative}: the entry agent prefers Copilot Fusion (model: auto)`);
+        // Both shipped agents prefer Copilot Fusion (model: auto). A user picks a
+        // different worker model through configuration, not by editing the profile.
+        if (!model) fail(`${relative}: model required`);
+        if (shipped && model !== 'auto') fail(`${relative}: shipped agents prefer Copilot Fusion (model: auto)`);
         // Copilot gives a nested agent only tools its parent agent also has
         // (verified in CLI 1.0.93), so the worker must not narrow its list.
         const hasTools = /^tools:/m.test(text.split('\n---')[0]);

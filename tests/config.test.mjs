@@ -15,13 +15,13 @@ test('narrow ask defeats broad auto, missing values inherit independently', () =
   assert.equal(result.value.planApproval, 'ask');
   assert.equal(result.source.planApproval, 'project');
   assert.deepEqual(result.value.models, { concierge: 'chosen-front', worker: 'chosen-sol' });
-  assert.deepEqual(resolveConfig().value.models, { concierge: 'auto', worker: 'gpt-6.1-sol' });
+  assert.deepEqual(resolveConfig().value.models, { concierge: 'auto', worker: 'auto' });
   assert.equal(resolveConfig(layers.slice(0, 1)).value.planApproval, 'auto');
   assert.equal(resolveConfig().value.planApproval, 'auto');
 });
 
 test('invalid config cannot silently enable auto approval or model fallback', () => {
-  for (const config of [{ extraDirectories: 'one' }, { extraDirectories: [''] }, { extraDirectories: ['a\nb'] }, { planApproval: true }, { planApproval: null }, { models: { worker: 'Auto' } }, { models: { orchestrator: 'Auto' } }, { models: { specialist: 'fusion' } }, { models: { unknown: 'x' } }, { autoApproveEdits: true }, { models: { specialist: 'x\nInjected instructions' } }]) {
+  for (const config of [{ extraDirectories: 'one' }, { extraDirectories: [''] }, { extraDirectories: ['a\nb'] }, { planApproval: true }, { planApproval: null }, { models: { unknown: 'x' } }, { autoApproveEdits: true }, { models: { specialist: 'x\nInjected instructions' } }]) {
     assert.throws(() => validateConfig(config));
   }
 });
@@ -42,10 +42,11 @@ test('legacy entry-model key resolves with normal scope precedence and rejects a
   assert.throws(() => validateConfig({ models: { frontdesk: 'one', concierge: 'two' } }), /not both/);
   assert.doesNotThrow(() => validateConfig({ models: { concierge: 'fusion' } }));
   assert.doesNotThrow(() => validateConfig({ models: { frontdesk: 'auto' } }));
-  for (const role of ['worker', 'orchestrator', 'specialist', 'escalation']) {
-    assert.throws(() => validateConfig({ models: { [role]: 'Auto' } }), /applies only to the concierge role/);
-    assert.throws(() => validateConfig({ models: { [role]: 'fusion' } }), /applies only to the concierge role/);
+  // Every role may prefer Copilot Fusion or pin one explicit model.
+  for (const role of ['concierge', 'worker', 'orchestrator']) {
+    for (const model of ['auto', 'fusion', 'gpt-6.1-sol']) assert.doesNotThrow(() => validateConfig({ models: { [role]: model } }), `${role}: ${model}`);
   }
+  assert.equal(resolveConfig([{ source: 'user', value: { models: { worker: 'gpt-6.1-sol' } } }]).value.models.worker, 'gpt-6.1-sol');
 });
 
 // The three-tier layout had orchestrator, specialist and escalation roles.

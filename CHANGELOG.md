@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.12.1 - 2026-11-26
+
+- Both agents now prefer Copilot Fusion: the worker's profile names `model: auto` instead of `gpt-6.1-sol`, and `models.worker` defaults to `auto`.
+- Caution: this may lower the worker's model. The worker runs as a sub-agent, and in the 0.10.0 live trial a sub-agent set to `auto` was not Fusion-routed and ran on a host-chosen model (GPT-6 Luna). Whether current hosts route it through Fusion has not been checked. To keep the previous behavior, set `{ "models": { "worker": "gpt-6.1-sol" } }` and start through the launcher; a plain plugin install does not read `models`.
+- `models.worker`, like `models.concierge`, now accepts `auto`, `fusion` or one explicit model ID. Package validation requires `model: auto` in both shipped profiles.
+- Static checks only; not run against a live model.
+
 ## 0.12.0 - 2026-11-26
 
 - Breaking: Concierge now ships exactly two agents instead of seven. `copilot-concierge:concierge` is a thin front agent and `copilot-concierge:worker` is the single back agent that owns each objective and does the work. The `orchestrator`, `scout`, `product-manager`, `reviewer` and `escalation` profiles and the old leaf `worker` are removed; the orchestrator profile became the new `worker`. Scripts, instructions and custom charters that name a removed agent must be updated. See the migration guide.

@@ -4,6 +4,6 @@
   "bundledSops": "on",
   "models": {
     "concierge": "gpt-6-luna",
-    "worker": "gpt-6.1-sol"
+    "worker": "auto"
   }
 }

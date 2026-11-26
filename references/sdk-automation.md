@@ -11,7 +11,7 @@ This page lists what such a client does with the plugin as it is. The SDK facts 
 | Plugin | Install it for the service account (`copilot plugin install copilot-concierge@copilot-concierge`), or pass a pinned checkout in the session's `pluginDirectories`. |
 | Working directory | Set `workingDirectory` to the assigned checkout. Project configuration, knowledge and saved workflow skills come from there. |
 | Agent | Select the plugin's `concierge` agent: the `agent` session option or `session.rpc.agent.select({ name })`, using the name `session.rpc.agent.list()` reports. The CLI calls it `copilot-concierge:concierge`. |
-| Model | `auto` for the session, which is Copilot Fusion on CLI 1.0.104 and later. The SDK refused the `fusion` alias in `createSession` with CLI 1.0.109, so use `auto`. The worker keeps its own pinned model, `gpt-6.1-sol`. |
+| Model | `auto` for the session, which is Copilot Fusion on CLI 1.0.104 and later. The SDK refused the `fusion` alias in `createSession` with CLI 1.0.109, so use `auto`. The worker also names `auto` since 0.12.1; in trial B below a sub-agent on `auto` was not Fusion-routed. |
 | Questions | Leave out `onUserInputRequest`. The SDK offers the `ask_user` tool only when that handler is provided, so nobody can be asked. |
 | Permissions | Answer each tool call in `onPermissionRequest`. Approve only what the task needs, such as file writes and the exact test command. Concierge never asks for a bypass. |
 
