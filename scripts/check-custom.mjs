@@ -74,7 +74,7 @@ export function agentId(agentsDir, file) {
 // shape is checked rather than left to prose: numbered steps from 1, a
 // definition of done and a reply shape. Used for saved `sop-<title>`
 // skills and for the SOPs Concierge bundles.
-export const BUNDLED_SOPS = ['investigation', 'bug-fix', 'feature', 'refactoring', 'opening-a-pr'];
+export const BUNDLED_SOPS = ['investigation', 'bug-fix', 'feature', 'refactoring', 'opening-a-pr', 'change-review'];
 export function sopProblems(text) {
   const problems = [];
   const body = text.replace(/\r\n/g, '\n').replace(/^---\n[\s\S]*?\n---\n/, '');

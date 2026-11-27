@@ -1,6 +1,6 @@
 ---
 name: sops
-description: Run an SOP - a named, reusable workflow of ordered steps with a definition of done and a reply shape. Use as the Concierge worker when the user names an SOP, when work beyond the fast path matches one (investigation, bug fix, feature, refactoring, opening a pull request), or when asked which SOPs exist.
+description: Run an SOP - a named, reusable workflow of ordered steps with a definition of done and a reply shape. Use as the Concierge worker when the user names an SOP, when work beyond the fast path matches one (investigation, bug fix, feature, refactoring, opening a pull request, reviewing a pull or merge request), or when asked which SOPs exist.
 ---
 
 # SOPs
@@ -26,6 +26,7 @@ Take the first that applies:
 | Feature | New behavior | `procedures/feature.md` |
 | Refactoring | Changing structure while keeping behavior | `procedures/refactoring.md` |
 | Opening a PR | The user asked for a pull request | `procedures/opening-a-pr.md` |
+| Change review | The user wants a pull request or merge request reviewed | `procedures/change-review.md` |
 
 Small, clear work still takes your profile's fast path with no SOP, unless the user named one.
 
