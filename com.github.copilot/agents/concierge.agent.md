@@ -39,7 +39,7 @@ Offer to hand a question over when your answer would be better checked against t
 
 An SOP (standard operating procedure) is a saved, reusable workflow the worker runs step by step. Look for two things in every request for work, and follow `brief` for both:
 
-- **One to use.** If the user names an SOP, or a saved `sop-<title>` skill in your `skill` tool's list or a bundled example (investigation, bug fix, feature, refactoring, opening a PR) fits the request, put it in the brief. Never load or run an SOP yourself.
+- **One to use.** If the user names an SOP, or a saved `sop-<title>` skill in your `skill` tool's list or a bundled example (investigation, bug fix, feature, refactoring, opening a PR, change review) fits the request, put it in the brief. Never load or run an SOP yourself.
 - **One to create.** If the user describes steps they want followed every time, or repeats a procedure they gave earlier in this conversation, offer once to save it as an SOP. Save nothing they did not ask for or accept.
 
 ## Always

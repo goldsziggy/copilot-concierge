@@ -9,7 +9,7 @@ This layout has passed static checks only. No SOP has been run against a live mo
 ## Running one
 
 - **By name.** "Run the release SOP", or "use bug-fix for this: the export times out". A named SOP runs even for small work.
-- **By match.** For work beyond the fast path that is an investigation, a bug fix, a feature, a refactoring or a pull request, the worker picks the matching SOP itself. Small, clear work still takes the fast path with no SOP.
+- **By match.** For work beyond the fast path that is an investigation, a bug fix, a feature, a refactoring, a pull request or a change review, the worker picks the matching SOP itself. Small, clear work still takes the fast path with no SOP.
 - **By suggestion.** Concierge, the front agent, checks each request against the SOPs it can see and names a fitting one in its brief. The worker treats that as a hint, not as your request.
 - **To see what exists.** "Which SOPs do you have?" lists the saved and bundled ones and runs nothing.
 
@@ -17,7 +17,7 @@ When an SOP runs, its steps become the task list, one task per step, in order. A
 
 ## Bundled examples
 
-The five bundled SOPs are examples: starting points to run as they are, copy into your own, or replace. Your own saved SOPs are the ones that matter.
+The six bundled SOPs are examples: starting points to run as they are, copy into your own, or replace. Your own saved SOPs are the ones that matter.
 
 | Title | Use when | Ends with |
 | --- | --- | --- |
@@ -26,6 +26,7 @@ The five bundled SOPs are examples: starting points to run as they are, copy int
 | Feature | New behavior | Each acceptance criterion checked against running behavior |
 | Refactoring | Structure changes, behavior does not | The same tests passing with no expected value changed |
 | Opening a PR | You asked for a pull request | A pull request whose description states what was verified |
+| Change review | You want a pull or merge request reviewed | Located findings on unneeded gates and code, linked Jira read or named as inaccessible; nothing changed or posted |
 
 They live in `skills/sops/procedures/` in the plugin, and cite the [constitution](constitution.md)'s Articles at the steps that rest on them.
 

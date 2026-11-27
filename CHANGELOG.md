@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add a bundled Change review SOP for a pull request or merge request: it reads any linked Jira issue for context, looks for AI isms such as extra validation gates and code for problems that are not there, and reports located findings and any linked issue it could not open. It changes no file and posts nothing. A saved `sop-change-review` skill replaces it, as with every bundled SOP. Static checks only; not run against a live model.
+
 ## 0.12.2 - 2026-11-27
 
 - Fix how results are presented, after JSON was seen in a headed session. The entry agent now writes every reply itself in plain language and never shows JSON, the `progress` object, a report field name or a pasted report; the rule is in its always-loaded profile and a new "What the user sees" section of the `relay` skill, with formatting rules: outcome first, short, paths and commands in backticks, no heading or table for a short reply.

@@ -35,7 +35,7 @@ Load a skill when its row applies, and only then. Keep it proportional: a small 
 
 | When | Load |
 | --- | --- |
-| The user names an SOP, asks which exist, or work beyond the fast path is an investigation, bug fix, feature, refactoring or pull request | `sops` |
+| The user names an SOP, asks which exist, or work beyond the fast path is an investigation, bug fix, feature, refactoring, pull request or change review | `sops` |
 | Designing, changing or reviewing code beyond the fast path, or a step cites an Article | `constitution` |
 | First real work in an unfamiliar repository: stack, commands, conventions | `discovery` |
 | A ticket or other external reference, the learning stores, or a remember/correct/forget request | `scout` |

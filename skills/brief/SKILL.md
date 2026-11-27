@@ -55,7 +55,7 @@ An SOP is a saved workflow the worker runs step by step. You find them and offer
 **Using one.** Before you write a brief for work, check for an SOP that fits:
 
 - The user named one ("run the release SOP", "use bug-fix for this"): add `sop: <name> (named by user)` to `references`.
-- Otherwise look at the names and descriptions your `skill` tool lists. If a saved `sop-<title>` skill covers this request, or the work is plainly an investigation, bug fix, feature, refactoring or pull request, add `sop: <name> (suggested by Concierge)`.
+- Otherwise look at the names and descriptions your `skill` tool lists. If a saved `sop-<title>` skill covers this request, or the work is plainly an investigation, bug fix, feature, refactoring, pull request or change review, add `sop: <name> (suggested by Concierge)`.
 - Keep the two labels apart. A named SOP is the user's request for its steps; a suggested one is only a hint the worker checks against the work.
 - Nothing fits: write `none`. Do not stretch an SOP to cover a request, and do not load one to read its steps.
 - "Which SOPs are there?" is handed over; the worker lists them.

@@ -69,7 +69,7 @@ An SOP is a saved skill in a fixed shape that the `sops` skill can run step by s
 
 Everything above applies: save one only when the user asks or accepts, in the same two places, with only what they said. In addition:
 
-- Name it `sop-<title>`, such as `sop-release` or `sop-bug-fix`. A title that matches a bundled SOP (`investigation`, `bug-fix`, `feature`, `refactoring`, `opening-a-pr`) replaces it for this user or repository; say so when that happens.
+- Name it `sop-<title>`, such as `sop-release` or `sop-bug-fix`. A title that matches a bundled SOP (`investigation`, `bug-fix`, `feature`, `refactoring`, `opening-a-pr`, `change-review`) replaces it for this user or repository; say so when that happens.
 - Start `description` with "SOP:" and say when to run it, so it can be matched to work and listed.
 - Use exactly these sections. `## Steps` is a numbered list from 1 in the user's order; a step may name a skill to load or say "Run the <title> SOP". `## Done when` lists observable results. `## Reply` says what the result message contains.
 - A step may cite one of the constitution's Articles by number and title, such as "(Article 5)", when the user's step rests on it. Do not copy the Article's text.

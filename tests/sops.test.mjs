@@ -58,12 +58,37 @@ test('every bundled SOP has the shape, is listed in the router and names only sh
   }
 });
 
+test('change review covers PRs, MRs and Jira without speculative findings or publication', async () => {
+  const text = await read('skills/sops/procedures/change-review.md');
+  for (const pattern of [
+    /pull request or merge request/,
+    /investigate any linked Jira issue/,
+    /Record each linked issue you cannot open/,
+    /AI isms: extra validation gates/,
+    /code for problems that are not there/,
+    /Keep required validation and real edge cases; drop unsupported findings/,
+    /Every finding names a file and line/,
+    /No file was changed and nothing was posted/,
+  ]) assert.match(text, pattern);
+});
+
+test('a saved change-review SOP replaces the bundled example without a reserved-name error', async t => {
+  const root = await project(t, {
+    '.github/skills/sop-change-review/SKILL.md': saved('sop-change-review'),
+  });
+  const result = await checkRoots([root]);
+  assert.deepEqual(result.errors, []);
+  assert.deepEqual(result.sops, ['sop-change-review']);
+  assert.equal(result.warnings.length, 1);
+  assert.match(result.warnings[0], /replaces Concierge's bundled "change-review" SOP/);
+});
+
 test('the worker reaches SOPs through its skill table and records the one it runs', async () => {
   const worker = await read('com.github.copilot/agents/worker.agent.md');
   const router = await read('skills/sops/SKILL.md');
   const handoff = await read('references/handoff.md');
   assert.ok(CONCIERGE_SKILLS.includes('sops'));
-  assert.match(worker, /\| The user names an SOP, asks which exist, or work beyond the fast path is an investigation, bug fix, feature, refactoring or pull request \| `sops` \|/);
+  assert.match(worker, /\| The user names an SOP, asks which exist, or work beyond the fast path is an investigation, bug fix, feature, refactoring, pull request or change review \| `sops` \|/);
   assert.match(worker, /"sop": \{"title": "", "source": "bundled \| <saved skill name> \| none", "step": 0\}/);
   assert.match(handoff, /\| `sop` \| The SOP being run, where it came from and the current step/);
   for (const pattern of [
