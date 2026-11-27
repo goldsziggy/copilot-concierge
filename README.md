@@ -6,7 +6,7 @@ Tell Concierge what you want done. It answers simple questions itself, briefs a 
 
 Concierge is a native plugin for **GitHub Copilot CLI and the GitHub Copilot app**. It adds no service, no credentials and no permission bypass: it is two agent profiles and 18 skills that run on Copilot's own agents, tools and permissions.
 
-The main branch tracks **0.12.1**. For a published build, see the [latest GitHub release](https://github.com/goldsziggy/copilot-concierge/releases/latest); main may contain changes not yet included there.
+The main branch tracks **0.12.2**. For a published build, see the [latest GitHub release](https://github.com/goldsziggy/copilot-concierge/releases/latest); main may contain changes not yet included there.
 
 ## Why choose Concierge
 

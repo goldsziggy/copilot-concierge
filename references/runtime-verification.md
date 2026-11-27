@@ -1,5 +1,11 @@
 # Runtime verification
 
+## Concierge 0.12.2: presentation fix after a headed session - 2026-11-27
+
+Reported by the maintainer, not reproduced here: in a headed session on Harbinger, JSON was shown to the user. The version, the prompt and the JSON itself were not captured. Two paths could cause it: the entry agent pasting part of a report, whose `progress` field is a JSON object, or the host displaying the worker's output directly. Which one occurred is not known.
+
+The fix constrains both: the entry agent writes its replies and shows no JSON or report fields, and the worker's report leads with a plain-language `message` and ends with `progress`. Static checks only; the fix has not been observed in a headed session, and if the host displays the worker's output, the trailing `progress` line can still be visible there.
+
 ## Concierge 0.12.1: worker prefers Fusion - 2026-11-26
 
 No live run. The worker's profile changed from `gpt-6.1-sol` to `model: auto`. Static checks on Linux with Node 26.13.0: `npm test` ran 170 tests: 157 passed, 0 failed, 13 native Windows skips; `npm run validate`, `npm run catalog:check` and `npm run package` passed. Not observed: which model the worker actually runs on, and whether its calls are Fusion-routed. The only evidence is SDK trial B on 0.10.0, where a sub-agent set to `auto` ran on GPT-6 Luna without Fusion routing.

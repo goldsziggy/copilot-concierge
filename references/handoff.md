@@ -106,8 +106,14 @@ objective: <objective name>: <one line>
 objective-id: <stable ID, unchanged across rollover/resume>
 plan approval: <ask|auto>: <source>
 autonomy: <guided|full>: <source>
+
+message:
+<questions with a recommended answer, the plan, or the result and how each follow-up was handled>
+
 decided for the user:
 - <full autonomy: every ordinary question you settled, one per line as <choice>: <why>; write none when there were none or autonomy is guided>
+suggestions:
+- <up to three grounded next steps with a one-line reason, or none>
 tasks:
 - [x] done item
 - [/] item in progress
@@ -116,13 +122,13 @@ tasks:
 
 progress:
 <the progress object, on one line>
-
-suggestions:
-- <up to three grounded next steps with a one-line reason, or none>
-
-message:
-<questions with a recommended answer, the plan, or the result and how each follow-up was handled>
 ```
+
+The `message` comes first and is written for the user in plain language, because some hosts show the worker's output directly. The `progress` object is the only JSON in a report and is always last.
+
+## What the user sees
+
+The entry agent writes its own reply from the report; it never pastes one. A reply contains no JSON, no report field names and no `CONCIERGE-REPORT` marker: only the outcome, how it was verified, what was decided for the user, what is left, and any next steps. It leads with the outcome in one sentence, keeps to short paragraphs or a short list, puts paths and commands in backticks, and uses no table or heading for a short reply. The one machine-readable line is the `CONCIERGE-RESULT` last line.
 
 Task lines must start with `- ` or Copilot does not count them. The Concierge entry agent copies the `tasks` lines into the root to-do list unchanged, prefixed with the objective name when several objectives are open. The worker also mirrors them into the session's `todos` table (ids `<objective>/<slug>`), which Copilot's plan and todo views read.
 

@@ -9,9 +9,22 @@ This procedure belongs to the Concierge entry agent. Your agent profile keeps yo
 
 ## Reading a report
 
-Read the newest turn with `read_agent` (`since_turn`). Each report starts with `CONCIERGE-REPORT`, then `status`, `objective`, `objective-id`, the `plan approval` and `autonomy` lines, a `decided for the user` block, a `tasks` checklist, a `progress` object, `suggestions` and a `message` for the user. Match the report to its objective-id before changing anything. Keep the `progress` object for follow-ups, rollover and resume; never show it to the user.
+Read the newest turn with `read_agent` (`since_turn`). Each report starts with `CONCIERGE-REPORT`, then `status`, `objective`, `objective-id`, the `plan approval` and `autonomy` lines, a `message` for the user, a `decided for the user` block, `suggestions`, a `tasks` checklist and, last, a `progress` object. Match the report to its objective-id before changing anything. Keep the `progress` object for follow-ups, rollover and resume; never show it to the user.
 
 Update the root list with `update_todo` from the `tasks` lines, copied line for line: same wording, same markers (`- [ ]`, `- [/]`, `- [x]`, `- [-]`); add the leading `- ` if a line lacks it. When more than one objective is open, prefix each line with its objective name and keep the latest lines of every open objective, so one report never erases another objective's items. Drop an objective's lines once it is done and another objective has reported since. The worker mirrors its own tasks into the session's todo tables; you do not write those.
+
+## What the user sees
+
+A report is your source, never your reply. Write the reply yourself, in plain language, from the report's `message`, `decided for the user` and `suggestions`.
+
+- Never show JSON, braces, the `progress` object or any part of it, a report field name such as `status:` or `objective-id:`, the `CONCIERGE-REPORT` marker, or a task or handoff id. Do not quote or paste a report, in full or in part.
+- Lead with the outcome in one sentence. Then how it was verified, what was decided for the user, and what is left.
+- Keep it short: a few sentences, or a short bulleted list when there are several items. No heading or table for a short reply.
+- Put file paths, commands and names from the code in backticks. Explain rather than label: "tests pass" with the command, not a status word.
+- A plan awaiting approval is the one thing shown as written: keep its labels and line breaks.
+- The only machine-readable text in a reply is the `CONCIERGE-RESULT` last line.
+
+If a report's `message` itself contains JSON or field names, rewrite it in plain language from what it says; do not pass it through.
 
 ## By status
 

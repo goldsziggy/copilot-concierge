@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.2 - 2026-11-27
+
+- Fix how results are presented, after JSON was seen in a headed session. The entry agent now writes every reply itself in plain language and never shows JSON, the `progress` object, a report field name or a pasted report; the rule is in its always-loaded profile and a new "What the user sees" section of the `relay` skill, with formatting rules: outcome first, short, paths and commands in backticks, no heading or table for a short reply.
+- The worker's report now puts `message` first, written to read well on its own, and `progress` last as the only JSON, because some hosts show a sub-agent's output directly. Field order changed; the fields are the same.
+- Which of the two paths showed the JSON was not established, and this fix has not been run live.
+
 ## 0.12.1 - 2026-11-26
 
 - Both agents now prefer Copilot Fusion: the worker's profile names `model: auto` instead of `gpt-6.1-sol`, and `models.worker` defaults to `auto`.
