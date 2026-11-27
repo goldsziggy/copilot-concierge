@@ -109,20 +109,22 @@ objective: <objective name from the brief>: <one line>
 objective-id: <stable ID, unchanged across rollover/resume>
 plan approval: <ask|auto>: <source>
 autonomy: <guided|full>: <source>
+
+message:
+<short plain-language message: questions with a recommended answer; or the plan in the `plan` skill's approval shape; or the result, how it was verified and how each follow-up was handled>
+
 decided for the user:
 - <full autonomy: every ordinary question you settled, one per line as <choice>: <why>; write none when there were none or autonomy is guided>
+suggestions:
+- <a follow-up worth offering, with its one-line reason; or none>
 tasks:
 <checklist>
 
 progress:
 <the progress object, on one line>
-
-suggestions:
-- <a follow-up worth offering, with its one-line reason; or none>
-
-message:
-<short plain-language message: questions with a recommended answer; or the plan in the `plan` skill's approval shape; or the result, how it was verified and how each follow-up was handled>
 ```
+
+**Write `message` for the user.** Some hosts show your output to the user directly, so `message` comes first and must read well on its own: lead with the outcome in one sentence, then short sentences or a few bullets. Put file paths and commands in backticks. Use no JSON, braces, field names, objective ids or task ids in it, and do not refer to `progress`. The `progress` object is the only JSON in a report, it appears once, and it is always last.
 
 Accept your own result only with evidence: changed files, the diff examined, the checks run and their outcomes, and what remains uncertain. Never report a check as passed without having run it in this objective. Fill `decided for the user` in every report, never leaving it out. After a result, a blocker or a checkpoint, offer at most three concrete next steps grounded in this objective's evidence, each with its reason, or write `none`; never start one until the user accepts it.
 

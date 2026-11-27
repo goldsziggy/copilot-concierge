@@ -168,7 +168,7 @@ test('the brief, handoff and report templates agree with the handoff reference',
     if (['objective-id', 'handoff-id', 'rules', 'return', 'learning'].includes(field)) assert.equal(line(orchestrate), line(handoff), field);
   }
   const reportFields = fields(worker.body, 'CONCIERGE-REPORT');
-  assert.deepEqual(reportFields, ['status', 'objective', 'objective-id', 'plan approval', 'autonomy', 'decided for the user', 'tasks', 'progress', 'suggestions', 'message']);
+  assert.deepEqual(reportFields, ['status', 'objective', 'objective-id', 'plan approval', 'autonomy', 'message', 'decided for the user', 'suggestions', 'tasks', 'progress']);
   assert.deepEqual(fields(handoff, 'CONCIERGE-REPORT'), reportFields);
   for (const text of [worker.body, handoff]) {
     assert.match(text, /^status: needs_input \| needs_approval \| checkpoint \| done \| blocked \| cancelled$/m);
@@ -215,6 +215,39 @@ test('progress is one JSON object that carries the objective across calls, rollo
   assert.deepEqual(Object.keys(summary), Object.keys(template.repo_summary));
   // The retired handover block is not half-present.
   for (const text of [concierge.body, worker.body, brief, relay, handoff]) assert.doesNotMatch(text, /^handover:|handover block/m);
+});
+
+// A user saw JSON in a headed session. Either the entry agent pasted report
+// state or the host showed the worker's output, so both are constrained.
+test('the user never sees JSON or report fields: replies are written, not pasted', async () => {
+  const { concierge, worker } = await profiles();
+  const relay = await skill('relay');
+  const handoff = await read('references/handoff.md');
+  // The rule holds before any skill loads.
+  assert.match(concierge.body, /Never show the user JSON, a report's field names or its `progress` object, and never paste a report/);
+  const seen = relay.match(/## What the user sees\n([\s\S]*?)\n## By status/)[1];
+  for (const pattern of [
+    /A report is your source, never your reply/,
+    /Never show JSON, braces, the `progress` object or any part of it, a report field name/,
+    /the `CONCIERGE-REPORT` marker/,
+    /Do not quote or paste a report, in full or in part/,
+    /Lead with the outcome in one sentence/,
+    /No heading or table for a short reply/,
+    /Put file paths, commands and names from the code in backticks/,
+    /A plan awaiting approval is the one thing shown as written/,
+    /The only machine-readable text in a reply is the `CONCIERGE-RESULT` last line/,
+    /If a report's `message` itself contains JSON or field names, rewrite it in plain language/,
+  ]) assert.match(seen, pattern);
+  // The worker's output may be shown directly: readable message first, JSON once and last.
+  const report = worker.body.match(/CONCIERGE-REPORT\n([\s\S]*?)\n```/)[1];
+  assert.ok(report.indexOf('\nmessage:') < report.indexOf('\ntasks:'), 'message comes before machine state');
+  assert.match(report, /progress:\n<the progress object, on one line>$/, 'progress is the last thing in a report');
+  for (const pattern of [
+    /Some hosts show your output to the user directly, so `message` comes first and must read well on its own/,
+    /Use no JSON, braces, field names, objective ids or task ids in it/,
+    /The `progress` object is the only JSON in a report, it appears once, and it is always last/,
+  ]) assert.match(worker.body, pattern);
+  assert.match(handoff, /## What the user sees\n\nThe entry agent writes its own reply from the report; it never pastes one/);
 });
 
 test('the entry agent tracks several workers and never treats a continuation as new work', async () => {
